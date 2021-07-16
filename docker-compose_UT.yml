@@ -66,6 +66,8 @@ services:
         EII_VERSION: ${EII_VERSION}
     read_only: true
     image: ${DOCKER_REGISTRY}uwc_test_common:${EII_VERSION}
+    environment:
+      CMAKE_INSTALL_PREFIX: ${EII_INSTALL_PATH}
 
   ia_etcd_ui:
     depends_on:
@@ -82,7 +84,6 @@ services:
     image: ${DOCKER_REGISTRY}ia_etcd_ui:${EII_VERSION}
     container_name: ia_etcd_ui
     hostname: ia_etcd_ui
-    network_mode: host
     restart: unless-stopped
     security_opt:
     - no-new-privileges
@@ -98,10 +99,15 @@ services:
       ETCD_HOST: ${ETCD_HOST}
       ETCD_CLIENT_PORT: ${ETCD_CLIENT_PORT}
       ETCD_PREFIX: ${ETCD_PREFIX}
+    networks:
+      - eii
     volumes:
     - "vol_etcd_keeper:/tmp/nginx"
     user: ${EII_UID}
     ipc: "none"
+    ports:
+      - 7071:7071
+      - 7070:7070
     secrets:
     - ca_etcd
     - etcd_EtcdUI_cert
@@ -125,7 +131,6 @@ services:
     image: ${DOCKER_REGISTRY}ia_eii_zmq_broker:${EII_VERSION}
     container_name: ia_eii_zmq_broker
     hostname: ia_eii_zmq_broker
-    network_mode: host
     restart: unless-stopped
     user: ${EII_UID}
     security_opt:
@@ -141,6 +146,8 @@ services:
       ETCD_HOST: ${ETCD_HOST}
       ETCD_CLIENT_PORT: ${ETCD_CLIENT_PORT}
       ETCD_PREFIX: ${ETCD_PREFIX}
+    networks:
+      - eii
     volumes:
     - "vol_eii_socket:${SOCKET_DIR}"
     secrets:
@@ -161,7 +168,6 @@ services:
     image: ${DOCKER_REGISTRY}mqtt_test_container:${EII_VERSION}
     container_name: mqtt_test_container
     hostname: mqtt_test_container
-    network_mode: host
     read_only: true
     restart: unless-stopped
     logging:
@@ -182,6 +188,8 @@ services:
     - broker_key
     security_opt:
     - no-new-privileges
+    networks:
+      - eii
     ulimits:
       nproc: 65535
       nofile:
@@ -210,7 +218,6 @@ services:
     image: ${DOCKER_REGISTRY}mqtt-bridge-test:${EII_VERSION}
     container_name: mqtt-bridge-test
     hostname: mqtt-bridge-test
-    network_mode: host
     # restart: unless-stopped
     ulimits:
       rtprio:
@@ -235,6 +242,8 @@ services:
       # general topics
       mqtt_SubReadTopic: "/+/+/+/read"
       mqtt_SubWriteTopic: "/+/+/+/write"
+    networks:
+      - eii
     logging:
       driver: "json-file"
       options:
@@ -278,7 +287,6 @@ services:
     image: ${DOCKER_REGISTRY}modbus-tcp-master-test:${EII_VERSION}
     container_name: modbus-tcp-master-test
     hostname: modbus-tcp-master-test
-    network_mode: host
     # read_only: true
     # restart: unless-stopped
     ulimits:
@@ -300,6 +308,8 @@ services:
       PROFILING_MODE: ${PROFILING_MODE}
       NETWORK_TYPE: TCP
       DEVICES_GROUP_LIST_FILE_NAME: "Devices_group_list.yml"
+    networks:
+      - eii
     logging:
       driver: "json-file"
       options:
@@ -341,7 +351,6 @@ services:
     image: ${DOCKER_REGISTRY}modbus-rtu-master-test:${EII_VERSION}
     container_name: modbus-rtu-master-test
     hostname: modbus-rtu-master-test
-    network_mode: host
     # read_only: true
     # restart: unless-stopped
     ulimits:
@@ -364,6 +373,8 @@ services:
       PROFILING_MODE: ${PROFILING_MODE}
       NETWORK_TYPE: RTU
       DEVICES_GROUP_LIST_FILE_NAME: "Devices_group_list.yml"
+    networks:
+      - eii
     logging:
       driver: "json-file"
       options:
@@ -409,7 +420,6 @@ services:
     image: ${DOCKER_REGISTRY}sparkplug-bridge-test:${EII_VERSION}
     container_name: sparkplug-bridge-test
     hostname: sparkplug-bridge-test
-    network_mode: host
     restart: unless-stopped
     ulimits:
      rtprio:
@@ -430,6 +440,8 @@ services:
       CertType: "zmq"
       BUILD_NUMBER: ${BUILD_NUMBER}
       PROFILING_MODE: ${PROFILING_MODE}
+    networks:
+      - eii
     logging:
         driver: "json-file"
         options:
@@ -474,13 +486,14 @@ services:
     image: ${DOCKER_REGISTRY}kpi-tactic-test:${EII_VERSION}
     container_name: kpi-tactic-test
     hostname: kpi-tactic-test
-    network_mode: host
     # read_only: true
     # restart: unless-stopped
     ulimits:
       rtprio:
         soft: "99" # these are the maximum values of priorites to be used inside the container application
         hard: "99"
+    networks:
+      - eii
     environment:
       AppName: "KPIAPP"
       ETCD_HOST: ${ETCD_HOST}
@@ -540,7 +553,6 @@ services:
     image: ${DOCKER_REGISTRY}uwc-util-test:${EII_VERSION}
     container_name: uwc-util-test
     hostname: uwc-util-test
-    network_mode: host
     # read_only: true
     ulimits:
      rtprio:
@@ -555,6 +567,8 @@ services:
       no_proxy: ${eii_no_proxy}
       CertType: "zmq"
     # user: ${EII_UID}  
+    networks:
+      - eii
     volumes:
       - "${EII_INSTALL_PATH}/uwc_data:/opt/intel/eii/uwc_data:ro"
       - "vol_uwc_socket:${SOCKET_DIR}:z"
@@ -564,6 +578,11 @@ services:
       - ca_etcd
       - etcd_UWCUTIL_cert
       - etcd_UWCUTIL_key
+
+networks:
+  eii:
+    external:
+      name: eii
 
 volumes:
   vol_eii_socket:

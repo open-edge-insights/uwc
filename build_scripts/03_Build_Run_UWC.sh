@@ -42,15 +42,25 @@ source uwc_common_lib.sh
 build_run_UWC()
 {
     cd "${eii_build_dir}"
-    docker-compose up --build -d
+    docker-compose -f docker-compose-build.yml build
     if [ "$?" -eq "0" ];then
 	echo "*****************************************************************"
-        echo "${GREEN}Installed UWC containers successfully.${NC}"
+        echo "${GREEN}UWC containers built successfully.${NC}"
     else
-        echo "${RED}Failed to install UWC containers.${NC}"
+        echo "${RED}Failed to built  UWC containers.${NC}"
 	echo "*****************************************************************"
         exit 1
     fi
+    docker-compose up -d
+    if [ "$?" -eq "0" ];then
+        echo "*****************************************************************"
+        echo "${GREEN}Installed UWC containers successfully.${NC}"
+    else
+        echo "${RED}Failed to install UWC containers.${NC}"
+        echo "*****************************************************************"
+        exit 1
+    fi
+    
     return 0
 }
 

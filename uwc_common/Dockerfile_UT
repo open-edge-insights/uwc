@@ -57,8 +57,10 @@ COPY --from=uwc_test_common /EII/googletest-release-1.8.0/googletest/include/gte
 COPY --from=uwc_test_common /EII/googletest-release-1.8.0/build/googlemock/gtest/libg* /usr/local/lib/
 COPY --from=uwc_test_common /usr/ssl/lib/* /usr/local/lib/
 COPY --from=uwc_test_common /usr/ssl/include/* /usr/local/include/
-COPY --from=build-tahu /EII/tahu/client_libraries/c/lib/libtahu.so /uwc_util/lib/
-COPY --from=build-tahu /EII/tahu/client_libraries/c/include/* /uwc_util/include/tahu/
+COPY --from=build-tahu /tahu/client_libraries/c/lib/libtahu.so /uwc_util/lib/
+COPY --from=build-tahu /tahu/client_libraries/c/include/* /uwc_util/include/tahu/
+COPY --from=uwc_test_common $CMAKE_INSTALL_PREFIX/include /usr/local/include
+COPY --from=uwc_test_common $CMAKE_INSTALL_PREFIX/lib /usr/local/lib
 
 # compile uwc-util sources for 
 RUN cd /uwc_util/Build.test \

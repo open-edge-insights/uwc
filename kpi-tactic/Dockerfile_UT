@@ -46,6 +46,10 @@ COPY --from=uwc_test_common /EII/googletest-release-1.8.0/build/googlemock/gtest
 COPY --from=uwc_test_common /uwc_util/Release/libuwc-common.so /KPIApp/lib/
 COPY --from=uwc_test_common /uwc_util/include/* /KPIApp/include/
 
+COPY --from=uwc_test_common $CMAKE_INSTALL_PREFIX/include /usr/local/include
+COPY --from=uwc_test_common $CMAKE_INSTALL_PREFIX/lib /usr/local/lib
+COPY --from=uwc_test_common $CMAKE_INSTALL_PREFIX/lib /KPIApp/lib
+COPY --from=uwc_test_common $CMAKE_INSTALL_PREFIX/include /KPIApp/include
 
 # build sources
 RUN cd /KPIApp/Build.test \

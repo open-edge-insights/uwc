@@ -35,7 +35,6 @@ services:
     image: ${DOCKER_REGISTRY}modbus-rtu-master:${EII_VERSION}
     container_name: modbus-rtu-master
     hostname: modbus-rtu-master
-    network_mode: host
     read_only: true
     restart: unless-stopped
     ulimits:
@@ -49,7 +48,7 @@ services:
       ETCD_CLIENT_PORT: ${ETCD_CLIENT_PORT}
       ETCD_PREFIX: ${ETCD_PREFIX}
       DEV_MODE: ${DEV_MODE}
-      no_proxy: ${eii_no_proxy}
+      no_proxy: ${eii_no_proxy},${ETCD_HOST}
       Log4cppPropsFile: "/opt/intel/config/log4cpp.properties"
       MY_APP_ID: 2
       CUTOFF_INTERVAL_PERCENTAGE: 90
@@ -58,6 +57,8 @@ services:
       PROFILING_MODE: ${PROFILING_MODE}
       NETWORK_TYPE: RTU
       DEVICES_GROUP_LIST_FILE_NAME: "Devices_group_list.yml"
+    networks:
+      - eii
     logging:
       driver: "json-file"
       options:

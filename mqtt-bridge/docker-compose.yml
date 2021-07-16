@@ -36,7 +36,6 @@ services:
     image: ${DOCKER_REGISTRY}mqtt-bridge:${EII_VERSION}
     container_name: mqtt-bridge
     hostname: mqtt-bridge
-    network_mode: host
     read_only: true
     restart: unless-stopped
     ulimits:
@@ -46,13 +45,13 @@ services:
     environment:
       AppName: "MQTT_Bridge"
       DEV_MODE: ${DEV_MODE}
-      no_proxy: ${eii_no_proxy}
+      no_proxy: ${eii_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
       ETCD_CLIENT_PORT: ${ETCD_CLIENT_PORT}
       ETCD_PREFIX: ${ETCD_PREFIX}
       Log4cppPropsFile: "/opt/intel/config/log4cpp.properties"
       ZMQ_RECV_HWM: "1000"
-      MQTT_URL_FOR_EXPORT: "${MQTT_PROTOCOL}://127.0.0.1:11883"
+      MQTT_URL_FOR_EXPORT: "${MQTT_PROTOCOL}://mqtt_container:11883"
       ReadRequest: MQTT_Export_RdReq
       WriteRequest: MQTT_Export_WrReq
       ReadRequest_RT: RT_MQTT_Export_RdReq_RT
@@ -69,6 +68,10 @@ services:
         max-size: "10m"
     user: ${EII_UID}
     # userns_mode: host
+    networks:
+      - eii    
+    ports:
+      - 63514:63514      
     volumes:
     - "vol_uwc_socket:${SOCKET_DIR}"
     - "${EII_INSTALL_PATH}/uwc_data/common_config:${EII_INSTALL_PATH}/uwc_data/common_config:ro"

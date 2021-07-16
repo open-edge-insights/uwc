@@ -37,7 +37,6 @@ services:
       image: ${DOCKER_REGISTRY}kpi-tactic:${EII_VERSION}
       container_name: kpi-tactic-app
       hostname: kpi-tactic
-      network_mode: host
       read_only: true
       ulimits:
        rtprio:
@@ -47,7 +46,7 @@ services:
         AppName: "KPIAPP"
         ETCD_HOST: ${ETCD_HOST}
         DEV_MODE: ${DEV_MODE}
-        no_proxy: ${eii_no_proxy}
+        no_proxy: ${eii_no_proxy},${ETCD_HOST}
         ETCD_CLIENT_PORT: ${ETCD_CLIENT_PORT}
         ETCD_PREFIX: ${ETCD_PREFIX}
         Log4cppPropsFile: "/opt/intel/config/log4cpp.properties"
@@ -65,6 +64,8 @@ services:
               max-file: "3"
               max-size: "10m"
       user: ${EII_UID}
+      networks:
+        - eii
       volumes:
       - "vol_uwc_socket:${SOCKET_DIR}:z"
       - "${EII_INSTALL_PATH}/uwc_data:/opt/intel/eii/uwc_data:ro"

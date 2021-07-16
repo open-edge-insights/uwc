@@ -60,7 +60,11 @@ COPY --from=uwc_test_common /usr/paho-cpp/include/mqtt /usr/local/include/mqtt
 
 RUN cp /Modbus-App/lib/* /usr/local/lib/
 RUN sed -i 's/-DMODBUS_STACK_TCPIP_ENABLED//g' /Modbus-App/Build.test/src/subdir.mk 
-RUN sed -i 's/-DMODBUS_STACK_TCPIP_ENABLED//g' /Modbus-App/Build.test/Test/src/subdir.mk 
+RUN sed -i 's/-DMODBUS_STACK_TCPIP_ENABLED//g' /Modbus-App/Build.test/Test/src/subdir.mk
+
+COPY --from=uwc_test_common ${CMAKE_INSTALL_PREFIX}/include /usr/local/include
+COPY --from=uwc_test_common ${CMAKE_INSTALL_PREFIX}/lib /usr/local/lib
+COPY --from=uwc_test_common $CMAKE_INSTALL_PREFIX/lib /Modbus-App/lib
 RUN cd /Modbus-App/Build.test \
     &&	export LD_LIBRARY_PATH='/Modbus-App/lib:/usr/local/lib\
     :/bin/yaml-cpp/lib' \

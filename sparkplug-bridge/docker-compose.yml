@@ -37,7 +37,6 @@ services:
     image: ${DOCKER_REGISTRY}sparkplug-bridge:${EII_VERSION}
     container_name: sparkplug-bridge
     hostname: sparkplug-bridge
-    network_mode: host
     read_only: true
     restart: unless-stopped
     ulimits:
@@ -47,7 +46,7 @@ services:
     environment:
       AppName: "SPARKPLUG-BRIDGE"
       DEV_MODE: ${DEV_MODE}
-      no_proxy: ${eii_no_proxy}
+      no_proxy: ${eii_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
       ETCD_CLIENT_PORT: ${ETCD_CLIENT_PORT}
       ETCD_PREFIX: ${ETCD_PREFIX}
@@ -84,6 +83,10 @@ services:
       timeout: 30s
       retries: 3
       start_period: 0s
+    networks:
+      - eii      
+    ports:
+      - 63520:63520
 
 volumes:      
   vol_uwc_socket:

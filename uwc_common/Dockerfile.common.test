@@ -120,6 +120,11 @@ RUN	cp -r /usr/yaml/include/* /uwc_util/include/yaml-cpp/ \
 	&& cp -r /usr/paho-cpp/lib/lib* /uwc_util/lib/ \
 	&& cp -r /usr/lib/libpaho* /uwc_util/lib/
 
+RUN cp -r  $CMAKE_INSTALL_PREFIX/include /usr/local/include \
+    && cp -r  $CMAKE_INSTALL_PREFIX/lib /usr/local/lib \
+    && cp -r $CMAKE_INSTALL_PREFIX/lib/* /uwc_util/lib \
+    && cp -r $CMAKE_INSTALL_PREFIX/include/* /uwc_util/include
+
 # compile wuc-lib sources
 RUN cd /uwc_util/Release \
     &&	export LD_LIBRARY_PATH='/uwc_util/lib' \

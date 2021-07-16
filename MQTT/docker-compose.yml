@@ -34,7 +34,6 @@ services:
     image: ${DOCKER_REGISTRY}mqtt_container:${EII_VERSION}
     container_name: mqtt_container
     hostname: mqtt_container
-    network_mode: host
     read_only: true
     restart: unless-stopped
     logging:
@@ -68,7 +67,10 @@ services:
       timeout: 30s
       retries: 3
       start_period: 0s
-
+    networks:
+      - eii
+    ports:
+      - 11883:11883
 secrets:
   ca_broker:
     file: provision/Certificates/ca/ca_certificate.pem

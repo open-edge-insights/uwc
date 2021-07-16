@@ -53,10 +53,12 @@ COPY --from=uwc_test_common /EII/log4cpp/build/include/log4cpp /SPARKPLUG-BRIDGE
 COPY --from=uwc_test_common /EII/log4cpp/build/lib/* /SPARKPLUG-BRIDGE/lib/
 COPY --from=uwc_test_common /EII/googletest-release-1.8.0/googletest/include/gtest /usr/local/include/gtest
 COPY --from=uwc_test_common /EII/googletest-release-1.8.0/build/googlemock/gtest/libg* /usr/local/lib/
-COPY --from=build-tahu /EII/tahu/client_libraries/c/lib/libtahu.so /SPARKPLUG-BRIDGE/lib/
-COPY --from=build-tahu /EII/tahu/client_libraries/c/include/* /SPARKPLUG-BRIDGE/include/tahu/
+COPY --from=build-tahu /tahu/client_libraries/c/lib/libtahu.so /SPARKPLUG-BRIDGE/lib/
+COPY --from=build-tahu /tahu/client_libraries/c/include/* /SPARKPLUG-BRIDGE/include/tahu/
 COPY --from=uwc_test_common /uwc_util/Release/libuwc-common.so /SPARKPLUG-BRIDGE/lib/
 COPY --from=uwc_test_common /uwc_util/include/* /SPARKPLUG-BRIDGE/include/
+COPY --from=uwc_test_common $CMAKE_INSTALL_PREFIX/include /usr/local/include
+COPY --from=uwc_test_common $CMAKE_INSTALL_PREFIX/lib /usr/local/lib
 
 RUN cd /SPARKPLUG-BRIDGE/Build.test \
     &&	export LD_LIBRARY_PATH='/SPARKPLUG-BRIDGE/lib:/usr/local/lib' \

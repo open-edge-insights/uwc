@@ -1,4 +1,4 @@
-AppName:
+AppContexts:
 - EtcdUI
 - ZmqBroker
 - uwc/uwc_common

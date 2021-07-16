@@ -36,9 +36,8 @@ RUN apt-get update && apt-get install -y libmosquitto-dev \
 # Build SPARKPLUG-BRIDGE application
 FROM ia_common:$EII_VERSION as sparkplug-bridge
 WORKDIR /
-
 # copy required dependencies
-COPY SPARKPLUG-BRIDGE /SPARKPLUG-BRIDGE/. 
+COPY SPARKPLUG-BRIDGE /SPARKPLUG-BRIDGE/.
 COPY --from=uwc_common /usr/yaml/include/yaml-cpp /usr/local/include/yaml-cpp
 COPY --from=uwc_common /usr/yaml/lib/* /usr/local/lib/
 COPY --from=uwc_common /usr/paho-cpp/lib/lib* /SPARKPLUG-BRIDGE/lib/
@@ -49,10 +48,13 @@ COPY --from=uwc_common /usr/paho-cpp/include/mqtt /usr/local/include/mqtt
 COPY --from=uwc_common /usr/include/MQTT* /SPARKPLUG-BRIDGE/include/
 COPY --from=uwc_common /EII/log4cpp/build/include/log4cpp /SPARKPLUG-BRIDGE/include/log4cpp
 COPY --from=uwc_common /EII/log4cpp/build/lib/* /SPARKPLUG-BRIDGE/lib/
-COPY --from=build-tahu /EII/tahu/client_libraries/c/lib/libtahu.so /SPARKPLUG-BRIDGE/lib/
-COPY --from=build-tahu /EII/tahu/client_libraries/c/include/* /SPARKPLUG-BRIDGE/include/tahu/
+COPY --from=build-tahu /tahu/client_libraries/c/lib/libtahu.so /SPARKPLUG-BRIDGE/lib/
+COPY --from=build-tahu /tahu/client_libraries/c/include/* /SPARKPLUG-BRIDGE/include/tahu/
 COPY --from=uwc_common /uwc_util/Release/libuwc-common.so /SPARKPLUG-BRIDGE/lib/
 COPY --from=uwc_common /uwc_util/include/* /SPARKPLUG-BRIDGE/include/
+COPY --from=uwc_common $CMAKE_INSTALL_PREFIX/include /usr/local/include
+COPY --from=uwc_common $CMAKE_INSTALL_PREFIX/lib /usr/local/lib
+COPY --from=uwc_common $CMAKE_INSTALL_PREFIX/lib /SPARKPLUG-BRIDGE/lib
 
 # build sources
 RUN cd /SPARKPLUG-BRIDGE/Release \
@@ -82,8 +84,10 @@ COPY --from=uwc_common /usr/paho-cpp/lib/lib* ${APP_WORK_DIR}
 COPY --from=uwc_common /EII/log4cpp/build/lib/* ${APP_WORK_DIR}
 COPY --from=uwc_common /usr/ssl/lib/* /usr/local/lib/
 COPY --from=uwc_common /usr/ssl/include/* /usr/local/include/
-COPY --from=build-tahu /EII/tahu/client_libraries/c/lib/libtahu.so ${APP_WORK_DIR}/lib/
-COPY --from=build-tahu /EII/tahu/client_libraries/c/include/* ${APP_WORK_DIR}/include/tahu/
+COPY --from=build-tahu /tahu/client_libraries/c/lib/libtahu.so ${APP_WORK_DIR}/lib/
+COPY --from=build-tahu /tahu/client_libraries/c/include/* ${APP_WORK_DIR}/include/tahu/
+
+COPY --from=uwc_common $CMAKE_INSTALL_PREFIX/lib ${APP_WORK_DIR}/lib
 COPY --from=sparkplug-bridge /SPARKPLUG-BRIDGE/Config/log4cpp.properties /opt/intel/config
 COPY --from=uwc_common /uwc_util/Release/libuwc-common.so ${APP_WORK_DIR}
 

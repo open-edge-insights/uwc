@@ -40,6 +40,8 @@ COPY --from=uwc_common /EII/log4cpp/build/include/log4cpp /MQTT-Bridge/include/l
 COPY --from=uwc_common /EII/log4cpp/build/lib/* /MQTT-Bridge/lib/
 COPY --from=uwc_common /uwc_util/Release/libuwc-common.so /MQTT-Bridge/lib/
 COPY --from=uwc_common /uwc_util/include/* /MQTT-Bridge/include/
+COPY --from=uwc_common $CMAKE_INSTALL_PREFIX/include /usr/local/include
+COPY --from=uwc_common $CMAKE_INSTALL_PREFIX/lib /usr/local/lib
 
 # build sources
 RUN cd /MQTT-Bridge/Release \
@@ -70,7 +72,7 @@ COPY --from=uwc_common /usr/ssl/include/* /usr/local/include/
 COPY --from=uwc_common /EII/log4cpp/build/lib/* ${APP_WORK_DIR}
 COPY --from=mqtt-bridge /MQTT-Bridge/Config/log4cpp.properties /opt/intel/config
 COPY --from=uwc_common /uwc_util/Release/libuwc-common.so ${APP_WORK_DIR}
-
+COPY --from=uwc_common $CMAKE_INSTALL_PREFIX/lib ${APP_WORK_DIR}
 # set permissions to working dir for eiiuser
 RUN chown -R ${EII_UID}:${EII_UID} /opt/intel/config \
    && chown -R ${EII_UID}:${EII_UID} ${APP_WORK_DIR} \

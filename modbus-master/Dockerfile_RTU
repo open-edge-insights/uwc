@@ -55,6 +55,8 @@ COPY --from=uwc_common /usr/paho-cpp/include/mqtt /usr/local/include/mqtt
 
 RUN sed -i 's/-DMODBUS_STACK_TCPIP_ENABLED//g' /Modbus-App/Release/src/subdir.mk 
 #RUN sed -i 's/-DMODBUS_STACK_TCPIP_ENABLED//g' /Modbus-App/Release/src/utils/subdir.mk 
+COPY --from=uwc_common $CMAKE_INSTALL_PREFIX/include /usr/local/include
+COPY --from=uwc_common $CMAKE_INSTALL_PREFIX/lib /usr/local/lib
 
 RUN cd /Modbus-App/Release \
     &&	export LD_LIBRARY_PATH='/Modbus-App/lib:/usr/local/lib\
@@ -82,6 +84,7 @@ COPY --from=modbus-app /Modbus-App/Config/log4cpp.properties /opt/intel/config
 COPY --from=uwc_common /uwc_util/Release/libuwc-common.so ${APP_WORK_DIR}
 COPY --from=uwc_common /usr/lib/libpaho* ${APP_WORK_DIR}
 COPY --from=uwc_common /usr/paho-cpp/lib/lib* ${APP_WORK_DIR}
+COPY --from=uwc_common $CMAKE_INSTALL_PREFIX/lib ${APP_WORK_DIR}
 
 # set permissions to working dir for eiiuser
 RUN chown -R ${EII_UID}:${EII_UID} /opt/intel/config \

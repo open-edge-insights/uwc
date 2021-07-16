@@ -40,6 +40,8 @@ COPY --from=uwc_common /EII/log4cpp/build/include/log4cpp /KPIApp/include/log4cp
 COPY --from=uwc_common /EII/log4cpp/build/lib/* /KPIApp/lib/
 COPY --from=uwc_common /uwc_util/Release/libuwc-common.so /KPIApp/lib/
 COPY --from=uwc_common /uwc_util/include/* /KPIApp/include/
+COPY --from=uwc_common $CMAKE_INSTALL_PREFIX/include /usr/local/include
+COPY --from=uwc_common $CMAKE_INSTALL_PREFIX/lib /usr/local/lib
 
 # build sources
 RUN cd /KPIApp/Release \
@@ -68,7 +70,7 @@ COPY --from=uwc_common /usr/paho-cpp/lib/lib* ${APP_WORK_DIR}
 COPY --from=uwc_common /EII/log4cpp/build/lib/* ${APP_WORK_DIR}
 COPY --from=kpitactic /KPIApp/Config/log4cpp.properties /opt/intel/config
 COPY --from=uwc_common /uwc_util/Release/libuwc-common.so ${APP_WORK_DIR}
-
+COPY --from=uwc_common $CMAKE_INSTALL_PREFIX/lib  ${APP_WORK_DIR}
 # set permissions to working dir for eiiuser
 RUN chown -R ${EII_UID}:${EII_UID} /opt/intel/config \
    && chown -R ${EII_UID}:${EII_UID} ${APP_WORK_DIR} \

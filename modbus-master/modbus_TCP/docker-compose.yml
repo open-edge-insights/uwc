@@ -35,7 +35,6 @@ services:
     image: ${DOCKER_REGISTRY}modbus-tcp-master:${EII_VERSION}
     container_name: modbus-tcp-master
     hostname: modbus-tcp-master
-    network_mode: host
     read_only: true
     restart: unless-stopped
     ulimits:
@@ -49,7 +48,7 @@ services:
       ETCD_CLIENT_PORT: ${ETCD_CLIENT_PORT}
       ETCD_PREFIX: ${ETCD_PREFIX}
       DEV_MODE: ${DEV_MODE}
-      no_proxy: ${eii_no_proxy}
+      no_proxy: ${eii_no_proxy},${ETCD_HOST}
       Log4cppPropsFile: "/opt/intel/config/log4cpp.properties"
       MY_APP_ID: 1
       CUTOFF_INTERVAL_PERCENTAGE: 90
@@ -69,6 +68,8 @@ services:
     - "${EII_INSTALL_PATH}/container_logs/modbus-tcp-master:/opt/intel/app/logs"
     user: ${EII_UID}
     # userns_mode: host
+    networks:
+      - eii
     secrets:
       - ca_etcd
       - etcd_TCP_cert

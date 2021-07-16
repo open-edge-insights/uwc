@@ -42,6 +42,8 @@ COPY --from=uwc_test_common /usr/yaml/include/yaml-cpp /usr/local/include/yaml-c
 COPY --from=uwc_test_common /usr/yaml/lib/* /usr/local/lib/
 COPY --from=uwc_test_common /uwc_util/Release/libuwc-common.so /MQTT-Bridge/lib/
 COPY --from=uwc_test_common /uwc_util/include/* /MQTT-Bridge/include/
+COPY --from=uwc_test_common $CMAKE_INSTALL_PREFIX/include /usr/local/include
+COPY --from=uwc_test_common $CMAKE_INSTALL_PREFIX/lib /usr/local/lib
 
 RUN cd /MQTT-Bridge/Build.test \
     &&	export LD_LIBRARY_PATH='/MQTT-Bridge/lib:/usr/local/lib' \

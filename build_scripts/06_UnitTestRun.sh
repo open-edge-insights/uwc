@@ -106,15 +106,24 @@ set_dev_mode()
 generate_unit_test_report()
 {
     cd "${eii_build_dir}"
-    docker-compose up --build -d
+    docker-compose -f docker-compose-build.yml build 
     if [ "$?" -eq "0" ];then
 	echo "*****************************************************************"
-        echo "${GREEN}Successfully deployed unit test containers.${NC}"
+        echo "${GREEN}Unit test containers built successfully.${NC}"
     else
-        echo "${RED}Installation is failed.${NC}"
+        echo "${RED}Building unit test containers failed.${NC}"
 	echo "*****************************************************************"
         exit 1
     fi
+    docker-compose up -d
+    if [ "$?" -eq "0" ];then
+        echo "*****************************************************************"
+        echo "${GREEN}Successfully deployed unit test containers.${NC}"
+    else
+        echo "${RED}Installation of unit test conatiners is failed.${NC}"
+        echo "*****************************************************************"
+        exit 1
+    fi    
     return 0
 }
 
@@ -187,7 +196,7 @@ eii_provision()
         exit 1 # terminate and indicate error
     fi
 
-    ./provision.sh ../docker-compose.yml
+    ./provision.sh ../docker-compose.yml 
     check_for_errors "$?" "Provisioning is failed. Please check logs" \
                     "${GREEN}Provisioning is done successfully.${NC}"
     echo "${GREEN}>>>>>${NC}"

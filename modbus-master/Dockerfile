@@ -49,11 +49,12 @@ COPY --from=uwc_common /uwc_util/include/* /Modbus-App/include/
 COPY --from=uwc_common /usr/paho-cpp/lib/lib* /Modbus-App/lib/
 COPY --from=uwc_common /usr/lib/libpaho* /Modbus-App/lib/
 COPY --from=uwc_common /usr/paho-cpp/include/mqtt /usr/local/include/mqtt
+COPY --from=uwc_common ${CMAKE_INSTALL_PREFIX}/include /usr/local/include
+COPY --from=uwc_common ${CMAKE_INSTALL_PREFIX}/lib /usr/local/lib
 
 # compile modbus app sources
 RUN cd /Modbus-App/Release \
-    &&	export LD_LIBRARY_PATH='/Modbus-App/lib:/usr/local/lib\
-    :/bin/yaml-cpp/lib' \
+    &&	export LD_LIBRARY_PATH='/Modbus-App/lib:/usr/local/lib:/bin/yaml-cpp/lib' \
     &&  export INCLUDE_DIR='/bin' \
     &&	make clean all -s
 
@@ -78,6 +79,7 @@ COPY --from=modbus-app /Modbus-App/Config/log4cpp.properties /opt/intel/config
 COPY --from=uwc_common /uwc_util/Release/libuwc-common.so ${APP_WORK_DIR}
 COPY --from=uwc_common /usr/lib/libpaho* ${APP_WORK_DIR}
 COPY --from=uwc_common /usr/paho-cpp/lib/lib* ${APP_WORK_DIR}
+COPY --from=uwc_common $CMAKE_INSTALL_PREFIX/lib ${APP_WORK_DIR}
 
 # set permissions to working dir for eiiuser
 RUN chown -R ${EII_UID}:${EII_UID} /opt/intel/config \

@@ -34,7 +34,11 @@ services:
     image: ${DOCKER_REGISTRY}uwc_common:${EII_VERSION}
     environment:
       AppName: "uwc-common"
-    
+      CMAKE_INSTALL_PREFIX: ${EII_INSTALL_PATH}   
+networks:
+  eii:
+    external:
+      name: eii
 
 volumes:
   vol_eii_socket:
