@@ -75,6 +75,7 @@ struct stOnDemandRequest
 	std::string m_sDataType; /** data type*/
 	double m_dscaleFactor;
 	int m_iWidth;
+	bool m_bIsDataPersist; /** Data Persist flag **/
 
 };
 

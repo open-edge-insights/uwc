@@ -823,7 +823,19 @@ void network_info::CDataPoint::build(const YAML::Node& a_oData, CDataPoint &a_oC
 	{
 		a_oCDataPoint.m_stAddress.m_sDataType =  a_oData["attributes"]["datatype"].as<std::string>();
 	}
-
+	
+	// Assign default dataPersist value as false in case when dataPersist key is not available in datapoints.yml for the datapoint.
+	if (0 != globalConfig::validateParam(a_oData["attributes"], "dataPersist", globalConfig::DT_BOOL))
+	{
+		a_oCDataPoint.setDataPersist(false);
+	}
+	// Assign dataPersist value as specified in datapoints.yml for the datapoint.
+	else
+	{
+		bool isPersist = a_oData["attributes"]["dataPersist"].as<bool>();
+		a_oCDataPoint.setDataPersist(isPersist);
+	}
+	
 	// Check mandatory parameters
 	try
 	{

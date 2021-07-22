@@ -123,6 +123,7 @@ bool CPeriodicReponseProcessor::prepareResponseJson(msg_envelope_t** a_pMsg, std
 		msg_envelope_elem_body_t* ptWellhead = NULL;
 		msg_envelope_elem_body_t* ptMetric = NULL;
 		msg_envelope_elem_body_t* ptRealTime = NULL;
+		msg_envelope_elem_body_t* ptDataPersist = NULL;
 		msg = msgbus_msg_envelope_new(CT_JSON);
 		
 		if(MBUS_CALLBACK_POLLING == a_stResp.m_operationType || MBUS_CALLBACK_POLLING_RT == a_stResp.m_operationType)
@@ -164,6 +165,20 @@ bool CPeriodicReponseProcessor::prepareResponseJson(msg_envelope_t** a_pMsg, std
 			aScaleFactor = a_objReqData->getDataPoint().getDataPoint().getAddress().m_dScaleFactor;
 
 			aWidth = a_objReqData->getDataPoint().getDataPoint().getAddress().m_iWidth;
+			
+			// Include dataPersist flag and its value into JSON payload in case of Polling.
+			bool isDataPersist = a_objReqData->getDataPoint().getDataPoint().getDataPersist();
+			ptDataPersist = msgbus_msg_envelope_new_bool(isDataPersist);
+			if (NULL != ptDataPersist) 
+			{
+				msgbus_msg_envelope_put(msg, "dataPersist", ptDataPersist);
+			}
+			else
+			{
+				DO_LOG_ERROR("Error: memory not allocated" );
+				return FALSE;
+			}
+
 		}
 		else
 		{
@@ -208,6 +223,19 @@ bool CPeriodicReponseProcessor::prepareResponseJson(msg_envelope_t** a_pMsg, std
 
 			aWidth = stMbusApiPram.m_stOnDemandReqData.m_iWidth;
 
+			// dataPersist flag is added in modbus msgbus_msg_envelope in case of on-demand read and write request 
+			bool isDataPersist = stMbusApiPram.m_stOnDemandReqData.m_bIsDataPersist;
+			ptDataPersist = msgbus_msg_envelope_new_bool(isDataPersist);
+			if (NULL != ptDataPersist) 
+			{
+				msgbus_msg_envelope_put(msg, "dataPersist", ptDataPersist);
+			}
+			else
+			{
+				DO_LOG_ERROR("Error: memory not allocated" );
+				return FALSE;
+			}
+			
 		}
 
 		msg_envelope_elem_body_t* ptVersion = msgbus_msg_envelope_new_string("2.0");

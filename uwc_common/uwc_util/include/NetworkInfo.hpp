@@ -85,9 +85,14 @@ namespace network_info
 		struct stDataPointAddress m_stAddress; /** data point address*/
 		struct stPollingData m_stPollingConfig; /** polling configuration */
 		static eEndPointType getPointType(const std::string&);
+		// dataPersist flag for each datapoint
+		bool m_bIsDataPersist;
 		
 		public:
 		const std::string& getID() const {return m_sId;}
+		// get and set methods of Data Persistence for each Data Point
+		const bool& getDataPersist() const { return m_bIsDataPersist;}
+		void setDataPersist(const bool& a_bIsDataPersist) {  m_bIsDataPersist = a_bIsDataPersist; }
 
 		const struct stDataPointAddress& getAddress() const { return m_stAddress;}
 		const struct stPollingData& getPollingConfig() const { return m_stPollingConfig;}
