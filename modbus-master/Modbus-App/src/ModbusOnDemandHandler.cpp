@@ -764,6 +764,10 @@ eMbusAppErrorCode onDemandHandler::jsonParserForOnDemandRequest(MbusAPI_t& a_stM
 			a_stMbusApiPram.m_u16StartAddr = (uint16_t)obj.getAddress().m_iAddress;
 			a_stMbusApiPram.m_u16Quantity = (uint16_t)obj.getAddress().m_iWidth;
 
+			// Include dataPersist flag's value in struct m_stOnDemandReqData in case of On Demand Request(Read and Write)
+			// The same struct m_stOnDemandReqData is used while preparing JSON payload response for Read On Demand and Write On Demand.
+			a_stMbusApiPram.m_stOnDemandReqData.m_bIsDataPersist = obj.getDataPersist();
+			
 			network_info::eEndPointType eType = obj.getAddress().m_eType;
 
 			// Convert back the scaledValue to Hex depending on datatype, width, scalefactor of the specific datapoints
