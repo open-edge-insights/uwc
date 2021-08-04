@@ -1,0 +1,52 @@
+{
+    "config": {
+        "influxdb": {
+            "username": "admin",
+            "password": "admin123",
+            "dbname": "datain"
+        },
+        "default": {
+            "topics_info": [],
+            "queue_len": 10,
+            "num_worker": 2,
+            "profiling": "false"
+        },
+	"publisher": {
+            "measurements": ["*"],
+            "profiling": "false"
+        }
+    },
+    "interfaces": {
+        "Subscribers": [
+            {
+                "Name": "default",
+                "Type": "zmq_ipc",
+                "EndPoint": {
+                  "SocketDir": "/EII/sockets",
+                  "SocketFile": "backend-socket"
+                },
+
+                "Topics": [
+                    "*"
+                ],
+                "PublisherAppName": "ZmqBroker"
+            }
+        ],
+        "Publishers": [
+            {
+                "Name": "publisher",
+                "Type": "zmq_ipc",
+                "EndPoint": {
+                  "SocketDir": "/EII/sockets",
+                  "SocketFile": "telegraf-out"
+                },
+                "Topics": [
+                    "*"
+                ],
+                "AllowedClients": [
+                    "*"
+                ]
+            }
+        ]
+    }
+}

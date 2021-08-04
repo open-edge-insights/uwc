@@ -31,9 +31,10 @@
 6. [Verify container status](#verify-container-status)
 7. [Apply configuration changes](#apply-configuration-changes)
 8. [Uninstallation script](#uninstallation-script)
-9. [Unit Tests](#unit-tests)
-10. [Debugging steps](#debugging-steps) 
-11. [Troubleshooting](#troubleshooting)
+9. [Data Persistence feature](#Data-Persistence-feature)
+10. [Unit Tests](#unit-tests)
+11. [Debugging steps](#debugging-steps) 
+12. [Troubleshooting](#troubleshooting)
 
 ## Directory details
 The directory comprises of following:
@@ -58,7 +59,10 @@ The directory comprises of following:
   This directory contains configurations for ETCD required during provisioning
 * uwc_common:
   This directory contains common dockefiles for UWC
-
+* eii_configs:
+  This directory contains the config files specific to UWC which would replace the default EII config files that come as part of cloning the ingredient EII git repos.
+* uwc_recipes:
+  This directory contains all the recipe use cases of UWC. (UWC services in different combinations).
 ## Install generic pre-requisites
 
 1. Follow the steps in the section `EII-Prerequisites-Installation` of `<working-directory>/IEdgeInsights/README.md`  to install all the pre-requisites.
@@ -118,6 +122,20 @@ Used to uninstall & remove the UWC installation.
   $ cd <working-dir>/IEdgeInsights/uwc/build_scripts
   $ 04_uninstall_UWC.sh
   ```
+
+  ## Data Persistence feature
+  Data Persistence feature in UWC enables the user to save the response JSON received from the end device (or simulator) regarding the data points in database (InfluxDB).
+  The response received in JSON format is converted to metrics inside Telegraf micro service before passing the data to InfluxDB for storage. 
+  The data can be stored in the database by adding a field called "dataPersist" in the data points YML configuration files (flowmeter_datapoints.yml or iou_datapoints.yml). The possible values for this include "true" or "false" (Boolean values).
+  Data is stored in DB if the dataPersist field value is true and not stored if the value is false. Also if the field "dataPersist" is skipped, then  the datapoint is not stored.
+
+  ## Notes
+  * Note that any string value that is present in the JSON response payload which is publiched to telegraf needs to have all the string fields listed in the telegraf configuration file for enabling the metrics convertion feature of Telegraf to take effect. 
+  
+  * The retention period is configurable and can be configured in the config.json file of InfluxDBConnector micro-service -`https://github.com/open-edge-insights/eii-influxdb-connector/blob/master/config.json`.
+    The default retention period is set to 24 hours. Although the field "retention" in config.json is set to 23 hours, it includes a default shard duration of 1 hour which totally accounts to 24 hours of data retention.
+    Refer influxDB documentation "https://www.influxdata.com/blog/influxdb-shards-retention-policies/" for more details.
+
 ## Unit Tests
 All the UWC modules have unit tests enabled in production mode. In order to run the unit tests, follow the below steps:
 ```sh
@@ -150,7 +168,7 @@ docker logs modbus-tcp-container > docker.log 2>&1
 ## Notes
 *  If docker-compose.yml is modified then bring down the containers & then bring them up as mentioned above.
 *  If previous containers are running on deploy machine, then stop those containers using command for bringing down containers as mentioned above.
-*  Can use MQTT.FX or any other MQTT client to verify teh flow or all 6 operations for RT/Non-RT, read/write,polling operations
+*  Can use MQTT.FX or any other MQTT client to verify the flow or all 6 operations for RT/Non-RT, read/write,polling operations
 
 ## Troubleshooting
 ```

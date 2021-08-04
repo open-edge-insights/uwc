@@ -156,6 +156,9 @@ configure_usecase()
         echo "2) Basic UWC micro-services as in option 1 along with KPI-tactic Application (Without Sparkplug-Bridge)"
         echo "3) Basic UWC micro-services & KPI-tactic Application along with Sparkplug-Bridge"
         echo "4) Basic UWC micro-services with Sparkplug-Bridge and no KPI-tactic Application" 
+        echo "5) Basic UWC micro-services with Time series micro-services (Telegraf & InfluxDBConnector)"
+        echo "6) Running Basic UWC micro-services with time series services (Telegraf & InfluxDBCOnnector) along with KPI-tactic app"
+        echo "7) Running Basic UWC micro-services with time series services (Telegraf & InfluxDBCOnnector) along with Sparkplug service"
         read yn
     fi
     cd ${eii_build_dir}
@@ -226,6 +229,36 @@ configure_usecase()
                         ret="$?"
                     fi
                 fi
+                break
+                ;;
+            5)
+                echo "Running Basic UWC micro-services with time series services (Telegraf & InfluxDBCOnnector)"
+                python3 builder.py -f ../uwc/uwc_recipes/uwc-pipeline-basic-timeseries.yml
+                if [ "$?" != 0 ]; then
+                    echo "${RED}Error running EII builder script. Check the recipe configuration file...!${NC}"
+                    exit 1
+                fi
+                echo "${GREEN}EII builder script successfully generated consolidated docker-compose & configuration files.${NC}"
+                break
+                ;;
+            6)
+                echo "Running Basic UWC micro-services with time series services (Telegraf & InfluxDBCOnnector) along with KPI-tactic app"
+                python3 builder.py -f ../uwc/uwc_recipes/uwc-pipeline-basic-kpiapp-timeseries.yml
+                if [ "$?" != 0 ]; then
+                    echo "${RED}Error running EII builder script. Check the recipe configuration file...!${NC}"
+                    exit 1
+                fi
+                echo "${GREEN}EII builder script successfully generated consolidated docker-compose & configuration files.${NC}"
+                break
+                ;;
+            7)
+                echo "Running Basic UWC micro-services with time series services (Telegraf & InfluxDBCOnnector) along with Sparkplug service"
+                python3 builder.py -f ../uwc/uwc_recipes/uwc-pipeline-basic-sparkplug-timeseries.yml
+                if [ "$?" != 0 ]; then
+                    echo "${RED}Error running EII builder script. Check the recipe configuration file...!${NC}"
+                    exit 1
+                fi
+                echo "${GREEN}EII builder script successfully generated consolidated docker-compose & configuration files.${NC}"
                 break
                 ;;
             *)
