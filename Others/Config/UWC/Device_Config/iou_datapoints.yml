@@ -11,6 +11,7 @@ datapoints:
     addr: 1
     width: 1
     datatype: "INT16"
+    dataPersist: true
   polling:
     pollinterval: 1000
     realtime: false
@@ -21,6 +22,7 @@ datapoints:
     addr: 2
     width: 1
     datatype: "INT16"
+    dataPersist: true
   polling:
     pollinterval: 1000
     realtime: false
@@ -30,7 +32,8 @@ datapoints:
     type: "HOLDING_REGISTER"
     addr: 3
     width: 1
-    datatype: "INT16"    
+    datatype: "INT16"
+    dataPersist: true    
   polling:
     pollinterval: 1000
     realtime: false
@@ -41,9 +44,10 @@ datapoints:
     addr: 4
     width: 1
     datatype: "INT16"
+    dataPersist: true
   polling:
     pollinterval: 1000
-    realtime: false
+    realtime: true
 
     
 - id: "D5"
@@ -52,9 +56,10 @@ datapoints:
     addr: 5
     width: 1
     datatype: "INT16"
+    dataPersist: true
   polling:
     pollinterval: 1000
-    realtime: false
+    realtime: true
 
 - id: "D6"
   attributes:
@@ -62,6 +67,7 @@ datapoints:
     addr: 6
     width: 1
     datatype: "INT16"
+    dataPersist: false
   polling:
     pollinterval: 1000
     realtime: false

@@ -1,0 +1,11 @@
+AppContexts:
+- EtcdUI
+- ZmqBroker
+- uwc/uwc_common
+- uwc/MQTT
+- uwc/mqtt-bridge
+- uwc/modbus-master/modbus_TCP
+- uwc/modbus-master/modbus_RTU
+- Telegraf
+- InfluxDBConnector
+- uwc/kpi-tactic

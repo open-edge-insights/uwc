@@ -117,6 +117,20 @@ modify_config()
 	     echo "${RED}${working_dir}/../../${dir} doesn't exists, Please check ${working_dir}/../eii_configs for valid config files${NC}"	 
 	 fi	
     done
+
+	## Overriding the service specific config files apart from config.json.
+	service_search_dir="${working_dir}/../eii_configs/service_specific_cfgs"
+	for abs_service_path in "$service_search_dir"/*
+	do
+		service_dir=$(basename "$abs_service_path")
+		case "$service_dir" in
+   			"Telegraf")
+			   cp $service_search_dir/Telegraf/* ${working_dir}/../../Telegraf/config/Telegraf/
+			   echo "Overridden the Telegraf service specific config files"
+   			;;
+		# More cases can be added for overriding such service specific config files.	   
+		esac  
+	done
 }
 
 # ----------------------------
