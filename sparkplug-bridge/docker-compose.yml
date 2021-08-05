@@ -85,8 +85,6 @@ services:
       start_period: 0s
     networks:
       - eii      
-    ports:
-      - 63520:63520
 
 volumes:      
   vol_uwc_socket:
