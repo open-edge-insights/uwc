@@ -146,17 +146,13 @@ int main(int argc, char *argv[])
 	try
 	{
 		
-		std::cout << __func__ << ":" << __LINE__ << " ------------- Starting SCADA RTU Container -------------" << std::endl;
-		std::cout << "SCADA RTU container app version is set to :: "+  std::string(APP_VERSION) << std::endl;
-
 		CLogger::initLogger(std::getenv("Log4cppPropsFile"));
 
-		DO_LOG_DEBUG("Starting SCADA RTU ...");
-		DO_LOG_INFO("SCADA RTU container app version is set to :: "+  std::string(APP_VERSION));
+		DO_LOG_DEBUG("Starting SparkPlug-Bridge ...");
+		DO_LOG_INFO("SparkPlug-Bridge container app version is set to :: "+  std::string(APP_VERSION));
 		if(!CCommon::getInstance().loadYMLConfig())
 		{
 			DO_LOG_ERROR("Please set the required config in sparkplug-bridge_config.yml file and restart the container");
-			std::cout << "Please set the required config in sparkplug-bridge_config.yml file and restart the container" << std::endl;
 		}
 
 		//initialize CCommon class to get common variables
@@ -164,8 +160,6 @@ int main(int argc, char *argv[])
 		if(AppName.empty())
 		{
 			DO_LOG_ERROR("AppName Environment Variable is not set");
-			std::cout << __func__ << ":" << __LINE__ << " Error : AppName Environment Variable is not set" <<  std::endl;
-
 			return -1;
 		}
 
@@ -174,7 +168,7 @@ int main(int argc, char *argv[])
 		{
 			while(true)
 			{
-				std::cout << "Waiting to set EXTERNAL_MQTT_URL/ INTERNAL_MQTT_URL variable in sparkplug-bridge_config.yml file..." << std::endl;
+				DO_LOG_INFO("Waiting to set EXTERNAL_MQTT_URL/ INTERNAL_MQTT_URL variable in scada_config.yml file...");
 				std::this_thread::sleep_for(std::chrono::seconds(300));
 			};
 		}
@@ -209,17 +203,15 @@ int main(int argc, char *argv[])
 	}
 	catch (std::exception &e)
 	{
-		DO_LOG_FATAL(e.what());
-		std::cout << __func__ << ":" << __LINE__ << " Exception : " << e.what() << std::endl;
+		DO_LOG_FATAL(" Exception : " + std::string(e.what()));
 		return -1;
 	}
 	catch (...)
 	{
-		DO_LOG_FATAL("Unknown Exception Occurred. Exiting");
-		std::cout << __func__ << ":" << __LINE__ << "Exception : Unknown Exception Occurred. Exiting" << std::endl;
+		DO_LOG_FATAL("Exception : Unknown Exception Occurred. Exiting");
 		return -1;
 	}
 
-	std::cout << __func__ << ":" << __LINE__ << " ------------- Exiting SCADA RTU Container -------------" << std::endl;
+	DO_LOG_WARN("Exiting SparkPlug-Bridge Container");
 	return 0;
 }

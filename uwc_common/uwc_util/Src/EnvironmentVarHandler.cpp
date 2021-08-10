@@ -52,8 +52,6 @@ bool EnvironmentInfo::readCommonEnvVariables(std::vector<std::string> vecEnviron
 		{
 			bRetVal = false;
 			DO_LOG_ERROR(std::string(ele) + " environment variable is not found");
-			std::cout << __func__ << ":" << __LINE__ << " Error : " + std::string(ele) + " environment variable is not found" <<  std::endl;
-
 		}
 	}
 

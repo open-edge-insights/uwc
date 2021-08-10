@@ -28,6 +28,7 @@
 
 #include <chrono>
 #include <ctime>
+#include <errno.h>
 
 #define SUBSCRIBER_ID "SCADA_INT_MQTT_SUBSCRIBER"
 #define RECONN_TIMEOUT_SEC (60)
@@ -75,8 +76,7 @@ CIntMqttHandler& CIntMqttHandler::instance()
 	{
 		if(strPlBusUrl.empty())
 		{
-			DO_LOG_ERROR("MQTT_URL Environment variable is not set");
-			std::cout << __func__ << ":" << __LINE__ << " Error : MQTT_URL Environment variable is not set" <<  std::endl;
+			DO_LOG_ERROR("Error :: MQTT_URL Environment variable is not set");
 			throw std::runtime_error("Missing required config..");
 		}
 	}
@@ -195,21 +195,21 @@ bool CIntMqttHandler::init()
 	int retVal = sem_init(&m_semConnSuccess, 0, 0 /* Initial value of zero*/);
 	if (retVal == -1)
 	{
-		std::cout << "*******Could not create unnamed semaphore for success connection\n";
+		DO_LOG_FATAL("Could not create unnamed semaphore for success connection. Errno: " + std::to_string(errno) + " " + strerror(errno));
 		return false;
 	}
 
 	retVal = sem_init(&m_semConnLost, 0, 0 /* Initial value of zero*/);
 	if (retVal == -1)
 	{
-		std::cout << "*******Could not create unnamed semaphore for lost connection\n";
+		DO_LOG_FATAL("Could not create unnamed semaphore for lost connection  " + std::to_string(errno) + " " + strerror(errno));
 		return false;
 	}
 
 	retVal = sem_init(&m_semConnSuccessToTimeOut, 0, 0 /* Initial value of zero*/);
 	if (retVal == -1)
 	{
-		std::cout << "*******Could not create unnamed semaphore for monitorig connection timeout\n";
+		DO_LOG_FATAL("Could not create unnamed semaphore for monitorig connection timeout " + std::to_string(errno) + " " + strerror(errno));
 		return false;
 	}
 	std::thread{ std::bind(&CIntMqttHandler::handleConnMonitoringThread,
@@ -250,7 +250,7 @@ void CIntMqttHandler::handleConnMonitoringThread()
 				int rc = clock_gettime(CLOCK_REALTIME, &ts);
 				if(0 != rc)
 				{
-					std::cout << "Fatal error: clock_gettime failed: " << errno << std::endl;
+					DO_LOG_FATAL("Fatal error: clock_gettime failed: " + std::to_string(errno) + " " + strerror(errno));
 					break;
 				}
 				// Wait for timeout seconds to declare connection timeout

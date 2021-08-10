@@ -75,8 +75,7 @@ bool CQueueHandler::initSem()
 	/* Initial value of zero*/
 	if(-1 == sem_init(&m_semaphore, 0, 0))
 	{
-	   DO_LOG_ERROR("could not create semaphore, exiting");
-	   std::cout << __func__ << ":" << __LINE__ << " Error : could not create semaphore, exiting" <<  std::endl;
+	   DO_LOG_ERROR("Error :: could not create semaphore, exiting");
 	   exit(0);
 	}
 

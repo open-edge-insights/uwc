@@ -45,8 +45,7 @@ CCommon::CCommon()
 	std::string strAppName = EnvironmentInfo::getInstance().getDataFromEnvMap("AppName");
 	if(strAppName.empty())
 	{
-		DO_LOG_ERROR("AppName Environment Variable is not set");
-		std::cout << __func__ << ":" << __LINE__ << " Error : AppName Environment Variable is not set" <<  std::endl;
+		DO_LOG_ERROR("Error :: AppName Environment Variable is not set");
 		exit(1);
 	}
 	initializeCommonData(strDevMode, strAppName);

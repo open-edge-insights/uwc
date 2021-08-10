@@ -36,7 +36,6 @@ YAML::Node loadYamlFile(const std::string& filename)
 	std::string sBasePath{BASE_PATH_YAML_FILE};
 	std::string sfileToRead = sBasePath + filename;
 
-	std::cout << "YAML file to be read is :: " + sfileToRead << std::endl;
 	DO_LOG_DEBUG("YAML file to be read is :: " + sfileToRead);
 
 	YAML::Node baseNode = YAML::LoadFile(sfileToRead);
@@ -62,14 +61,12 @@ bool convertYamlToList(YAML::Node &node, std::vector<std::string>& a_slist)
 			{
 				const YAML::Node& list =  it.second;
 
-				std::cout << "Number of sites in yaml file are ::" << list.size() << std::endl;
 				DO_LOG_INFO("Number of sites in yaml file are ::" + list.size());
 
 				for (auto element : list)
 				{
 					YAML::Node temp = element;
 					DO_LOG_INFO("Wellsite is :: " + temp.as<std::string>());
-					std::cout << "Wellsite is ::" << temp.as<std::string>() <<std::endl;
 					a_slist.push_back(temp.as<std::string>());
 				}
 				bRetVal = true;
@@ -126,12 +123,10 @@ bool readEnvVariable(const char *pEnvVarName, std::string &storeVal)
 		std::string tmp (cEvar);
 		storeVal = tmp;
 		DO_LOG_INFO(std::string(pEnvVarName) + " environment variable is set to ::" + storeVal);
-		std::cout << std::string(pEnvVarName) + " environment variable is set to ::" + storeVal << std::endl;
 	}
 	else
 	{
 		DO_LOG_ERROR(std::string(pEnvVarName) + " environment variable is not found");
-		std::cout << std::string(pEnvVarName) + " environment variable is not found" <<std::endl;
 	}
 	return bRetVal;
 }

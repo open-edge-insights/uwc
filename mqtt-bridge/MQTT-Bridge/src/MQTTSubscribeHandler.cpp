@@ -29,6 +29,7 @@
 #include "ConfigManager.hpp"
 #include <functional>
 #include "QueueMgr.hpp"
+#include <error.h>
 
 #define SUBSCRIBER_ID "MQTT_EXPORT_SUBSCRIBER"
 
@@ -66,7 +67,6 @@ CMQTTHandler& CMQTTHandler::instance()
 		if(strPlBusUrl.empty())
 		{
 			DO_LOG_ERROR("MQTT_URL_FOR_EXPORT Environment variable is not set");
-			std::cout << __func__ << ":" << __LINE__ << " Error : MQTT_URL_FOR_EXPORT Environment variable is not set" <<  std::endl;
 			throw std::runtime_error("Missing required config..");
 		}
 	}
@@ -97,8 +97,7 @@ void CMQTTHandler::subscribeTopics()
 			const char* pcEnvVal = std::getenv(a_sEnv.c_str());
 			if(pcEnvVal == NULL)
 			{
-				DO_LOG_ERROR(a_sEnv + " Environment Variable is not set");
-				std::cout << __func__ << ":" << __LINE__ << " Error : " + a_sEnv + " Environment Variable is not set" << std::endl;
+				DO_LOG_ERROR(a_sEnv + " Environment Variable is not set" + a_sEnv);
 			}
 			else
 			{
@@ -165,7 +164,7 @@ bool CMQTTHandler::init()
 	int retVal = sem_init(&m_semConnSuccess, 0, 0 /* Initial value of zero*/);
 	if (retVal == -1)
 	{
-		DO_LOG_ERROR("Could not create semaphore for success connection");
+		DO_LOG_FATAL("Could not create semaphore for success connection " + std::to_string(errno) + " " + std::strerror(errno));
 		return false;
 	}
 

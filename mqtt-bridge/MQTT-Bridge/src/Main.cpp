@@ -189,7 +189,6 @@ void listenOnEII(std::string topic, zmq_handler::stZmqContext context, zmq_handl
 
 	if(context.m_pContext == NULL || subContext.sub_ctx == NULL)
 	{
-		std::cout << "Cannot start listening on EII for topic : " << topic << std::endl;
 		DO_LOG_ERROR("Cannot start listening on EII for topic : " + topic);
 		return;
 	}
@@ -454,8 +453,7 @@ void set_thread_priority_for_eii(bool& isRealtime, bool& isRead)
 			}
 		}
 		globalConfig::set_thread_sched_param(operation);
-		DO_LOG_DEBUG("Set thread priorities");
-		std::cout << "** Set thread priorities for isRead: " << isRead << ", isRealtime : " << isRealtime << std::endl;
+		DO_LOG_DEBUG("Set thread priorities for isRead: " + std::to_string(isRead) + ", isRealtime : " + std::to_string(isRealtime));
 	}
 	catch(std::exception &e)
 	{
@@ -576,14 +574,12 @@ bool initEIIContext()
 		if (true != zmq_handler::prepareCommonContext("pub"))
 		{
 			DO_LOG_ERROR("Context creation failed for pub topic ");
-			std::cout << __func__ << ":" << __LINE__ << " Error : Context creation failed for pub topic" <<  std::endl;
 			retVal = false;
 		}
 	}
 	else
 	{
 		DO_LOG_ERROR("could not find any Publishers in publisher Configuration ");
-		std::cout << __func__ << ":" << __LINE__ << " Error : could not find any Publishers in publisher Configuration " <<  std::endl;
 		retVal = false;
 	}
 
@@ -593,14 +589,12 @@ bool initEIIContext()
 		if (true != zmq_handler::prepareCommonContext("sub"))
 		{
 			DO_LOG_ERROR("Context creation failed for sub topic");
-			std::cout << __func__ << ":" << __LINE__ << " Error : Context creation failed for sub topic" <<  std::endl;
 			retVal = false;
 		}
 	}
 	else
 	{
 		DO_LOG_ERROR("could not find any subscribers in subscriber Configuration");
-		std::cout << __func__ << ":" << __LINE__ << " Error : could not find any subscribers in subscriber Configuration" <<  std::endl;
 		retVal = false;
 	}
 	return retVal;
@@ -615,7 +609,6 @@ bool initEIIContext()
 int main(int argc, char *argv[])
 {
 	DO_LOG_DEBUG("Starting MQTT Export ...");
-	std::cout << __func__ << ":" << __LINE__ << " ------------- Starting MQTT Export Container -------------" << std::endl;
 
 	try
 	{
@@ -623,19 +616,16 @@ int main(int argc, char *argv[])
 		DO_LOG_DEBUG("Starting MQTT Export ...");
 
 		DO_LOG_INFO("MQTT-Expprt container app version is set to :: "+  std::string(APP_VERSION));
-		std::cout << "MQTT-Expprt container app version is set to :: "+  std::string(APP_VERSION) << std::endl;
 
 		// load global configuration for container real-time setting
 		bool bRetVal = globalConfig::loadGlobalConfigurations();
 		if(!bRetVal)
 		{
 			DO_LOG_INFO("Global configuration is set with some default parameters");
-			std::cout << "\nGlobal configuration is set with some default parameters\n\n";
 		}
 		else
 		{
 			DO_LOG_INFO("Global configuration is set successfully");
-			std::cout << "\nGlobal configuration for container real-time is set successfully\n\n";
 		}
 
 		globalConfig::CPriorityMgr::getInstance();
@@ -677,17 +667,15 @@ int main(int argc, char *argv[])
 	}
 	catch (std::exception &e)
 	{
-		DO_LOG_FATAL(e.what());
-		std::cout << __func__ << ":" << __LINE__ << " Exception : " << e.what() << std::endl;
+		DO_LOG_FATAL(" Exception : " + std::string(e.what()));
 		return -1;
 	}
 	catch (...)
 	{
-		DO_LOG_FATAL("Unknown Exception Occurred. Exiting");
-		std::cout << __func__ << ":" << __LINE__ << "Exception : Unknown Exception Occurred. Exiting" << std::endl;
+		DO_LOG_FATAL("Exception : Unknown Exception Occurred. Exiting");
 		return -1;
 	}
 
-	std::cout << __func__ << ":" << __LINE__ << " ------------- Exiting MQTT Export Container -------------" << std::endl;
+	DO_LOG_WARN("Exiting MQTT Export Container");
 	return 0;
 }

@@ -65,37 +65,31 @@ bool PublishJsonHandler::setTopicForOperation(std::string a_sTopic)
 	if(regExFun(a_sTopic, READ_RES))
 	{
 		PublishJsonHandler::instance().setSReadResponseTopic(a_sTopic);
-		std::cout << "read Res topic = " << a_sTopic << std::endl;
 		DO_LOG_INFO("read res topic = " + a_sTopic);
 	}
 	else if(regExFun(a_sTopic, READ_RES_RT))
 	{
 		PublishJsonHandler::instance().setSReadResponseTopicRT(a_sTopic);
-		std::cout << "read Res RT topic = " << a_sTopic << std::endl;
 		DO_LOG_INFO("read res RT topic = " + a_sTopic);
 	}
 	else if(regExFun(a_sTopic, WRITE_RES))
 	{
 		PublishJsonHandler::instance().setSWriteResponseTopic(a_sTopic);
-		std::cout << "write res topic = " << a_sTopic << std::endl;
 		DO_LOG_INFO("write res topic = " + a_sTopic);
 	}
 	else if(regExFun(a_sTopic, WRITE_RES_RT))
 	{
 		PublishJsonHandler::instance().setSWriteResponseTopicRT(a_sTopic);
-		std::cout << "write res RT topic = " << a_sTopic << std::endl;
 		DO_LOG_INFO("write res RT topic = " + a_sTopic);
 	}
 	else if(regExFun(a_sTopic, POLLDATA))
 	{
 		PublishJsonHandler::instance().setPolledDataTopic(a_sTopic);
-		std::cout << "poll topic = " << a_sTopic << std::endl;
 		DO_LOG_INFO("poll topic = " + a_sTopic);
 	}
 	else if(regExFun(a_sTopic, POLLDATA_RT))
 	{
 		PublishJsonHandler::instance().setPolledDataTopicRT(a_sTopic);
-		std::cout << "poll topic RT = " << a_sTopic << std::endl;
 		DO_LOG_INFO("poll topic RT = " + a_sTopic);
 	}
 	else if(regExFun(a_sTopic, READ_REQ) or
@@ -108,9 +102,7 @@ bool PublishJsonHandler::setTopicForOperation(std::string a_sTopic)
 	else
 	{
 		DO_LOG_ERROR("Invalid topic name in SubTopics/PubTopics. hence ignoring :: " + a_sTopic);
-		std::cout << "Invalid topic name in SubTopics/PubTopics. hence ignoring :: " << a_sTopic << std::endl;
 		DO_LOG_ERROR("Kindly specify correct topic name as per specification :: " + a_sTopic);
-		std::cout << "Kindly specify correct topic name as per specification :: " << a_sTopic << std::endl;
 		bRet = false;
 	}
 	return bRet;

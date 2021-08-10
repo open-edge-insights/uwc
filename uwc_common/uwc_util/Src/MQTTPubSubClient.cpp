@@ -247,7 +247,6 @@ void CMQTTPubSubClient::connected(const std::string& a_sCause)
 {
 	try
 	{
-		std::cout << m_sClientID << ": CMQTTPubSubClient::connected " << a_sCause << std::endl;
 		DO_LOG_INFO(m_sClientID + " Connected: " + a_sCause);
 		if(m_bNotifyConnection)
 		{

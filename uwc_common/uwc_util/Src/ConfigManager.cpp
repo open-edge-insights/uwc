@@ -318,13 +318,11 @@ void globalConfig::COperation::build(const YAML::Node& a_baseNode,
 	std::string ops = "";
 	if(!a_isRT)
 	{
-		std::cout << "non-realtime parameters: " << std::endl;
 		DO_LOG_INFO("non-realtime parameters: ");
 		ops = "non-realtime";
 	}
 	else
 	{
-		std::cout << "realtime parameters: " << std::endl;
 		DO_LOG_INFO("realtime parameters: ");
 		ops = "realtime";
 	}
@@ -394,9 +392,6 @@ void globalConfig::COperation::build(const YAML::Node& a_baseNode,
 		}
 	}
 
-	std::cout << "	operation priority :: " <<a_refOpration.getOperationPriority()<< std::endl;
-	std::cout << "	retries :: " <<a_refOpration.getRetries()<< std::endl;
-	std::cout << "	qos :: " <<a_refOpration.getQos()<< std::endl;
 
 	DO_LOG_INFO("operation priority :: " + std::to_string(a_refOpration.getOperationPriority()));
 	DO_LOG_INFO("retries :: " + std::to_string(a_refOpration.getRetries()));
@@ -426,7 +421,6 @@ void globalConfig::COperationInfo::buildOperationInfo(const YAML::Node& a_baseNo
 	{
 		a_refOpInfo.m_defaultIsRT = a_baseNode["default_realtime"].as<bool>();
 	}
-	std::cout << " default RT :: " << a_refOpInfo.m_defaultIsRT << std::endl;
 	DO_LOG_INFO(" default RT :: " + std::to_string(a_refOpInfo.m_defaultIsRT));
 
 	COperation Obj;
@@ -465,11 +459,8 @@ void globalConfig::CSparkplugData::buildSparkPlugInfo(const YAML::Node& a_baseNo
 		a_refOpration.m_stNodeName = a_baseNode["edge_node_id"].as<std::string>();
 	}
 
-	std::cout << "	group_id : " << a_refOpration.getGroupId() << std::endl;
 	DO_LOG_INFO("	group_id : " + a_refOpration.getGroupId());
-	std::cout << "	edge_node_id : " << std::endl;
 	DO_LOG_INFO("	edge_node_id : ");
-	std::cout << "		nodeName : " << a_refOpration.m_stNodeName << std::endl;
 	DO_LOG_INFO("		nodeName : " + a_refOpration.m_stNodeName);
 
 }
@@ -540,12 +531,9 @@ bool globalConfig::loadGlobalConfigurations()
 					{
 						node = key["Polling"];
 
-						std::cout << "********************************************************************";
 						DO_LOG_INFO("\nFollowing Global configurations is available inside container");
-						std::cout << "\nFollowing Global configurations is available inside container \n";
-						std::cout << "********************************************************************\n";
+
 						DO_LOG_INFO("For Polling >>>");
-						std::cout << "For Polling >>>\n";
 						COperationInfo::buildOperationInfo(node,
 								globalConfig::CGlobalConfig::getInstance().getOpPollingOpConfig(),
 								POLLING);
@@ -555,7 +543,6 @@ bool globalConfig::loadGlobalConfigurations()
 					else if (key["on-demand-read"])
 					{
 						node = key["on-demand-read"];
-						std::cout << "For On-demand read >>>\n";
 						DO_LOG_INFO("For On-demand read >>>");
 						COperationInfo::buildOperationInfo(node,
 								globalConfig::CGlobalConfig::getInstance().getOpOnDemandReadConfig(),
@@ -566,7 +553,6 @@ bool globalConfig::loadGlobalConfigurations()
 					else if (key["on-demand-write"])
 					{
 						node = key["on-demand-write"];
-						std::cout << "For On-demand write >>>\n";
 						DO_LOG_INFO("For On-demand write >>>");
 						COperationInfo::buildOperationInfo(node,
 								globalConfig::CGlobalConfig::getInstance().getOpOnDemandWriteConfig(),
@@ -577,7 +563,6 @@ bool globalConfig::loadGlobalConfigurations()
 					else if (key["SparkPlug_Operation"])
 					{
 						node = key["SparkPlug_Operation"];
-						std::cout << "For SparkPlug_Operation: >>>\n";
 						DO_LOG_INFO("For SparkPlug_Operation: >>>");
 						CSparkplugData::buildSparkPlugInfo(node,
 								globalConfig::CGlobalConfig::getInstance().getSparkPlugInfo());
@@ -590,7 +575,6 @@ bool globalConfig::loadGlobalConfigurations()
 	}
 	catch (YAML::Exception& e)
 	{
-		std::cout << "Error while loading global configurations :: " << e.what()<< "\n";
 		DO_LOG_ERROR("Error while loading global configurations::" + std::string(e.what()));
 		bRetVal = false;
 	}
@@ -606,7 +590,6 @@ bool globalConfig::loadGlobalConfigurations()
 	{
 		DO_LOG_ERROR("Polling key is missing");
 		DO_LOG_INFO("Setting default config for Polling >>>");
-		std::cout << "Setting default config for Polling >>>\n";
 		bRetVal = false;
 		setDefaultConfig(POLLING);
 	}
@@ -614,7 +597,6 @@ bool globalConfig::loadGlobalConfigurations()
 	{
 		DO_LOG_ERROR("on-demand-read key is missing");
 		DO_LOG_INFO("Setting default config for On-Demand-Read >>>");
-		std::cout << "Setting default config for On-Demand-Read >>>\n";
 		bRetVal = false;
 		setDefaultConfig(ON_DEMAND_READ);
 	}
@@ -622,7 +604,6 @@ bool globalConfig::loadGlobalConfigurations()
 	{
 		DO_LOG_ERROR("on-demand-write key is missing");
 		DO_LOG_INFO("Setting default config for On-Demand-Write >>>");
-		std::cout << "Setting default config for On-Demand-Write >>>\n";
 		bRetVal = false;
 		setDefaultConfig(ON_DEMAND_WRITE);
 	}
@@ -631,7 +612,6 @@ bool globalConfig::loadGlobalConfigurations()
 	{
 		DO_LOG_ERROR("SparkPlug_Operation key is missing");
 		DO_LOG_INFO("Setting default config for SparkPlug_Operation >>>");
-		std::cout << "Setting default config for SparkPlug_Operation >>>\n";
 		bRetVal = false;
 		setDefaultConfig(SPARKPLUG_OPS);
 	}
