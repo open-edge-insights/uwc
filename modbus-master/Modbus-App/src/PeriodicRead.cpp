@@ -463,8 +463,7 @@ bool CPeriodicReponseProcessor::postResponseJSON(stStackResponse& a_stResp, cons
 	}
 	catch(const std::exception& e)
 	{
-		DO_LOG_FATAL(e.what());
-		std::cout << "Exception :: " << std::string(e.what()) << " " << "Tx ID:: " << a_stResp.u16TransacID << std::endl;
+		DO_LOG_FATAL("Exception :: " + std::string(e.what()) + " " + "Tx ID:: " + std::to_string(a_stResp.u16TransacID));
 	}
 
 	if(NULL != g_msg)
@@ -581,7 +580,7 @@ bool CPeriodicReponseProcessor::initSem()
 	int okODWriteRT = sem_init(&semRTODWriteRespProcess, 0, 0 /* Initial value of zero*/);
 	if (okPolling == -1 || okPollingRT == -1 || okODRead == -1 || okODReadRT == -1 || okODWrite == -1 || okODWriteRT ==-1)
 	{
-	   std::cout << "*******Could not create unnamed semaphore\n";
+		DO_LOG_FATAL("Could not create unnamed semaphore " + std::to_string(errno) + " " + strerror(errno));
 	   return false;
 	}
 	return true;
@@ -1077,9 +1076,8 @@ CPeriodicReponseProcessor::CPeriodicReponseProcessor() : m_bIsInitialized(false)
 	}
 	catch(const std::exception& e)
 	{
-		DO_LOG_FATAL("Unable to initiate instance");
+		DO_LOG_FATAL("Exception CPeriodicReponseProcessor. Unable to initiate instance");
 		DO_LOG_FATAL(e.what());
-		std::cout << "\nException CPeriodicReponseProcessor ::" << __func__ << ": Unable to initiate instance: " << e.what();
 	}
 }
 
@@ -1126,9 +1124,8 @@ void CPeriodicReponseProcessor::initRespHandlerThreads()
 	}
 	catch(const std::exception& e)
 	{
-		DO_LOG_FATAL("Unable to initiate instance");
+		DO_LOG_FATAL("Exception initRespHandlerThreads:: Unable to initiate instance");
 		DO_LOG_FATAL(e.what());
-		std::cout << "\nException CPeriodicReponseProcessor ::" << __func__ << ": Unable to initiate instance: " << e.what();
 	}
 }
 /**
@@ -1413,7 +1410,7 @@ bool CRequestInitiator::init()
 	int retVal = sem_init(&semaphoreReqProcess, 0, 0 /* Initial value of zero*/);
 	if (retVal == -1)
 	{
-		std::cout << "*******Could not create unnamed semaphore for non-RT\n";
+		DO_LOG_FATAL("Could not create unnamed semaphore for non-RT  : " + std::to_string(errno) + " " + strerror(errno));
 		return false;
 	}
 	std::thread{std::bind(&CRequestInitiator::threadReqInit,
@@ -1424,7 +1421,7 @@ bool CRequestInitiator::init()
 	retVal = sem_init(&semaphoreRTReqProcess, 0, 0 /* Initial value of zero*/);
 	if (retVal == -1)
 	{
-		std::cout << "*******Could not create unnamed semaphore for RT\n";
+		DO_LOG_FATAL("Could not create unnamed semaphore for RT : " + std::to_string(errno) + " " + strerror(errno));
 		return false;
 	}
 	std::thread{std::bind(&CRequestInitiator::threadReqInit,
@@ -1436,7 +1433,7 @@ bool CRequestInitiator::init()
 	retVal = sem_init(&semaphoreRTRespProcess, 0, 0 /* Initial value of zero*/);
 	if (retVal == -1)
 	{
-		std::cout << "*******Could not create unnamed semaphore for RT responses\n";
+		DO_LOG_FATAL("Could not create unnamed semaphore for RT responses : " + std::to_string(errno) + " " + strerror(errno));
 		return false;
 	}
 	std::thread{std::bind(&CRequestInitiator::threadCheckCutoffRespInit,
@@ -1447,7 +1444,7 @@ bool CRequestInitiator::init()
 	retVal = sem_init(&semaphoreRespProcess, 0, 0 /* Initial value of zero*/);
 	if (retVal == -1)
 	{
-		std::cout << "*******Could not create unnamed semaphore for non-RT response\n";
+		DO_LOG_FATAL("Could not create unnamed semaphore for non-RT response : " + std::to_string(errno) + " " + strerror(errno));
 		return false;
 	}
 	std::thread{std::bind(&CRequestInitiator::threadCheckCutoffRespInit,
@@ -2093,7 +2090,7 @@ void CTimeMapper::checkTimer(const uint32_t &a_uiMaxCounter, uint32_t a_uiCounte
     	else
     	{
     		/// No polling is needed for counter
-    		//std::cout << "No polling for: " << a_uiCounter << std::endl;
+    		DO_LOG_INFO("No polling for: " + std::to_string(a_uiCounter));
     	}
 	}
 	catch (std::exception &e)
@@ -2177,13 +2174,13 @@ CTimeRecord::CTimeRecord(uint32_t a_u32Interval, CRefDataForPolling &a_oPoint)
 	: m_u32Interval(a_u32Interval), m_u32CutoffInterval(a_u32Interval),
 	  m_bIsRTAvailable(false), m_bIsNonRTAvailable(false)
 {
-	std::cout << PublishJsonHandler::instance().getCutoffIntervalPercentage() << ": value of cutoff %\n";
+	DO_LOG_INFO("getCutoffIntervalPercentage " + std::to_string(PublishJsonHandler::instance().getCutoffIntervalPercentage()));
 	m_u32CutoffInterval.store(a_u32Interval *
 			(double)(PublishJsonHandler::instance().getCutoffIntervalPercentage())/100.0);
 	if(0 == m_u32CutoffInterval)
 	{
 		// Use 90% as default one, if cutoff value is 0
-		std::cout << "CTimeRecord: Constructor: 90% cutoff is used by default\n";
+		DO_LOG_INFO("CTimeRecord: Constructor: 90% cutoff is used by default");
 		m_u32CutoffInterval.store(a_u32Interval * 0.9);
 	}
 	this->add(a_oPoint);
@@ -2305,13 +2302,16 @@ uint32_t CTimeMapper::getMinTimerFrequency()
 			std::map<uint32_t, CTimeRecord>::iterator it = m_mapTimeRecord.begin();
 			CTimeRecord &objTimeRecord = it->second;
 			// get the first minimum frequency of interval and
-			std::cout << "timerecord - interval: " << objTimeRecord.getInterval() << ", cutoff:" << objTimeRecord.getCutoffInterval() << std::endl;
+			DO_LOG_INFO("timerecord - interval: " + std::to_string(objTimeRecord.getInterval()));
+			DO_LOG_INFO("cutoff: " + std::to_string(objTimeRecord.getCutoffInterval()));
+
 			ulMinFreq = gcd(objTimeRecord.getInterval(), objTimeRecord.getCutoffInterval());
 			it++;
 			while (it != m_mapTimeRecord.end())
 			{
 				CTimeRecord &objTimeRecord = it->second;
-				std::cout << "timerecord - interval: " << objTimeRecord.getInterval() << ", cutoff:" << objTimeRecord.getCutoffInterval() << std::endl;
+				DO_LOG_INFO("timerecord - interval: " + std::to_string(objTimeRecord.getInterval()));
+				DO_LOG_INFO("cutoff: " + std::to_string(objTimeRecord.getCutoffInterval()));
 				// First find min frequency using interval
 				ulMinFreq = gcd(objTimeRecord.getInterval(), ulMinFreq);
 				if(1 == ulMinFreq)
@@ -2516,13 +2516,13 @@ void PeriodicTimer::timerThread(uint32_t interval)
 
 	uint32_t uiMaxCounter = CTimeMapper::instance().preparePollingTracker();
 	uint32_t uiCurCounter = 0;
-	std::cout << "Maximum counter = " << uiMaxCounter << std::endl;
+	DO_LOG_INFO("Maximum counter = " + std::to_string(uiMaxCounter))
 
 	// checking ounter value
 	if(0 == uiMaxCounter)
 	{
 		uiMaxCounter = 1;
-		std::cout << "Maximum counter was 0. Now set as = " << uiMaxCounter << std::endl;
+		DO_LOG_INFO("Maximum counter was 0. Now set as = " + std::to_string(uiMaxCounter));
 	}
 	// interval is in milliseconds
 	if(0 == interval)
@@ -2534,12 +2534,11 @@ void PeriodicTimer::timerThread(uint32_t interval)
 	int rc = clock_getres(CLOCK_MONOTONIC, &ts);
 	if(0 != rc)
 	{
-		std::cout << "Error: clock_getres failed: " << errno << std::endl;
-		std::cout << "Continuing further\n";
+		DO_LOG_ERROR("Error: clock_getres failed: " + std::to_string(errno) + "  " + strerror(errno)+ " Continuing further");
 	}
 	else
 	{
-		std::cout << "Clock resolution: " << (long)ts.tv_sec << " seconds, " << (long)ts.tv_nsec << " nanoseconds \n";
+		DO_LOG_ERROR("Clock resolution: " + std::to_string((long)ts.tv_sec) + " seconds, " + std::to_string((long)ts.tv_nsec) + " nanoseconds");
 	}
 
 	uint32_t uiMsecInterval = interval;
@@ -2549,7 +2548,7 @@ void PeriodicTimer::timerThread(uint32_t interval)
 	rc = clock_gettime(CLOCK_MONOTONIC, &ts);
 	if(0 != rc)
 	{
-		std::cout << "Fatal error: polling timer: clock_gettime failed: " << errno << std::endl;
+		DO_LOG_FATAL("Fatal error: polling timer: clock_gettime failed: " + std::to_string(errno) + "  " +  strerror(errno));
 		return;
 	}
 	while(!g_stopTimer)
@@ -2569,7 +2568,7 @@ void PeriodicTimer::timerThread(uint32_t interval)
 			rc = clock_gettime(CLOCK_REALTIME, &tsPoll);
 			if(0 != rc)
 			{
-				std::cout << "Fatal error: polling timer: clock_gettime failed in polling: " << errno << std::endl;
+				DO_LOG_FATAL("Fatal error: polling timer: clock_gettime failed in polling: " + std::to_string(errno) + "  " + strerror(errno));
 				//return;
 			}
 			uiCurCounter = uiCurCounter + uiMsecInterval;

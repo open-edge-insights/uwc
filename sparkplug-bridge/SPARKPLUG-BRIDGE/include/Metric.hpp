@@ -173,35 +173,35 @@ public:
 	/** function to print*/
 	void print() const 
 	{
-		std::cout << "\t DataType: " << m_uiDataType << "\t Value: ";
+		DO_LOG_INFO(" DataType: " + std::to_string(m_uiDataType));
 		std::visit([](auto &&arg)
 		{
 			//std::monostate, bool, uint8_t, uint16_t, uint32_t, uint64_t, int8_t, int16_t, int32_t, int64_t, float, double, std::string	
 			using T = std::decay_t<decltype(arg)>;
             if constexpr (std::is_same_v<T, bool>)
-                std::cout << "bool with value " << arg << '\n';
+            	DO_LOG_INFO("bool with value " + std::to_string(arg));
 			if constexpr (std::is_same_v<T, uint8_t>)
-                std::cout << "uint8_t with value " << arg << '\n';
+				DO_LOG_INFO("uint8_t with value " + std::to_string(arg));
 			if constexpr (std::is_same_v<T, uint16_t>)
-                std::cout << "uint16_t with value " << arg << '\n';
+				DO_LOG_INFO("uint16_t with value" + std::to_string(arg));
 			if constexpr (std::is_same_v<T, uint32_t>)
-                std::cout << "uint32_t with value " << arg << '\n';
+				DO_LOG_INFO("uint32_t with value " + std::to_string(arg));
 			if constexpr (std::is_same_v<T, uint64_t>)
-                std::cout << "uint64_t with value " << arg << '\n';
+				DO_LOG_INFO("uint64_t with value " + std::to_string(arg));
 			if constexpr (std::is_same_v<T, int8_t>)
-                std::cout << "int8_t with value " << arg << '\n';
+				DO_LOG_INFO("int8_t with value  " + std::to_string(arg));
 			if constexpr (std::is_same_v<T, int16_t>)
-                std::cout << "int16_t with value " << arg << '\n';
+				DO_LOG_INFO("int16_t with value " + std::to_string(arg));
 			if constexpr (std::is_same_v<T, int32_t>)
-                std::cout << "int32_t with value " << arg << '\n';
+				DO_LOG_INFO("int32_t with value" + std::to_string(arg));
 			if constexpr (std::is_same_v<T, int64_t>)
-                std::cout << "int64_t with value " << arg << '\n';
+				DO_LOG_INFO("int64_t with value " + std::to_string(arg));
 			if constexpr (std::is_same_v<T, float>)
-                std::cout << "float with value " << arg << '\n';
+				DO_LOG_INFO("float with value " + std::to_string(arg));
 			if constexpr (std::is_same_v<T, double>)
-                std::cout << "double with value " << arg << '\n';
+				DO_LOG_INFO("double with value " + std::to_string(arg));
 			if constexpr (std::is_same_v<T, std::string>)
-                std::cout << "string with value " << arg << '\n';
+				DO_LOG_INFO("string with value  " + arg);
 		},
 		m_objVal);
 	}
@@ -371,7 +371,7 @@ public:
 	/** function to print metric information */
 	virtual void print() const
 	{
-		std::cout << m_sName << ", " << m_uiDataType << std::endl;
+		DO_LOG_INFO("Name : " + m_sName + " m_uiDataType " + std::to_string(m_uiDataType));
 	}
 #ifdef UNIT_TEST
 	friend class Metric_ut;
@@ -606,7 +606,6 @@ class CUDT: public CIfMetric
 				itr.second.get()->print();
 			}
 		}
-		std::cout << std::endl;
 	}
 
 

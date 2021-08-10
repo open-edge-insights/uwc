@@ -62,7 +62,7 @@ bool CCommon::loadYMLConfig()
 	catch(YAML::Exception &e)
 	{
 		DO_LOG_ERROR("sparkplug-bridge_config.yml file not found :: " + std::string(e.what()));
-		std::cout << "ERROR: sparkplug-bridge_config.yml file not found :: " + std::string(e.what()) << std::endl;
+		
 		return false;
 	}
 
@@ -77,19 +77,18 @@ bool CCommon::loadYMLConfig()
 			{
 				sTemp = "ssl://";
 				setScadaTLS(true);
-				std::cout << "Set the scada external broker to TLS" << std::endl;
+				DO_LOG_INFO("Set the scada external broker to TLS");
 			}
 			else
 			{
 				sTemp = "tcp://";
 				setScadaTLS(false);
-				std::cout << "Set the scada external broker to non-TLS" << std::endl;
+				DO_LOG_INFO("Set the scada external broker to non-TLS");
 			}
 		}
 		else
 		{
 			DO_LOG_ERROR("isTLS key is not present or type is invalid");
-			std::cout << "isTLS key is not present or type is invalid" << std::endl;
 			bRet = false;
 			break;
 		}
@@ -102,7 +101,6 @@ bool CCommon::loadYMLConfig()
 		else
 		{
 			DO_LOG_ERROR("mqttServerAddrSCADA key is not present or type is invalid");
-			std::cout << "mqttServerAddrSCADA key is not present or type is invalid" << std::endl;
 			bRet = false;
 			break;
 		}
@@ -113,13 +111,11 @@ bool CCommon::loadYMLConfig()
 			sTemp += (":" + config["mqttServerPortSCADA"].as<std::string>());
 			setExtMqttURL(sTemp);
 			DO_LOG_INFO("EXTERNAL_MQTT_URL is set to :: " + getExtMqttURL())
-			std::cout << "EXTERNAL_MQTT_URL is set to :: " + getExtMqttURL() << std::endl;
 			bRet = true;
 		}
 		else
 		{
 			DO_LOG_ERROR("mqttServerPortSCADA key is not present or type is invalid");
-			std::cout << "mqttServerPortSCADA key is not present or type is invalid" << std::endl;
 			bRet = false;
 			break;
 		}
@@ -131,13 +127,11 @@ bool CCommon::loadYMLConfig()
 		int nQos = config["qos"].as<std::int32_t>();
 		setMQTTQos(nQos);
 		DO_LOG_INFO("QOS is set to :: " + std::to_string(getMQTTQos()));
-		std::cout << "QOS is set to :: " + std::to_string(getMQTTQos()) << std::endl;
 	}
 	else
 	{
 		setMQTTQos(1);	// default QOS value is 1
 		DO_LOG_ERROR("QOS key is not present, set to default value " + std::to_string(getMQTTQos()));
-		std::cout << "QOS key is not present, set to default value :: " << std::to_string(getMQTTQos()) << std::endl;
 	}
 
 	return bRet;
@@ -155,25 +149,23 @@ void CCommon::setScadaRTUIds()
 	if(!bRetVal)
 	{
 		DO_LOG_INFO("Global configuration is set with some default parameters");
-		std::cout << "\nGlobal configuration is set with some default parameters\n\n";
 	}
 	else
 	{
 		DO_LOG_INFO("Global configuration is set successfully");
-		std::cout << "\nGlobal configuration for container real-time is set successfully\n\n";
 	}
 
 	m_strGroupId = globalConfig::CGlobalConfig::getInstance().getSparkPlugInfo().getGroupId();
 	if(m_strGroupId.empty())
 	{
-		std::cout << "Group id for scada-rtu is not set, exiting application" << std::endl;
+		DO_LOG_ERROR("Group id for scada-rtu is not set, exiting application");
 		return;
 	}
 
 	m_strNodeName = globalConfig::CGlobalConfig::getInstance().getSparkPlugInfo().getNodeName();
 	if(m_strNodeName.empty())
 	{
-		std::cout << "Node name for scada-rtu is not set, exiting application" << std::endl;
+		DO_LOG_ERROR("Node name for scada-rtu is not set, exiting application");
 		return;
 	}
 }

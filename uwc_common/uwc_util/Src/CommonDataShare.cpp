@@ -53,7 +53,7 @@ void CcommonEnvManager::splitString(const std::string &str, char delim)
 	{
 		std::size_t pos = item.find('/');
 		item = (item.substr(pos + 1));
-		std::cout <<" Topic:: " << std::string(item) << std::endl;
+		DO_LOG_INFO(" Topic:: " + std::string(item));
 		addTopicToList(std::string(item));
 	}
 }

@@ -86,7 +86,6 @@ bool zmq_handler::prepareContext(bool a_bIsPub,
 	if(NULL == msgbus_ctx || NULL == config || a_sTopic.empty())
 	{
 		DO_LOG_ERROR("NULL pointers received while creating context for topic ::" + a_sTopic);
-		std::cout<<"[preparecontext]NULL pointers received while creating context for topic\n";
 		//< Failed to create publisher or subscriber topic's message bus context so remove context, destroy message bus context created.
 		goto err;
 	}
@@ -104,7 +103,6 @@ bool zmq_handler::prepareContext(bool a_bIsPub,
 	{
 		/// cleanup
 		DO_LOG_ERROR("Failed to create publisher or subscriber for topic "+a_sTopic + " with error code:: "+std::to_string(retVal));
-		std::cout << "ERROR:: Failed to create publisher or subscriber for topic : "<< a_sTopic<< " with error code:: "<< std::to_string(retVal)<<std::endl;
 		//< Failed to create publisher or subscriber topic's message bus context so remove context, destroy message bus context created.
 		goto err;
 	}
@@ -243,7 +241,6 @@ bool zmq_handler::prepareCommonContext(std::string topicType)
 	else
 	{
 		DO_LOG_ERROR("EII Configmgr creation failed !! ");
-		std::cout << "EII Configmgr creation failed !!  " <<std::endl;
 	}
 	DO_LOG_DEBUG("End: ");
 	return true;

@@ -44,8 +44,7 @@ CMQTTPublishHandler::CMQTTPublishHandler(std::string strPlBusUrl, std::string st
 	}
 	catch (const std::exception &e)
 	{
-		DO_LOG_FATAL(e.what());
-		std::cout << __func__ << ":" << __LINE__ << " Exception : " << e.what() << std::endl;
+		DO_LOG_FATAL("Exception : " + std::string(e.what()));
 	}
 }
 

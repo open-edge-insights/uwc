@@ -129,7 +129,7 @@ CDataPointsYML& getDataPointsYML(const std::string& a_sDataPointsYML)
 			return itr->second;
 		}
 		// Data Poinst YML object not found. Insert a new one in map.
-		std::cout << "YML file: " << a_sDataPointsYML << std::endl;
+		DO_LOG_INFO("YML file: " + a_sDataPointsYML);
 		YAML::Node node = CommonUtils::loadYamlFile(a_sDataPointsYML);
 
 		DO_LOG_INFO("pointlist found: " + a_sDataPointsYML);
@@ -148,12 +148,12 @@ CDataPointsYML& getDataPointsYML(const std::string& a_sDataPointsYML)
 				{
 					std::string sVersion = it.second["version"].as<std::string>();
 					orPointList.setVersion(sVersion);
-					std::cout << sVersion << ": data points YML version\n";
+					DO_LOG_INFO("data points YML version  " + sVersion);
 					continue;
 				}
 				catch(std::exception &e)
 				{
-					std::cout << ": version not found in data points YML \n";
+					DO_LOG_ERROR("version not found in data points YML");
 				}
 			}
 			if(it.second.IsSequence() && it.first.as<std::string>() == "datapoints")
@@ -172,7 +172,6 @@ CDataPointsYML& getDataPointsYML(const std::string& a_sDataPointsYML)
 						else
 						{
 							DO_LOG_ERROR("Ignoring duplicate point ID from polling :"+ objCDataPoint.getID());
-							std::cout << "ERROR: Ignoring duplicate point ID from polling :"<< objCDataPoint.getID() <<std::endl;
 						}
 					}
 					catch (YAML::Exception& ye)
@@ -189,8 +188,7 @@ CDataPointsYML& getDataPointsYML(const std::string& a_sDataPointsYML)
 	}
 	catch(YAML::Exception &e)
 	{
-		DO_LOG_ERROR(e.what());
-		std::cout << __func__<<" Exception :: " << e.what()<<std::endl;
+		DO_LOG_ERROR(" Exception :: " + std::string(e.what()));
 		throw;
 	}
 	return g_mapDataPointsYML.at(a_sDataPointsYML);
@@ -244,8 +242,7 @@ void getBaseParamsForDeviceInfo(const YAML::Node& a_oDevInfoYML, std::string &a_
 	}
 	catch(YAML::Exception &e)
 	{
-		DO_LOG_ERROR(e.what());
-		std::cout << __func__<<" Exception :: " << e.what()<<std::endl;
+		DO_LOG_ERROR(" Exception :: " + std::string(e.what()));
 		throw;
 	}
 }
@@ -263,11 +260,11 @@ CDeviceInfo& getDeviceInfo(const YAML::Node& a_oWellSiteDevData)
 	{
 		for (auto it : a_oWellSiteDevData)
 		{
-			std::cout << "getDeviceInfo: key: " << it.first.as<std::string>() << std::endl;
+			DO_LOG_INFO("getDeviceInfo: key: " + it.first.as<std::string>());
 			if(it.first.as<std::string>() == "deviceinfo")
 			{
 				sDevInfoYML = it.second.as<std::string>();
-				std::cout << "Device Info YML file: " << sDevInfoYML << std::endl;
+				DO_LOG_INFO("Device Info YML file: " + sDevInfoYML);
 				// Check if object for this device info YML is already present
 				auto itr = g_mapDeviceInfo.find(sDevInfoYML);
 				if(itr != g_mapDeviceInfo.end())
@@ -288,14 +285,12 @@ CDeviceInfo& getDeviceInfo(const YAML::Node& a_oWellSiteDevData)
 		if(false == bIsDevRefPresent)
 		{
 			DO_LOG_ERROR(" Device information is not found. Ignoring this well device.");
-			std::cout << __func__ << " Device information is not found. Ignoring this well device." << std::endl;
 			throw YAML::Exception(YAML::Mark::null_mark(), "deviceinfo not found");
 		}
 	}
 	catch(YAML::Exception &e)
 	{
-		DO_LOG_ERROR(e.what());
-		std::cout << __func__<<" Exception :: " << e.what()<<std::endl;
+		DO_LOG_ERROR(" Exception :: " + std::string(e.what()));
 		throw;
 	}
 	return g_mapDeviceInfo.at(sDevInfoYML);
@@ -412,14 +407,12 @@ void network_info::CWellSiteInfo::build(const YAML::Node& a_oData, CWellSiteInfo
 							DO_LOG_ERROR("Ignoring device with id : " +
 									objWellsiteDev.getID() +
 									", since this point name is already present. Ignore this point.");
-							std::cout << "Ignoring device with id : " << objWellsiteDev.getID() << ", since this point name is already present. Ignore this point."<< std::endl;
 						}
 						else if(-2 == i32RetVal)
 						{
 							DO_LOG_ERROR("Ignoring device with id : " +
 									objWellsiteDev.getID() +
 									", since Device type and network type are not matching.");
-							std::cout << "Ignoring device with id : " << objWellsiteDev.getID() << ", since Device type and network type are not matching."<< std::endl;
 						}
 					}
 					catch (YAML::Exception& ye)
@@ -437,7 +430,6 @@ void network_info::CWellSiteInfo::build(const YAML::Node& a_oData, CWellSiteInfo
 		{
 			DO_LOG_FATAL(" Site without id is found. Ignoring this site.");
 			throw YAML::Exception(YAML::Mark::null_mark(), "Id key not found");
-			std::cout << "Site without id is found. Ignoring this site."<<std::endl;
 		}
 	}
 	catch(YAML::Exception &e)
@@ -501,12 +493,7 @@ void CRTUNetworkInfo::buildRTUNwInfo(CRTUNetworkInfo &a_oNwInfo,
 		DO_LOG_INFO(" response_timeout = " + std::to_string(a_oNwInfo.getResTimeout()));
 
 
-		std::cout << "RTU network info parameters..." << std::endl;
-		std::cout << " baudrate = " + std::to_string(a_oNwInfo.getBaudRate()) << std::endl;
-		std::cout << " com_port_name = " + a_oNwInfo.getPortName() << std::endl;
-		std::cout << " parity = " +  a_oNwInfo.getParity() << std::endl;
-		std::cout << " interframe_delay = " +  std::to_string(a_oNwInfo.getInterframeDelay()) << std::endl;
-		std::cout << " response_timeout = " +  std::to_string(a_oNwInfo.getResTimeout()) << std::endl;
+
 
 	}
 	catch (YAML::Exception& e)
@@ -576,8 +563,7 @@ void network_info::CWellSiteDevInfo::build(const YAML::Node& a_oData, CWellSiteD
 					}
 					catch(std::exception &e)
 					{
-						DO_LOG_FATAL(e.what());
-						std::cout << __func__ << "Required keys not found in PROTOCOL_RTU" << std::endl;
+						DO_LOG_FATAL("Required keys not found in PROTOCOL_RTU" + std::string(e.what()));
 						throw YAML::Exception(YAML::Mark::null_mark(), "Required keys not found in PROTOCOL_RTU");
 					}
 				}
@@ -587,11 +573,6 @@ void network_info::CWellSiteDevInfo::build(const YAML::Node& a_oData, CWellSiteD
 					{
 						if(tempMap.at("ipaddress") == "" || tempMap.at("port") == "" || tempMap.at("unitid") == "")
 						{
-							std::cout << " ERROR:: ipaddress or port or unitid cannot be empty" <<std::endl;
-							std::cout << " Given parameters:: " <<std::endl;
-							std::cout << " ipaddress:: " << tempMap.at("ipaddress")<<std::endl;
-							std::cout  << " port:: " << tempMap.at("port")<<std::endl;
-							std::cout  << " unitid:: " <<tempMap.at("unitid")<<std::endl;
 							DO_LOG_ERROR("ipaddress or port or unitid cannot be empty");
 							DO_LOG_ERROR("Given parameters are following ::");
 							DO_LOG_ERROR("ipaddress:: " + tempMap.at("ipaddress"));
@@ -606,7 +587,6 @@ void network_info::CWellSiteDevInfo::build(const YAML::Node& a_oData, CWellSiteD
 						}
 						else
 						{
-							std::cout << "ERROR : IP address is invalid!!" <<tempMap.at("ipaddress") <<std::endl;
 							DO_LOG_ERROR("IP address is invalid " + tempMap.at("ipaddress"));
 						}
 
@@ -621,8 +601,7 @@ void network_info::CWellSiteDevInfo::build(const YAML::Node& a_oData, CWellSiteD
 					}
 					catch(std::exception &e)
 					{
-						DO_LOG_FATAL(e.what());
-						std::cout << "Required keys not found in PROTOCOL_TCP"<<std::endl;
+						DO_LOG_FATAL("Required keys not found in PROTOCOL_TCP Exception :: " + std::string(e.what()));
 						throw YAML::Exception(YAML::Mark::null_mark(), "Required keys not found in PROTOCOL_TCP");
 					}
 				}
@@ -631,7 +610,6 @@ void network_info::CWellSiteDevInfo::build(const YAML::Node& a_oData, CWellSiteD
 					// error
 					DO_LOG_ERROR(" : Unknown protocol: " +
 							tempMap.at("protocol"));
-					std::cout << __func__<< " : Unknown protocol: " << tempMap.at("protocol") << std::endl;
 					throw YAML::Exception(YAML::Mark::null_mark(), "Unknown protocol found");
 				}
 			}
@@ -639,21 +617,18 @@ void network_info::CWellSiteDevInfo::build(const YAML::Node& a_oData, CWellSiteD
 		if(false == bIsIdPresent)
 		{
 			DO_LOG_ERROR(" Site device without id is found. Ignoring this well device.");
-			std::cout << __func__ << " Site device without id is found. Ignoring this well device."<<std::endl;
 			throw YAML::Exception(YAML::Mark::null_mark(), "Id key not found");
 
 		}
 		if(false == bIsProtocolPresent)
 		{
 			DO_LOG_ERROR(" Site device without protocol is found. Ignoring it.");
-			std::cout << __func__ << " Site device without protocol is found. Ignoring it.."<<std::endl;
 			throw YAML::Exception(YAML::Mark::null_mark(), "Protocol key not found");
 		}
 	}
 	catch(YAML::Exception &e)
 	{
-		DO_LOG_ERROR(e.what());
-		std::cout << __func__<<" Exception :: " << e.what()<<std::endl;
+		DO_LOG_ERROR(" Exception :: " + std::string(e.what()));
 		throw;
 	}
 
@@ -849,7 +824,6 @@ void network_info::CDataPoint::build(const YAML::Node& a_oData, CDataPoint &a_oC
 		if((a_oCDataPoint.m_stAddress.m_eType == eEndPointType::eCoil) && (a_oData["attributes"]["width"].as<std::int32_t>() != 1))
 		{
 			DO_LOG_ERROR("Invalid width value is specified in yml file. hence ignoring the point : " + a_oCDataPoint.m_sId);
-			std::cout << "ERROR:: Invalid width value is specified in yml file. hence ignoring the point : "<< a_oCDataPoint.m_sId << std::endl;
 			throw YAML::Exception(YAML::Mark::null_mark(), "Width should be 1 for COIL type");
 		}
 		else
@@ -861,7 +835,6 @@ void network_info::CDataPoint::build(const YAML::Node& a_oData, CDataPoint &a_oC
 		if (a_oCDataPoint.m_stAddress.m_iWidth <= 0)
 		{
 			DO_LOG_ERROR("Invalid width value is specified in yml file. hence ignoring the point : " + a_oCDataPoint.m_sId);
-			std::cout << "ERROR:: Invalid width value is specified in yml file. hence ignoring the point : "<< a_oCDataPoint.m_sId << std::endl;
 			throw YAML::Exception(YAML::Mark::null_mark(), "Invalid value for width");
 		}
 
@@ -875,7 +848,6 @@ void network_info::CDataPoint::build(const YAML::Node& a_oData, CDataPoint &a_oC
 			{
 				a_oCDataPoint.m_stAddress.m_bIsByteSwap = false;
 				DO_LOG_WARN("ByteSwap value is incorrect. Set to default with exception ::" + std::string(e.what()));
-				std::cout << "ByteSwap value is incorrect. Set to default with exception :: "<< e.what();
 			}
 		}
 		if (a_oData["attributes"]["wordswap"])
@@ -888,7 +860,6 @@ void network_info::CDataPoint::build(const YAML::Node& a_oData, CDataPoint &a_oC
 			{
 				a_oCDataPoint.m_stAddress.m_bIsWordSwap = false;
 				DO_LOG_WARN("WordSwap value is incorrect. Set to default." + std::string(e.what()));
-				std::cout << "WordSwap value is incorrect. Set to default with exception :: "<< e.what();
 			}
 		}
 		try
@@ -965,7 +936,6 @@ void network_info::buildNetworkInfo(string a_strNetworkType, string a_strSiteLis
 	// Check if this function is already called once. If yes, then exit
 	if(true == g_bIsStarted)
 	{
-		std::cout << "already started... return with no action \n";
 		DO_LOG_INFO(" This function is already called once. Ignoring this call");
 		return;
 	}
@@ -994,7 +964,6 @@ void network_info::buildNetworkInfo(string a_strNetworkType, string a_strSiteLis
 		return;
 	}
 
-	std::cout << "Network set as: " << (int)g_eNetworkType << std::endl;
 	DO_LOG_INFO(" Network set as: " +
 			std::to_string((int)g_eNetworkType));
 
@@ -1009,7 +978,6 @@ void network_info::buildNetworkInfo(string a_strNetworkType, string a_strSiteLis
 	{
 		if(true == sWellSiteFile.empty())
 		{
-			std::cout << __func__ <<" : Encountered empty file name. Ignoring";
 			DO_LOG_INFO(" : Encountered empty file name. Ignoring");
 			continue;
 		}
@@ -1019,7 +987,6 @@ void network_info::buildNetworkInfo(string a_strNetworkType, string a_strSiteLis
 		if(g_mapYMLWellSite.end() != it)
 		{
 			// It means record exists
-			std::cout << __func__ << " " << sWellSiteFile <<" : is already scanned. Ignoring";
 			DO_LOG_INFO(sWellSiteFile +
 					"Already scanned YML file: Ignoring it.");
 			continue;
@@ -1076,7 +1043,7 @@ void network_info::buildNetworkInfo(string a_strNetworkType, string a_strSiteLis
 
 	for(auto &a: oWellSiteList)
 	{
-		std::cout << "\nNew Well Site\n";
+		DO_LOG_INFO("New Well Site");
 		printWellSite(a);
 	}
 

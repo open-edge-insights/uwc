@@ -94,9 +94,6 @@ void populatePollingRefData()
 		}
 		try
 		{
-			std::cout << iCount++ << ". Point to poll: " << a.getID() << ", RT: "
-					<< a.getDataPoint().getPollingConfig().m_bIsRealTime << ", Freq: "
-					<< a.getDataPoint().getPollingConfig().m_uiPollFreq << std::endl;
 
 			uint8_t uiFuncCode = 0;
 			switch(a.getDataPoint().getAddress().m_eType)
@@ -201,7 +198,6 @@ void setDevContexts()
 				eStackErrorCode retValue = getTCPCtx(&iCtx, &objCtxInfo);
 				if(STACK_NO_ERROR != retValue)
 				{
-					std::cout << dev.getID() << ": Unable to create context. Error: " << retValue << std::endl;
 					DO_LOG_ERROR(dev.getID() + ": Unable to create context. Error: " + std::to_string(retValue));
 				}
 				else
@@ -224,7 +220,6 @@ void setDevContexts()
 							sParity == "O" || sParity == "o"))
 					{
 						DO_LOG_ERROR("Set Parity is wrong for RTU. Set correct parity N/E/O");
-						std::cout << "Set Parity \"" << sParity << "\" is wrong for RTU. Set correct parity N/E/O" << std::endl;
 					}
 					else
 					{
@@ -241,7 +236,6 @@ void setDevContexts()
 
 						if(STACK_NO_ERROR != retValue)
 						{
-							std::cout << "RTU: Unable to create context. Error: " << retValue << std::endl;
 							DO_LOG_ERROR("RTU: Unable to create context. Error: " + std::to_string(retValue));
 						}
 						else
@@ -253,7 +247,6 @@ void setDevContexts()
 				}
 				else
 				{
-					std::cout << "RTU: configuration is not proper." << std::endl;
 					DO_LOG_ERROR("RTU: configuration is not proper.");
 				}
 #endif
@@ -329,19 +322,16 @@ int main(int argc, char* argv[])
 		DO_LOG_DEBUG("Starting Modbus_App ...");
 
 		DO_LOG_INFO("Modbus container app version is set to :: " + std::string(APP_VERSION));
-		std::cout <<"\nModbus container app version is :: " + std::string(APP_VERSION) << "\n"<<std::endl;
 
 		// load global configuration for container real-time setting
 		bool bRetVal = globalConfig::loadGlobalConfigurations();
 		if(!bRetVal)
 		{
 			DO_LOG_INFO("Global configuration is set with some default parameters");
-			std::cout << "\nGlobal configuration is set with some default parameters\n\n";
 		}
 		else
 		{
 			DO_LOG_INFO("Global configuration is set successfully");
-			std::cout << "\nGlobal configuration for container real-time is set successfully\n\n";
 		}
 
 		readEnvData();
@@ -349,18 +339,14 @@ int main(int argc, char* argv[])
 		string cutOff;
 		if(!CommonUtils::readEnvVariable("CUTOFF_INTERVAL_PERCENTAGE", cutOff))
 		{
-			DO_LOG_INFO("CUTOFF_INTERVAL_PERCENTAGE env variables are not set.");
-			std::cout << "CUTOFF_INTERVAL_PERCENTAGE env variables are not set."<<std::endl;
-			std::cout << "setting it to default i.e. 90 \n";
-			DO_LOG_INFO("setting it to default i.e. 90");
+			DO_LOG_INFO("CUTOFF_INTERVAL_PERCENTAGE env variables are not set; setting it to default i.e. 90");
 			PublishJsonHandler::instance().setCutoffIntervalPercentage(90);
 		}
 		else
 		{
 			PublishJsonHandler::instance().setCutoffIntervalPercentage(atoi(cutOff.c_str()));
 		}
-		std::cout << "Cutoff is set to: "
-				<< PublishJsonHandler::instance().getCutoffIntervalPercentage() << std::endl;
+		DO_LOG_INFO("Cutoff is set to: " + std::to_string(PublishJsonHandler::instance().getCutoffIntervalPercentage()));
 
 		int num_of_publishers = zmq_handler::getNumPubOrSub("pub");
 		// Initializing all the pub/sub topic base context for ZMQ
@@ -388,7 +374,6 @@ int main(int argc, char* argv[])
 		else
 		{
 			DO_LOG_ERROR("could not find any Publishers in publisher Configuration ");
-			std::cout << __func__ << ":" << __LINE__ << " Error : could not find any Publishers in publisher Configuration " <<  std::endl;
 		}
 
 		int num_of_subscribers = zmq_handler::getNumPubOrSub("sub");
@@ -421,12 +406,10 @@ int main(int argc, char* argv[])
 					EnvironmentInfo::getInstance().getDataFromEnvMap("DEVICES_GROUP_LIST_FILE_NAME"),
 					EnvironmentInfo::getInstance().getDataFromEnvMap("MY_APP_ID"));
 			DO_LOG_INFO("Modbus container application is set to TCP mode");
-			std::cout << "Modbus container application is set to TCP mode.." << std::endl;
 		}
 		else
 		{
-			std::cout << "Devices group list is not present\n";
-			DO_LOG_INFO("Devices group list is not present");
+			DO_LOG_ERROR("Devices group list is not present");
 		}
 
 #else
@@ -439,12 +422,10 @@ int main(int argc, char* argv[])
 					EnvironmentInfo::getInstance().getDataFromEnvMap("MY_APP_ID"));
 
 			DO_LOG_INFO("Modbus container application is set to RTU mode");
-			std::cout << "Modbus container application is set to RTU mode.." << std::endl;
 		}
 		else
 		{
-			std::cout << "Devices group list is not present\n";
-			DO_LOG_INFO("Devices group list is not present");
+			DO_LOG_ERROR("Devices group list is not present");
 		}
 
 #endif
@@ -472,29 +453,25 @@ int main(int argc, char* argv[])
 		stDevConf.m_lResponseTimeout = lRespTimeout;
 		if(STACK_NO_ERROR != AppMbusMaster_SetStackConfigParam(&stDevConf))
 		{
-			std::cout << "Error: Exiting. Failed to set stack  config parameters"<< std::endl;
-			DO_LOG_ERROR("Failed to set stack  config parameters");
+			DO_LOG_ERROR("Error :: Exiting. Failed to set stack  config parameters");
 			return -1;
 		}
 		else
 		{
-			std::cout << "Success :: modbus stack set config successful" << std::endl;
-			DO_LOG_INFO("modbus stack set config successful");
+			DO_LOG_INFO("Success :: modbus stack set config successful");
 		}
 
 		uint8_t	u8ReturnType = AppMbusMaster_StackInit();
 		if(0 != u8ReturnType)
 		{
-			DO_LOG_ERROR("Exiting. Failed to initialize modbus stack:" +
+			DO_LOG_ERROR("Error :: Exiting. Failed to initialize modbus stack:" +
 					std::to_string(u8ReturnType));
 
-			std::cout << "Error: Exiting. Failed to initialize modbus stack:" << (unsigned)u8ReturnType << std::endl;
 			exit(1);
 		}
 		else
 		{
-			std::cout << "\nSuccess :: modbus stack initialization successful" << std::endl;
-			DO_LOG_INFO("modbus stack initialization successful");
+			DO_LOG_INFO("Success :: modbus stack initialization successful");
 		}
 
 		if(false == onDemandHandler::Instance().isWriteInitialized())
@@ -534,27 +511,24 @@ int main(int argc, char* argv[])
 
 		// Get best possible polling frequency
 		uint32_t ulMinFreq = CTimeMapper::instance().getMinTimerFrequency();
-		std::cout << "Best possible minimum frequency in milliseconds: " << ulMinFreq << std::endl;
-		std::cout << "Starting periodic timer\n";
+		DO_LOG_INFO("Best possible minimum frequency in milliseconds: " + std::to_string(ulMinFreq));
+		DO_LOG_INFO("Starting periodic timer");
 		PeriodicTimer::timer_start(ulMinFreq);
-		std::cout << "Timer is started..\n";
+		DO_LOG_INFO("Timer is started..");
 
 		std::unique_lock<std::mutex> lck(mtx);
 		cv.wait(lck,exitMainThread);
 
 		DO_LOG_INFO("Condition variable is set for application exit.");
 
-		DO_LOG_INFO("Exiting the application gracefully.");
-		std::cout << "************************************************************************************************" <<std::endl;
-		std::cout << "********************** Exiting modbus container ***********" <<std::endl;
-		std::cout << "************************************************************************************************" <<std::endl;
+		DO_LOG_WARN("Exiting the application gracefully.");
+		DO_LOG_WARN("Exiting modbus container");
 
 		return EXIT_SUCCESS;
 	}
 	catch (const std::exception &e)
 	{
-		std::cout << "Exception in main::"<<"fatal::Error in getting arguments: "<<e.what()<< std::endl;
-		DO_LOG_FATAL("fatal::Error in getting arguments: " +
+		DO_LOG_FATAL("Exception in main :: fatal::Error in getting arguments: " +
 				(string)e.what());
 
 		return EXIT_FAILURE;

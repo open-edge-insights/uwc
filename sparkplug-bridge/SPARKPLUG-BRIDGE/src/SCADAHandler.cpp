@@ -24,6 +24,7 @@
 #include "SCADAHandler.hpp"
 #include "InternalMQTTSubscriber.hpp"
 #include "SparkPlugUDTMgr.hpp"
+#include <errno.h>
 
 extern std::atomic<bool> g_shouldStop;
 
@@ -53,8 +54,7 @@ CSCADAHandler::CSCADAHandler(const std::string &strMqttURL, int iQOS) :
 	}
 	catch (const std::exception &e)
 	{
-		DO_LOG_FATAL(e.what());
-		std::cout << __func__ << ":" << __LINE__ << " Exception : " << e.what() << std::endl;
+		DO_LOG_FATAL(" Exception : " + std::string(e.what()));
 	}
 }
 
@@ -72,7 +72,7 @@ bool CSCADAHandler::init()
 	int retVal = sem_init(&m_semSCADAConnSuccess, 0, 0 /* Initial value of zero*/);
 	if (retVal == -1)
 	{
-		std::cout << "*******Could not create unnamed semaphore for SCADA success connection\n";
+		DO_LOG_FATAL("Could not create unnamed semaphore for SCADA success connection " + std::to_string(errno) + " " + strerror(errno));
 		return false;
 	}
 	std::thread{ std::bind(&CSCADAHandler::handleSCADAConnectionSuccessThread,
@@ -81,7 +81,7 @@ bool CSCADAHandler::init()
 	retVal = sem_init(&m_semIntMQTTConnLost, 0, 0 /* Initial value of zero*/);
 	if (retVal == -1)
 	{
-		std::cout << "*******Could not create unnamed semaphore for Internal MQTT connection lost\n";
+		DO_LOG_FATAL("Could not create unnamed semaphore for Internal MQTT connection lost " + std::to_string(errno) + " " + strerror(errno));
 		return false;
 	}
 	std::thread{ std::bind(&CSCADAHandler::handleIntMQTTConnLostThread,
@@ -91,7 +91,7 @@ bool CSCADAHandler::init()
 	retVal = sem_init(&m_semIntMQTTConnEstablished, 0, 0 /* Initial value of zero*/);
 	if (retVal == -1)
 	{
-		std::cout << "*******Could not create unnamed semaphore for Internal MQTT connection established\n";
+		DO_LOG_FATAL("Could not create unnamed semaphore for Internal MQTT connection established " + std::to_string(errno) + " " + strerror(errno));
 		return false;
 	}
 	std::thread{ std::bind(&CSCADAHandler::handleIntMQTTConnEstablishThread,
@@ -469,7 +469,6 @@ CSCADAHandler& CSCADAHandler::instance()
 		if(strMqttUrl.empty())
 		{
 			DO_LOG_ERROR("EXTERNAL_MQTT_URL variable is not set in config file");
-			std::cout << __func__ << ":" << __LINE__ << " Error : EXTERNAL_MQTT_URL variable is not set in config file" <<  std::endl;
 			throw std::runtime_error("Missing required config..");
 		}
 	}
@@ -533,7 +532,7 @@ void CSCADAHandler::publish_node_birth()
 		addModbusTemplateDefToNbirth(nbirth_payload);
 		CSparkPlugUDTManager::getInstance().addUDTDefsToNbirth(nbirth_payload);
 
-		std::cout << "Publishing nbirth message ..." << std::endl;
+		DO_LOG_INFO("Publishing nbirth message ...");
 		publishSparkplugMsg(nbirth_payload, CCommon::getInstance().getNBirthTopic(), true);
 
 		nbirth_payload.uuid = NULL;
