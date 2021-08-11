@@ -76,6 +76,12 @@ The directory comprises of following:
 
 2. If the required UWC code base is not yet repo synched or (git repositories cloned), then kindly follow the repo or git steps from  `<working-directory>/IEdgeInsights/../.repo/manifests/README.md` to repo sync or git clone the codebase.
 
+3. [optional] Steps to Apply RT Patch.
+
+  * If user wants to install RT_patch they need to disable secure boot as per limitation of ubuntu.
+
+  * Please go through the links https://mirrors.edge.kernel.org/pub/linux/kernel/ or https://mirrors.edge.kernel.org/pub/linux/kernel/projects/rt/ to find the exact RT Patch for your system and install it manually.    
+    
 ## Install UWC specific pre-requisites
 All the below UWC specific scripts need to be run from the directory `IEdgeInsights\uwc`:
   ```sh
