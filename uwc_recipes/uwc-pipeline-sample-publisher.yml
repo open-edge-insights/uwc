@@ -1,0 +1,6 @@
+AppContexts:
+- EtcdUI
+- ZmqBroker
+- Telegraf
+- InfluxDBConnector
+- uwc/SampleDBPublisher 

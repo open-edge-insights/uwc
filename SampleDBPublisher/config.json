@@ -1,0 +1,25 @@
+{
+    "config":{
+        "loop_interval": "1"
+    },
+    "interfaces":{
+        "Publishers": [
+            {
+                "AllowedClients": [
+                    "*"
+                ],
+                "EndPoint": {
+                    "SocketDir": "/EII/sockets",
+                    "SocketFile": "frontend-socket"
+                },
+                "Name": "Testing_Data_persist",
+                "Topics": [
+                    "Testing_Data_persist"
+                ],
+                "Type": "zmq_ipc",
+                "BrokerAppName":"ZmqBroker",
+                "brokered":true
+            }
+        ]
+    }
+}

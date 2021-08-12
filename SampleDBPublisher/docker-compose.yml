@@ -1,0 +1,74 @@
+# Copyright (c) 2021 Intel Corporation.
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+version: '3.6'
+
+services:
+
+  ia_python_publisher:
+    depends_on:
+      - ia_eiibase
+    build:
+      context: $PWD/../uwc/SampleDBPublisher
+      dockerfile: $PWD/../uwc/SampleDBPublisher/Dockerfile
+      args:
+        EII_VERSION: ${EII_VERSION}
+        EII_UID: ${EII_UID}
+        EII_USER_NAME: ${EII_USER_NAME}
+        UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
+        CMAKE_INSTALL_PREFIX: ${EII_INSTALL_PATH}
+        # set CMAKE_BUILD_TYPE value to "Debug" to generate debug symbols
+        CMAKE_BUILD_TYPE: "Release"
+    image: ${DOCKER_REGISTRY}ia_python_publisher:${EII_VERSION}
+    container_name: ia_python_publisher
+    hostname: ia_python_publisher
+    restart: unless-stopped
+    read_only: true
+    security_opt:
+    - no-new-privileges
+    healthcheck:
+      test: ["CMD-SHELL", "exit", "0"]
+      interval: 5m
+    environment:
+      AppName: "PythonPublisher"
+      DEV_MODE: ${DEV_MODE}
+      no_proxy: ${ETCD_HOST}
+      ETCD_HOST: ${ETCD_HOST}
+      ETCD_CLIENT_PORT: ${ETCD_CLIENT_PORT}
+      ETCD_PREFIX: ${ETCD_PREFIX}
+      CertType: "zmq"
+      # ZMQ_RECV_HWM: "1000"
+    networks:
+      - eii
+    ports:
+      - 65020:65020
+      - 65117:65117
+    volumes:
+      - "vol_eii_socket:${SOCKET_DIR}"
+    secrets:
+      - ca_etcd
+      - etcd_PythonPublisher_cert
+      - etcd_PythonPublisher_key
+
+secrets:
+  etcd_PythonPublisher_cert:
+    file: provision/Certificates/PythonPublisher/PythonPublisher_client_certificate.pem
+  etcd_PythonPublisher_key:
+    file: provision/Certificates/PythonPublisher/PythonPublisher_client_key.pem
