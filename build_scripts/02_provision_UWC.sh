@@ -159,6 +159,7 @@ configure_usecase()
         echo "5) Basic UWC micro-services with Time series micro-services (Telegraf & InfluxDBConnector)"
         echo "6) Running Basic UWC micro-services with time series services (Telegraf & InfluxDBCOnnector) along with KPI-tactic app"
         echo "7) Running Basic UWC micro-services with time series services (Telegraf & InfluxDBCOnnector) along with Sparkplug service"
+        echo "8) Running the sample DB publisher with Telegraf, InfluxDBCOnnector, ZmqBroker & Etcd container."
         read yn
     fi
     cd ${eii_build_dir}
@@ -253,7 +254,17 @@ configure_usecase()
                 ;;
             7)
                 echo "Running Basic UWC micro-services with time series services (Telegraf & InfluxDBCOnnector) along with Sparkplug service"
-                python3 builder.py -f ../uwc/uwc_recipes/uwc-pipeline-basic-sparkplug-timeseries.yml
+                python3 builder.py -f ../uwc/uwc_recipes/uwc-pipeline-basic-sparkplug-timeseries.yml		
+                if [ "$?" != 0 ]; then
+                    echo "${RED}Error running EII builder script. Check the recipe configuration file...!${NC}"
+                    exit 1
+                fi
+                echo "${GREEN}EII builder script successfully generated consolidated docker-compose & configuration files.${NC}"
+                break
+                ;;
+            8)
+                echo "Running the sample DB publisher with Telegraf, InfluxDBConnector, ZmqBroker & Etcd container  "
+                python3 builder.py -f ../uwc/uwc_recipes/uwc-pipeline-sample-publisher.yml
                 if [ "$?" != 0 ]; then
                     echo "${RED}Error running EII builder script. Check the recipe configuration file...!${NC}"
                     exit 1

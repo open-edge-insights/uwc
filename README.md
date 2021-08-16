@@ -31,10 +31,11 @@
 6. [Verify container status](#verify-container-status)
 7. [Apply configuration changes](#apply-configuration-changes)
 8. [Uninstallation script](#uninstallation-script)
-9. [Data Persistence feature](#Data-Persistence-feature)
-10. [Unit Tests](#unit-tests)
-11. [Debugging steps](#debugging-steps) 
-12. [Troubleshooting](#troubleshooting)
+9. [Data Persistence feature](#data-persistence-feature)
+10. [Sample DB Publisher](#sample-db-publisher)
+11. [Unit Tests](#unit-tests)
+12. [Debugging steps](#debugging-steps) 
+13. [Troubleshooting](#troubleshooting)
 
 ## Directory details
 The directory comprises of following:
@@ -141,6 +142,34 @@ Used to uninstall & remove the UWC installation.
   * The retention period is configurable and can be configured in the config.json file of InfluxDBConnector micro-service -`https://github.com/open-edge-insights/eii-influxdb-connector/blob/master/config.json`.
     The default retention period is set to 24 hours. Although the field "retention" in config.json is set to 23 hours, it includes a default shard duration of 1 hour which totally accounts to 24 hours of data retention.
     Refer influxDB documentation "https://www.influxdata.com/blog/influxdb-shards-retention-policies/" for more details.
+
+
+## Sample DB Publisher
+
+A sample database publisher which publishes sample JSON data onto the EII MessageBus ZMQ broker. The JSON payload published on ZMQ broker is subscribed by the Telegraf & written to the influx database based on the "dataPersist" flag being true or false in input Json payload. (Writes to InfluxDB if "dataPersist" flag is true and doesn't write to DB if the flag is false). This DB publisher app is containerized & doesn't get involved with any of the UWC services.
+
+Following are the steps for running it.
+
+1. Make sure [EmbPublisher APP](../tools/EmbPublisher/) is present after the repo is cloned.
+
+2. The UWC Embpublisher's config.json and the json input file is present in [eii_configs](./eii_configs/service_specific_cfgs/EmbPublisher/) .
+
+3. User can modify the [UWC_Sample_DB_Publisher_config.json](./eii_configs/service_specific_cfgs/EmbPublisher/UWC_Sample_DB_Publisher_config.json) according to requirement. Just make sure if the string key is to be added in sample json payload then please add the string key in [Telegraf_devmode.conf](./eii_configs/service_specific_cfgs/Telegraf/Telegraf_devmode.conf) or [Telegraf.conf](./eii_configs/service_specific_cfgs/Telegraf/Telegraf.conf) json_string_fields section.
+
+```yaml
+<string_key>: <value_key>
+```
+
+4. After editing make sure that the [config.json](./eii_configs/service_specific_cfgs/EmbPublisher/config.json) "msg_file" filed is pointing to required file.
+
+```yaml
+"msg_file": "UWC_Sample_DB_Publisher_config.json"
+```
+5. Run the [01_uwc_pre_requisites.sh](./build_scripts/01_uwc_pre_requisites.sh) script.
+
+## Note: 
+
+Please re-run the 01_uwc_pre_requisites.sh script after making any changes to the above mentioned config files.
 
 ## Unit Tests
 All the UWC modules have unit tests enabled in production mode. In order to run the unit tests, follow the below steps:
