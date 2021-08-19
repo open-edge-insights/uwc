@@ -520,9 +520,7 @@ int main(int argc, char* argv[])
 		cv.wait(lck,exitMainThread);
 
 		DO_LOG_INFO("Condition variable is set for application exit.");
-
-		DO_LOG_WARN("Exiting the application gracefully.");
-		DO_LOG_WARN("Exiting modbus container");
+		DO_LOG_WARN("Exiting the Modbus application gracefully.");
 
 		return EXIT_SUCCESS;
 	}
