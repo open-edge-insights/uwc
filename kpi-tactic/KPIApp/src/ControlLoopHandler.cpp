@@ -332,29 +332,53 @@ bool CControlLoopMapper::triggerControlLoops(std::string& a_sPolledPoint, CMessa
 	return true;
 }
 
+/*
+ * This macro UWC_HIGH_PERFORMANCE_PROCESSOR should be DEFINED when high performance processor(i7/i10) is used.
+ * When this macro is defined below version of configControlLoopOps() function should be used.
+ * When high performance processor is used then create multiple threads for Logs analysis message (threadAnalysisMsg)
+ * and create multiple threads for write request creation (threadWriteReq) for achieving concurrent/parallel operations after reading single queue.
+ * When high performance processor is not DEFINED then create single thread for Logs analysis message (threadAnalysisMsg)
+ * and single thread for write request creation (threadWriteReq) for achieving sequential processing (reading queue and proceesing).
+ */
+
+#ifdef UWC_HIGH_PERFORMANCE_PROCESSOR
+
 /**
- * Starts control loop threads
+ * This function create and start threadPollMonitoring (control loop monitoring) threads,
+ * threadAnalysisMsg (Logs analysis message) threads and threadWriteReq (write request creation) threads.
+ * Number of threads (threadPollMonitoring, threadAnalysisMsg, threadWriteReq) depends on number of control loops configured with unique data points.
+ *
  * @param a_bIsRTWrite	[in]: It indicates whether write op is RT
  * @return true/false based on success/failure
  */
 bool CControlLoopMapper::configControlLoopOps(bool a_bIsRTWrite)
 {
-	//
+	// m_oControlLoopMap map keeps track of all the control loops configured in ConfigControlLoop.yml for every unique datapoints.
+	// This outer for loop iterates for each entry of unique datapoints present in the m_oControlLoopMap. 
+	// Further, in the nested for loop iterate over the list of all control loops for the same datapoint (duplicate entries).
 	for (auto& itr : m_oControlLoopMap) 
 	{
 		try
 		{
+			// listControlLoop will fetch the list of control loops for each iteration of unique datapoint running in outer loop.
 			auto &listControlLoop = itr.second;
 			DO_LOG_INFO(itr.first + " - Polled Topic, Control loops:" + std::to_string(listControlLoop.size()));
+	 		
+			// In this nested for loop iterate over the list of all control loops for the same datapoint (duplicate entries).
+			// Iterate over each item of list listControlLoop to start monitoring the polling update messages 
+			// and finally create write request message			
 			for (auto& rCtrlLoop : listControlLoop) 
 			{
+				// Here start each control loop thread present in list listControlLoop.
 				rCtrlLoop.startThread();
 			}
 
-			// Create a thread for creating an analysis log
+			// Here multiple threads of threadAnalysisMsg are created depending upon the unique datapoints. 
+			// Each of the threads threadAnalyisMsg will analyse write response messages and create analysis log.
 			m_threadAnalysisLogger = std::thread(&CControlLoopMapper::threadAnalysisMsg, this);
 			m_threadAnalysisLogger.detach();
-			// Create a thread for sending write request
+			// Similarly multiple threads of write request are created depending upon the unique datapoints.
+			// Each of the threads threadWriteReq will create write request message to be sent over either 0mq or mqtt.
 			m_threadWrOp = std::thread(&CControlLoopMapper::threadWriteReq, this);
 			m_threadWrOp.detach();
 		}
@@ -367,6 +391,85 @@ bool CControlLoopMapper::configControlLoopOps(bool a_bIsRTWrite)
 	std::cout << "Control loop threads are set. Now start listening\n";
 	return true;
 }
+
+/*
+ * If the macro UWC_HIGH_PERFORMANCE_PROCESSOR is not defined, below version of configControlLoopOps function will be enabled.
+ * In this modified function, single instance of threadAnalysisMsg (Logs analysis message) thread and
+ * single instance of threadWriteReq (write request creation) thread is created.
+ */
+
+#else
+
+/**
+ * This function create and start multiple instances of threadPollMonitoring (control loop monitoring) thread.
+ * Number of threadPollMonitoring threads depends on number of control loops configured with unique data points.
+ * This function also create and start single instance of threadAnalysisMsg (Logs analysis message) thread and
+ * single instance of threadWriteReq (write request creation) thread is created.
+ *
+ * @param a_bIsRTWrite	[in]: It indicates whether write op is RT
+ * @return true/false based on success/failure
+ */
+bool CControlLoopMapper::configControlLoopOps(bool a_bIsRTWrite)
+{	
+	// m_oControlLoopMap map keeps track of all the control loops configured in ConfigControlLoop.yml for every unique datapoints.
+	// This outer for loop iterates for each entry of unique datapoints present in the m_oControlLoopMap. 
+	// Further, in the nested for loop iterate over the list of all control loops for the same datapoint (duplicate entries).
+	for (auto& itr : m_oControlLoopMap) 
+	{
+		try
+		{
+			// listControlLoop will fetch the list of control loops for each iteration of unique datapoint running in outer loop.
+			auto &listControlLoop = itr.second;
+			DO_LOG_INFO(itr.first + " - Polled Topic, Control loops:" + std::to_string(listControlLoop.size()));
+			
+			// In this nested for loop iterate over the list of all control loops for the same datapoint (duplicate entries).
+			// Iterate over each item of list listControlLoop to start monitoring the polling update messages 
+			// and finally create write request message	
+			for (auto& rCtrlLoop : listControlLoop) 
+			{
+			    // Here start each control loop thread present in list listControlLoop.
+				rCtrlLoop.startThread();
+			}
+
+		}
+		catch(const std::exception& e)
+		{
+			DO_LOG_ERROR(itr.first + ": error while creating control loop thread for polled point. " + e.what());
+		}
+	}
+
+    /*
+	 * Create single instance of threads namely threadAnalysis and threadWriteReq.
+	 * With only single instance of each of the threads, huge context switching among the threads are reduced 
+	 * therby maintaining efficient CPU utilization.
+	 *
+	 * However, in order to test on higher CPU processor, one may enable the macro UWC_HIGH_PERFORMANCE_PROCESSOR to create multiple 
+	 * threads of Analysis and WriteReqest for parallel processing of messages from queue. For now, with only single instance
+	 * of each of threads threadAnalysisMsg and threadWriteReq, messages from queue are processed sequentially. 
+	 * (i.e. one after the other) and not concurrently. 
+	 */
+
+	try
+	{		
+		// Create only single thread threadAnalysisMsg to analyse write response messages and create analysis log.
+		m_threadAnalysisLogger = std::thread(&CControlLoopMapper::threadAnalysisMsg, this);
+		m_threadAnalysisLogger.detach();
+		// Create only single thread for sending write request to be sent on either mqtt or 0mq
+		m_threadWrOp = std::thread(&CControlLoopMapper::threadWriteReq, this);
+		m_threadWrOp.detach();
+	}
+	catch(const std::exception& e)
+	{
+
+		DO_LOG_ERROR("Error in creating threadAnalysisMsg and threadWriteReq. " + std::string(e.what()));
+	}
+
+
+	std::cout << "Control loop threads are set. Now start listening\n";
+	return true;
+}
+
+#endif
 
 /**
  * For logging control loop analysis data, a separate logger is used.
