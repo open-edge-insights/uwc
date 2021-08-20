@@ -333,11 +333,12 @@ bool CControlLoopMapper::triggerControlLoops(std::string& a_sPolledPoint, CMessa
 }
 
 /*
- * This macro UWC_HIGH_PERFORMANCE_PROCESSOR should be DEFINED when high performance processor(i7/i10) is used.
- * When this macro is defined below version of configControlLoopOps() function should be used.
+ * This macro UWC_HIGH_PERFORMANCE_PROCESSOR should be enabled when high performance processor(i7/i10) is used.
+ * To enable this  macro, add -DUWC_HIGH_PERFORMANCE_PROCESSOR into the kpi-tactic makefile where kpi app sources are build.
+ * When this macro is enabled below version of configControlLoopOps() function should be used.
  * When high performance processor is used then create multiple threads for Logs analysis message (threadAnalysisMsg)
  * and create multiple threads for write request creation (threadWriteReq) for achieving concurrent/parallel operations after reading single queue.
- * When high performance processor is not DEFINED then create single thread for Logs analysis message (threadAnalysisMsg)
+ * When high performance processor is not enabled then create single thread for Logs analysis message (threadAnalysisMsg)
  * and single thread for write request creation (threadWriteReq) for achieving sequential processing (reading queue and proceesing).
  */
 
@@ -353,9 +354,9 @@ bool CControlLoopMapper::triggerControlLoops(std::string& a_sPolledPoint, CMessa
  */
 bool CControlLoopMapper::configControlLoopOps(bool a_bIsRTWrite)
 {
-	// m_oControlLoopMap map keeps track of all the control loops configured in ConfigControlLoop.yml for every unique datapoints.
-	// This outer for loop iterates for each entry of unique datapoints present in the m_oControlLoopMap. 
-	// Further, in the nested for loop iterate over the list of all control loops for the same datapoint (duplicate entries).
+	// m_oControlLoopMap keeps track of all the control loops configured in ConfigControlLoop.yml for every unique datapoint.
+	// This outer for loop iterates over each entry of unique datapoint present in m_oControlLoopMap. 
+	// The inner for loop iterates over the list of control loops for the same datapoint (or duplicate entries of the same datapoint).
 	for (auto& itr : m_oControlLoopMap) 
 	{
 		try
@@ -364,7 +365,7 @@ bool CControlLoopMapper::configControlLoopOps(bool a_bIsRTWrite)
 			auto &listControlLoop = itr.second;
 			DO_LOG_INFO(itr.first + " - Polled Topic, Control loops:" + std::to_string(listControlLoop.size()));
 	 		
-			// In this nested for loop iterate over the list of all control loops for the same datapoint (duplicate entries).
+			// In this nested for loop, iterate over the list of all control loops for the same datapoint (duplicate entries).
 			// Iterate over each item of list listControlLoop to start monitoring the polling update messages 
 			// and finally create write request message			
 			for (auto& rCtrlLoop : listControlLoop) 
@@ -387,13 +388,12 @@ bool CControlLoopMapper::configControlLoopOps(bool a_bIsRTWrite)
 			DO_LOG_ERROR(itr.first + ": error while creating control loop thread for polled point. " + e.what());
 		}
 	}
-
 	std::cout << "Control loop threads are set. Now start listening\n";
 	return true;
 }
 
 /*
- * If the macro UWC_HIGH_PERFORMANCE_PROCESSOR is not defined, below version of configControlLoopOps function will be enabled.
+ * If the macro UWC_HIGH_PERFORMANCE_PROCESSOR is not enabled, below version of configControlLoopOps function will be enabled.
  * In this modified function, single instance of threadAnalysisMsg (Logs analysis message) thread and
  * single instance of threadWriteReq (write request creation) thread is created.
  */
@@ -411,9 +411,9 @@ bool CControlLoopMapper::configControlLoopOps(bool a_bIsRTWrite)
  */
 bool CControlLoopMapper::configControlLoopOps(bool a_bIsRTWrite)
 {	
-	// m_oControlLoopMap map keeps track of all the control loops configured in ConfigControlLoop.yml for every unique datapoints.
-	// This outer for loop iterates for each entry of unique datapoints present in the m_oControlLoopMap. 
-	// Further, in the nested for loop iterate over the list of all control loops for the same datapoint (duplicate entries).
+	// m_oControlLoopMap keeps track of all the control loops configured in ConfigControlLoop.yml for every unique datapoint.
+	// This outer for loop iterates over each entry of unique datapoint present in m_oControlLoopMap. 
+	// The inner for loop iterates over the list of control loops for the same datapoint (or duplicate entries of the same datapoint).
 	for (auto& itr : m_oControlLoopMap) 
 	{
 		try
@@ -422,7 +422,7 @@ bool CControlLoopMapper::configControlLoopOps(bool a_bIsRTWrite)
 			auto &listControlLoop = itr.second;
 			DO_LOG_INFO(itr.first + " - Polled Topic, Control loops:" + std::to_string(listControlLoop.size()));
 			
-			// In this nested for loop iterate over the list of all control loops for the same datapoint (duplicate entries).
+			// In this nested for loop, iterate over the list of all control loops for the same datapoint (duplicate entries).
 			// Iterate over each item of list listControlLoop to start monitoring the polling update messages 
 			// and finally create write request message	
 			for (auto& rCtrlLoop : listControlLoop) 
@@ -430,7 +430,6 @@ bool CControlLoopMapper::configControlLoopOps(bool a_bIsRTWrite)
 			    // Here start each control loop thread present in list listControlLoop.
 				rCtrlLoop.startThread();
 			}
-
 		}
 		catch(const std::exception& e)
 		{
@@ -460,11 +459,8 @@ bool CControlLoopMapper::configControlLoopOps(bool a_bIsRTWrite)
 	}
 	catch(const std::exception& e)
 	{
-
 		DO_LOG_ERROR("Error in creating threadAnalysisMsg and threadWriteReq. " + std::string(e.what()));
 	}
-
-
 	std::cout << "Control loop threads are set. Now start listening\n";
 	return true;
 }
