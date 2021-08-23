@@ -260,6 +260,19 @@ configure_usecase()
                     exit 1
                 fi
                 echo "${GREEN}EII builder script successfully generated consolidated docker-compose & configuration files.${NC}"
+		IS_SCADA=1
+
+                cd  ${Current_Dir}
+                if [ $interactive == 1 ]; then
+                    if [ "$deployMode" == "dev" ]; then
+                        ./2.1_ConfigureScada.sh "--deployModeInteract=dev"
+                        ret="$?"
+                    else
+                        ./2.1_ConfigureScada.sh
+                        ret="$?"
+                    fi
+                fi		
+
                 break
                 ;;
             8)
