@@ -40,8 +40,7 @@ Kpi-tactic containers sources details and build and Run instructions
 
 8. [Steps to run unit test cases](#Steps-to-run-unit-testcases)
 
-9. [Steps to enable/disable Kpi App for high performance processor](#Steps-to-enable/disable-Kpi-App-for-high-performance-processor(i7/i10))
-
+9. [Pre-processor flag to be used for enabling/disabling KPI-App on high performance/Non-high performance processor](#Pre-processor-flag-to-be-used-for-enabling/disabling-KPI-App-on-high-performance/Non-high-performance-processor)
 
 # Directory and file details
 Section to describe all directory contents and it's uses.
@@ -124,15 +123,19 @@ Kindly Refer UWC user guide for container deployments
         `gcovr --html -e "../Test" -e "../include/ZmqHandler.hpp" -e "../include/Logger.hpp" -e "../include/EnvironmentVarHandler.hpp" -e ../../bin --exclude-throw-branches -o KPI_reoport.html -r .. .`
     3. After successful execution of step 2, unit test coverage report file `KPI_reoport.html` must be generated.
 
-# Steps to enable/disable Kpi App for high performance processor(i7/i10)
-1. By default in Kpi App, high performance processor functionality is disabled for debug mode & disabled for release mode.
-2. Go to `Sourcecode\kpi-tactic\KPIApp\Release\src` directory and open subdir.mk file.
-3. To enable Kpi App for high performance processor functionality, go to g++ command at line number 54 & add the option
-	"-DUWC_HIGH_PERFORMANCE_PROCESSOR".
-4. To disable Kpi App for high performance processor functionality, go to g++ command at line number 54 check & remove the option 
-	"-DUWC_HIGH_PERFORMANCE_PROCESSOR" if found.
+# Pre-processor flag to be used for enabling/disabling KPI-App on high performance/Non-high performance processor:
+1. By default, pre-processor flag UWC_HIGH_PERFORMANCE_PROCESSOR is disabled in Kpi App for debug & release mode.
+2. To enable KPI-App on high performance processor in release mode, go to `Sourcecode\kpi-tactic\KPIApp\Release\src` directory and open subdir.mk file.
+   Add the option "-DUWC_HIGH_PERFORMANCE_PROCESSOR" in below line where GCC compiler is invoked.
+   `g++ -lrt -std=c++11 -I../$(PROJECT_DIR)/include -I/usr/local/include -I../$(PROJECT_DIR)/include/yaml-cpp -O0 -g3 -Wall -c -fmessage-length=0 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@)" -o "$@" "$<" .. .'`
+3. To enable KPI-App on high performance processor in debug mode, go to `Sourcecode\kpi-tactic\KPIApp\Debug\src` directory and open subdir.mk file.
+   Add the option "-DUWC_HIGH_PERFORMANCE_PROCESSOR" in below line where GCC compiler is invoked.
+   `g++ -I../$(PROJECT_DIR)/include -I../$(PROJECT_DIR)/../uwc_common/uwc_util/include -I/usr/paho-c/include -I/usr/local/include -I../$(PROJECT_DIR)/include/yaml-cpp -O0 -g3 -Wall -c -fmessage-length=0 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@)" -o "$@" "$<"`
+4. To disable pre-processor flag in Kpi App, remove the option "-DUWC_HIGH_PERFORMANCE_PROCESSOR" added in steps 2 & 3 for both Release and Debug mode.
 
-Notes : Above steps are to run KPIApp unit test locally. In order to run unit test in container, please follow the steps mentioned in section `## Steps to run unit test cases` of file `README.md` in Sourcecode directory. 
+## Note: 
+1. High performance processor are i3/i5/i7/i9 and low performance processor are Intel Atom processors.
+2. Above steps are to run KPIApp unit test locally. In order to run unit test in container, please follow the steps mentioned in section `## Steps to run unit test cases` of file `README.md` in Sourcecode directory. 
 
 Troubleshooting steps:
 1. If KPI-App is seen crashing, container restarting or AnalysisKPI logs not getting generated after building the UWC containers then as a troubleshooting step kindly run the 05_applyConfigChanges.sh, which would bring the containers down & up.
