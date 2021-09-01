@@ -52,7 +52,7 @@ services:
       ETCD_PREFIX: ${ETCD_PREFIX}
       Log4cppPropsFile: "/opt/intel/config/log4cpp.properties"
       DEVICES_GROUP_LIST_FILE_NAME: "Devices_group_list.yml"
-      INTERNAL_MQTT_URL: "${MQTT_PROTOCOL}://127.0.0.1:11883"
+      INTERNAL_MQTT_URL: "${MQTT_PROTOCOL}://mqtt_container:11883"
       NETWORK_TYPE: "ALL"
       TOPIC_SEPARATOR: '-'
       CertType: "zmq"
