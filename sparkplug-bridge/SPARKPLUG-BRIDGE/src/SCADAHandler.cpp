@@ -166,7 +166,7 @@ void CSCADAHandler::handleIntMQTTConnLostThread()
 				{
 					break;
 				}
-				DO_LOG_ERROR("INFO: Internal MQTT connection lost. DDEATH to be sent");
+				DO_LOG_ERROR("Internal MQTT connection lost. DDEATH to be sent");
 
 				// Publish DDEATH for each device
 				auto vDevList = CSparkPlugDevManager::getInstance().getDeviceList();
