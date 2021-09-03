@@ -218,3 +218,5 @@ docker logs modbus-tcp-container > docker.log 2>&1
 ```
 3. Troubleshooting steps:
 1. If KPI-Tactic Application is seen crashing, container restarting or AnalysisKPI.log files not getting generated after building the UWC containers then as a troubleshooting step kindly run the 05_applyConfigChanges.sh, which would bring the containers down & up.
+2. The user-guide for UW can be found here: https://open-edge-insights.github.io/uwc-docs/Pages/page_01.html
+3. The steps to find & patch RT kernel for the ubuntu 20.04 is in user-guide here: https://open-edge-insights.github.io/uwc-docs/Pages/page_14.html
