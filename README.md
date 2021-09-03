@@ -82,7 +82,8 @@ The directory comprises of following:
   * If user wants to install RT_patch they need to disable secure boot as per limitation of ubuntu.
 
   * Please go through the links https://mirrors.edge.kernel.org/pub/linux/kernel/ or https://mirrors.edge.kernel.org/pub/linux/kernel/projects/rt/ to find the exact RT Patch for your system and install it manually.    
-    
+   
+  * Follow the [Apply RT Patch](https://open-edge-insights.github.io/uwc-docs/Pages/page_02.html) section of user guide for more details.
 ## Install UWC specific pre-requisites
 All the below UWC specific scripts need to be run from the directory `IEdgeInsights\uwc`:
   ```sh
