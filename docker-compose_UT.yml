@@ -79,9 +79,11 @@ services:
         ETCD_VERSION: ${ETCD_VERSION}
         EII_VERSION: ${EII_VERSION}
         EII_UID: ${EII_UID}
-        DOCKER_REGISTRY: ${DOCKER_REGISTRY}
+        EII_USER_NAME: ${EII_USER_NAME}
+        UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
+        CMAKE_INSTALL_PREFIX: ${EII_INSTALL_PATH}
     read_only: true
-    image: ${DOCKER_REGISTRY}ia_etcd_ui:${EII_VERSION}
+    image: ${DOCKER_REGISTRY}openedgeinsights/ia_etcd_ui:${EII_VERSION}
     container_name: ia_etcd_ui
     hostname: ia_etcd_ui
     restart: unless-stopped
@@ -89,21 +91,21 @@ services:
     - no-new-privileges
     healthcheck:
       test: ["CMD-SHELL", "exit", "0"]
-      interval: 5m
+      interval: 5m    
     environment:
       AppName: "EtcdUI"
       DEV_MODE: ${DEV_MODE}
       NGINX_PORT: 7071
       CertType: "pem"
-      no_proxy: ${eii_no_proxy},${ETCD_HOST}
+      no_proxy: ${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
       ETCD_CLIENT_PORT: ${ETCD_CLIENT_PORT}
       ETCD_PREFIX: ${ETCD_PREFIX}
+      ETCD_ENDPOINT: "$ETCD_HOST:$ETCD_CLIENT_PORT"
     networks:
       - eii
     volumes:
-    - "vol_etcd_keeper:/tmp/nginx"
-    user: ${EII_UID}
+      - "vol_etcd_keeper:/opt/nginx"
     ipc: "none"
     ports:
       - 7071:7071
@@ -115,7 +117,7 @@ services:
     - etcd_etcduser_cert
     - etcd_etcduser_key
 
-  ia_eii_zmq_broker:
+  ia_zmq_broker:
     depends_on:
     - ia_common
     build:
@@ -125,29 +127,33 @@ services:
         EII_VERSION: ${EII_VERSION}
         EII_UID: ${EII_UID}
         EII_USER_NAME: ${EII_USER_NAME}
-        DOCKER_REGISTRY: ${DOCKER_REGISTRY}
         # set CMAKE_BUILD_TYPE value to "Debug" to generate debug symbols
         CMAKE_BUILD_TYPE: "Release"
-    image: ${DOCKER_REGISTRY}ia_eii_zmq_broker:${EII_VERSION}
-    container_name: ia_eii_zmq_broker
-    hostname: ia_eii_zmq_broker
+        UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
+        CMAKE_INSTALL_PREFIX: ${EII_INSTALL_PATH}
+    read_only: true
+    image: ${DOCKER_REGISTRY}openedgeinsights/ia_zmq_broker:${EII_VERSION}
+    container_name: ia_zmq_broker
+    hostname: ia_zmq_broker
     restart: unless-stopped
-    user: ${EII_UID}
     security_opt:
     - no-new-privileges
     healthcheck:
       test: ["CMD-SHELL", "exit", "0"]
-      interval: 5m
+      interval: 5m    
     environment:
       AppName: "ZmqBroker"
       CertType: "zmq"
       DEV_MODE: ${DEV_MODE}
-      no_proxy: ${eii_no_proxy},${ETCD_HOST}
+      no_proxy: ${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
       ETCD_CLIENT_PORT: ${ETCD_CLIENT_PORT}
       ETCD_PREFIX: ${ETCD_PREFIX}
+    ports:
+      - 60514:60514
+      - 60515:60515
     networks:
-      - eii
+    - eii
     volumes:
     - "vol_eii_socket:${SOCKET_DIR}"
     secrets:
@@ -178,7 +184,7 @@ services:
     environment:
       AppName: "MQTT"
       DEV_MODE: ${DEV_MODE}
-      no_proxy: ${eii_no_proxy}
+      no_proxy: ${eii_no_proxy},${ETCD_HOST}
       CertType: "zmq"
     user: ${EII_UID}
     # userns_mode: host
@@ -226,7 +232,7 @@ services:
     environment:
       AppName: "MQTT_Bridge"
       DEV_MODE: ${DEV_MODE}
-      no_proxy: ${eii_no_proxy}
+      no_proxy: ${eii_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
       ETCD_CLIENT_PORT: ${ETCD_CLIENT_PORT}
       ETCD_PREFIX: ${ETCD_PREFIX}
@@ -244,6 +250,8 @@ services:
       mqtt_SubWriteTopic: "/+/+/+/write"
     networks:
       - eii
+    ports:
+      - 63514:63514        
     logging:
       driver: "json-file"
       options:
@@ -287,7 +295,7 @@ services:
     image: ${DOCKER_REGISTRY}modbus-tcp-master-test:${EII_VERSION}
     container_name: modbus-tcp-master-test
     hostname: modbus-tcp-master-test
-    # read_only: true
+    #read_only: true
     # restart: unless-stopped
     ulimits:
       rtprio:
@@ -300,7 +308,7 @@ services:
       ETCD_CLIENT_PORT: ${ETCD_CLIENT_PORT}
       ETCD_PREFIX: ${ETCD_PREFIX}
       DEV_MODE: ${DEV_MODE}
-      no_proxy: ${eii_no_proxy}
+      no_proxy: ${eii_no_proxy},${ETCD_HOST}
       Log4cppPropsFile: "/opt/intel/config/log4cpp.properties"
       MY_APP_ID: 1
       CUTOFF_INTERVAL_PERCENTAGE: 90
@@ -364,7 +372,7 @@ services:
       ETCD_CLIENT_PORT: ${ETCD_CLIENT_PORT}
       ETCD_PREFIX: ${ETCD_PREFIX}
       DEV_MODE: ${DEV_MODE}
-      no_proxy: ${eii_no_proxy}
+      no_proxy: ${eii_no_proxy},${ETCD_HOST}
       Log4cppPropsFile: "/opt/intel/config/log4cpp.properties"
       MY_APP_ID: 2
       CUTOFF_INTERVAL_PERCENTAGE: 90
@@ -428,7 +436,7 @@ services:
     environment:
       AppName: "SPARKPLUG-BRIDGE"
       DEV_MODE: ${DEV_MODE}
-      no_proxy: ${eii_no_proxy}
+      no_proxy: ${eii_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
       ETCD_CLIENT_PORT: ${ETCD_CLIENT_PORT}
       ETCD_PREFIX: ${ETCD_PREFIX}
@@ -498,7 +506,7 @@ services:
       AppName: "KPIAPP"
       ETCD_HOST: ${ETCD_HOST}
       DEV_MODE: ${DEV_MODE}
-      no_proxy: ${eii_no_proxy}
+      no_proxy: ${eii_no_proxy},${ETCD_HOST}
       ETCD_CLIENT_PORT: ${ETCD_CLIENT_PORT}
       ETCD_PREFIX: ${ETCD_PREFIX}
       Log4cppPropsFile: "/opt/intel/config/log4cpp.properties"
@@ -564,7 +572,7 @@ services:
       ETCD_HOST: ${ETCD_HOST}
       ETCD_CLIENT_PORT: ${ETCD_CLIENT_PORT}
       ETCD_PREFIX: ${ETCD_PREFIX}
-      no_proxy: ${eii_no_proxy}
+      no_proxy: ${eii_no_proxy},${ETCD_HOST}
       CertType: "zmq"
     # user: ${EII_UID}  
     networks:
