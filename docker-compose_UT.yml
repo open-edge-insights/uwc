@@ -91,7 +91,7 @@ services:
     - no-new-privileges
     healthcheck:
       test: ["CMD-SHELL", "exit", "0"]
-      interval: 5m    
+      interval: 5m
     environment:
       AppName: "EtcdUI"
       DEV_MODE: ${DEV_MODE}
@@ -153,7 +153,7 @@ services:
       - 60514:60514
       - 60515:60515
     networks:
-    - eii
+     - eii
     volumes:
     - "vol_eii_socket:${SOCKET_DIR}"
     secrets:
@@ -295,7 +295,7 @@ services:
     image: ${DOCKER_REGISTRY}modbus-tcp-master-test:${EII_VERSION}
     container_name: modbus-tcp-master-test
     hostname: modbus-tcp-master-test
-    #read_only: true
+    # read_only: true
     # restart: unless-stopped
     ulimits:
       rtprio:
