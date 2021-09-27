@@ -187,26 +187,30 @@ get_user_inputs()
 	echo "${INFO}Enter the follwing parameters required for sparkplug-bridge container..${NC}"
 	while :
 	do 
-		read -p "Is TLS required for sparkplug-bridge (yes/no):" TLS
+		echo "Is TLS required for sparkplug-bridge (yes/no)"
+		read TLS
 		if [ -z $TLS ];then
 			echo "${RED}Empty value entered.${NC}"
 		elif [ $TLS != "yes" ] && [ $TLS != "no" ] ;then
 			echo "${RED}Invalid value entered. Allowed values (yes/no)${NC}"
 		elif [ $TLS == "yes" ];then
 			IS_TLS=true
-			read -p "Enter the CA certificate full path including file name (e.g. /home/certs/root-ca.crt):" CA 
+			echo "Enter the CA certificate full path including file name (e.g. /home/certs/root-ca.crt):"
+			read CA 
 				if [ -z $CA ]; then 
 					echo "${RED}Error:: Empty value entered..${NC}" 
 					echo "${RED}Kindly enter correct values and re-run the script..${NC}" 
 					exit 1; 
 				fi 
-			read -p "Enter the client certificate full path including file name (e.g. /home/certs/client.crt):" CLIENT_CERT 
+			echo "Enter the client certificate full path including file name (e.g. /home/certs/client.crt):"
+			read CLIENT_CERT
 				if [ -z $CLIENT_CERT ]; then 
 					echo "${RED}Error:: Empty value entered..${NC}" 
 					echo "${RED}Kindly enter correct values and re-run the script..${NC}"
 					exit 1; 
 				fi
-			read -p "Enter the client key certificate full path including file name (e.g. /home/certs/client.key):" CLIENT_KEY 
+			echo "Enter the client key certificate full path including file name (e.g. /home/certs/client.key):"
+			read CLIENT_KEY
 				if [ -z $CLIENT_KEY ]; then 
 					echo "${RED}Error:: Empty value entered..${NC}" 
 					echo "${RED}Kindly enter correct values and re-run the script..${NC}" 
@@ -221,7 +225,8 @@ get_user_inputs()
 
 	while :
 	do 
-		read -p "Enter the external broker address/hostname (e.g. 192.168.0.5 or dummyhost.com):" BROKER_HOST
+		echo "Enter the external broker address/hostname (e.g. 192.168.0.5 or dummyhost.com):"
+		read BROKER_HOST
 		if [ -z $BROKER_HOST ];then
 			echo "${RED}Empty value entered for broker address.${NC}"
 		else
@@ -231,7 +236,8 @@ get_user_inputs()
 
 	while :
 	do 
-		read -p "Enter the external broker port number:" BROKER_PORT
+		echo "Enter the external broker port number:"
+		read BROKER_PORT
 		if [ -z $BROKER_PORT ];then
 			echo "${RED}Empty value entered for broker port number.${NC}"
 		elif ! [[ $BROKER_PORT =~ $re ]];then
@@ -244,7 +250,8 @@ get_user_inputs()
 
 	while :
 	do 
-		read -p "Enter the QOS for scada (between 0 to 2):" QOS
+		echo "Enter the QOS for scada (between 0 to 2):"
+		read QOS
 		if [ -z $QOS ];then
 			echo "${RED}Empty value entered for qos.${NC}"
 		elif ! [[ $QOS =~ $re ]];then
@@ -293,7 +300,8 @@ parse_command_line_args()
     done    
     if [ "$IS_TLS" == "1" ] || [ "$IS_TLS" == "true" ] ||  [ "$IS_TLS" == "yes" ] ;then
    		if [ -z "$CA" ]; then 
-   			read -p "Enter the CA certificate full path including file name (e.g. /home/certs/root-ca.crt):" CA 
+   			echo "Enter the CA certificate full path including file name (e.g. /home/certs/root-ca.crt):"
+			read CA
 			if [ -z "$CA" ]; then 
 				echo "${RED}Error:: Empty value entered..${NC}" 
 				echo "${RED}Kindly enter correct values and re-run the script..${NC}" 
@@ -302,7 +310,8 @@ parse_command_line_args()
    		fi
 
    		if [ -z "$CLIENT_CERT" ]; then 
-   			read -p "Enter the client certificate full path including file name (e.g. /home/certs/client.crt):" CLIENT_CERT 
+   			echo "Enter the client certificate full path including file name (e.g. /home/certs/client.crt):"
+			read CLIENT_CERT   
 			if [ -z "$CLIENT_CERT" ]; then 
 				echo "${RED}Error:: Empty value entered..${NC}"; 
 				echo "${RED}Kindly enter correct values and re-run the script..${NC}";
@@ -311,7 +320,8 @@ parse_command_line_args()
    		fi
 
    		if [ -z "$CLIENT_KEY" ]; then 
-   			read -p "Enter the client key certificate full path including file name (e.g. /home/certs/client.key):" CLIENT_KEY 
+   			echo "Enter the client key certificate full path including file name (e.g. /home/certs/client.key):"
+			read CLIENT_KEY
    			if [ -z "$CLIENT_KEY" ]; then 
    				echo "${RED}Error:: Empty value entered..${NC}" 
    				echo "${RED}Kindly enter correct values and re-run the script..${NC}" 
@@ -327,7 +337,8 @@ parse_command_line_args()
 
     if [ -z "${QOS}" ];then
 		echo "${RED}Empty value entered for qos.${NC}"
-		read -p "Enter the QOS for scada (between 0 to 2):" QOS 
+		echo "Enter the QOS for scada (between 0 to 2):"
+		read QOS
 		if [ -z "$QOS" ]; then 
 			echo "${RED}Error:: Empty value entered..${NC}"; 
 			echo "${RED}Kindly enter correct values and re-run the script..${NC}"; 
@@ -347,7 +358,8 @@ parse_command_line_args()
 
     if [ -z "$BROKER_HOST" ];then
 		echo "${RED}Empty value entered for broker address.${NC}"
-		read -p "Enter the external broker address/hostname (e.g. 192.168.0.5 or dummyhost.com):" BROKER_HOST 
+		echo "Enter the external broker address/hostname (e.g. 192.168.0.5 or dummyhost.com):"
+		read BROKER_HOST 
 		if [ -z "$BROKER_HOST" ]; then 
 			echo "${RED}Error:: Empty value entered..${NC}" 
 			echo "${RED}Kindly enter correct values and re-run the script..${NC}"
@@ -357,7 +369,8 @@ parse_command_line_args()
 
 	if [ -z "$BROKER_PORT" ];then
 		echo "${RED}Empty value entered for broker port number.${NC}"
-		read -p "Enter the external broker port number:" BROKER_PORT 
+		echo "Enter the external broker port number:"
+		read BROKER_PORT 
 		if [ -z "$BROKER_HOST" ]; then 
 			echo "${RED}Error:: Empty value entered..${NC}" 
 			echo "${RED}Kindly enter correct values and re-run the script..${NC}"

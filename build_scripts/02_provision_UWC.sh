@@ -398,7 +398,8 @@ parse_command_line_args()
 
     if [ -z $deployMode ]; then 
         echo "Deploy Mode not provided. "
-        read -p "Enter the Deploy Mode (e.g. prod or dev ):" deployMode 
+        echo "Enter the Deploy Mode (e.g. prod or dev ):"
+        read deployMode 
         if [ -z $deployMode ]; then 
             echo "${RED}Error:: Empty value entered..${NC}"
             echo "${RED}Kindly enter correct values and re-run the script..${NC}" 
@@ -412,8 +413,13 @@ parse_command_line_args()
                             1: All basic UWC modules. (no KPI-tactic Application, no SPARKPLUG-BRIDGE)
                             2: All basic UWC modules + KPI-tactic Application (no SPARKPLUG-BRIDGE)
                             3: All modules (with KPI-tactic Application and with SPARKPLUG-BRIDGE)
-                            4: All basic UWC modules + SPARKPLUG-BRIDGE (no KPI-tactic Application)"
-        read -p "Enter the recipe (e.g. --recipe=1 or 2 or 3 or 4 ):"  recipe 
+                            4: All basic UWC modules + SPARKPLUG-BRIDGE (no KPI-tactic Application)
+                            5: Basic UWC micro-services with Time series micro-services (Telegraf & InfluxDBConnector)
+                            6: Running Basic UWC micro-services with time series services (Telegraf & InfluxDBCOnnector) along with KPI-tactic app
+                            7: Running Basic UWC micro-services with time series services (Telegraf & InfluxDBCOnnector) along with Sparkplug service
+                            8: Running the sample DB publisher with Telegraf, InfluxDBCOnnector, ZmqBroker & Etcd container"
+        echo "Enter the recipe (e.g. --recipe=1 or 2 or 3 or 4 or 5 or 6 or 7 or 8 ):"
+        read recipe 
         if [ -z $recipe ]; then 
             echo "${RED}Error:: Empty value entered..${NC}"
             echo "${RED}Kindly enter correct values and re-run the script..${NC}" 
@@ -447,7 +453,11 @@ usage()
                             1: All basic UWC module. (no KPI-tactic Application, no SPARKPLUG-BRIDGE)
                             2: All basic UWC modules + KPI-tactic Application (no SPARKPLUG-BRIDGE)
                             3: All modules (with KPI-tactic Application and with SPARKPLUG-BRIDGE)
-                            4: All basic UWC modules + SPARKPLUG-BRIDGE (no KPI-tactic Application)"
+                            4: All basic UWC modules + SPARKPLUG-BRIDGE (no KPI-tactic Application)
+                            5: Basic UWC micro-services with Time series micro-services (Telegraf & InfluxDBConnector)
+                            6: Running Basic UWC micro-services with time series services (Telegraf & InfluxDBCOnnector) along with KPI-tactic app
+                            7: Running Basic UWC micro-services with time series services (Telegraf & InfluxDBCOnnector) along with Sparkplug service
+                            8: Running the sample DB publisher with Telegraf, InfluxDBCOnnector, ZmqBroker & Etcd container"
     echo
     echo "${INFO}--isTLS  yes/no to enable/disable TLS for sparkplug-bridge. Only applicable for recipes 3 and 4"
     echo 
