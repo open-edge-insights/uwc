@@ -15,5 +15,16 @@
         "tag_keys": [],
         "blacklist_query": ["CREATE","DROP","DELETE","ALTER","<script>"]
     },
-    "interfaces": {}
+    "interfaces": {
+        "Servers": [
+            {
+                "Name": "InfluxDBConnector",
+                "Type": "zmq_tcp",
+                "EndPoint": "0.0.0.0:65145",
+                "AllowedClients": [
+                    "*"
+                ]
+            }
+        ]
+    }
 }
