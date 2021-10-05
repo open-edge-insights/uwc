@@ -91,14 +91,14 @@ The directory comprises of following:
 All the below UWC specific scripts need to be run from the directory `IEdgeInsights\uwc`:
   ```sh
     $ cd <working-dir>/IEdgeInsights/uwc/build_scripts
-    $ sudo ./01_uwc_pre_requisites.sh
+    $ sudo -E ./01_uwc_pre_requisites.sh
   ```
 
 ## Provision EII and UWC services
 Runs the builder script enabling to choose the UWC recipe needed for the use case. Next it prompts the user to select `develeopment mode` or `production mode` & prepares the set up to run in the selected mode. Finally it does the provisioning of EII & UWC services based on the recipe & mode selected. 
 ```sh
     $ cd <working-dir>/IEdgeInsights/uwc/build_scripts
-    $ sudo ./02_provision_UWC.sh
+    $ sudo -E ./02_provision_UWC.sh
 ```
 Note: Above example will execute the script in interactive mode. 
 The script will run in non-interactive mode when the command line arguments are provided. The help option describes all command line arguments.
@@ -111,7 +111,7 @@ The script will run in non-interactive mode when the command line arguments are 
 Builds all the micro-services of the recipe & runs them as containers in background (daemon process).
 ```sh
   $ cd <working-dir>/IEdgeInsights/uwc/build_scripts
-  $ sudo ./03_Build_Run_UWC.sh 
+  $ sudo -E ./03_Build_Run_UWC.sh 
 ```
 
 ## Verify container status
@@ -124,14 +124,14 @@ sudo docker ps
 If any configuration changes are done to UWC YML files, then run this script which will bring down the containers & bring them up back. Note that the services are not built here.
   ```sh
   $ cd <working-dir>/IEdgeInsights/uwc/build_scripts
-  $ 05_applyConfigChanges.sh
+  $ sudo -E 05_applyConfigChanges.sh
   ```
 
 ## Uninstallation script
 Used to uninstall & remove the UWC installation.
   ```sh
   $ cd <working-dir>/IEdgeInsights/uwc/build_scripts
-  $ 04_uninstall_UWC.sh
+  $ sudo -E 04_uninstall_UWC.sh
   ```
 
   ## Data Persistence feature
@@ -179,7 +179,7 @@ Please re-run the 01_uwc_pre_requisites.sh script after making any changes to th
 All the UWC modules have unit tests enabled in production mode. In order to run the unit tests, follow the below steps:
 ```sh
 $ cd <working-dir>/IEdgeInsights/uwc/build_scripts
-$ sudo ./06_UnitTestRun.sh "false"
+$ sudo -E ./06_UnitTestRun.sh "false"
 ```
 Now check for the unit test reports for all services of UWC in "<working-dir>/IEdgeInsights/build/unit_test_reports/".
 
