@@ -107,6 +107,13 @@ The script will run in non-interactive mode when the command line arguments are 
     $ sudo ./02_provision_UWC.sh --help
 ```
 
+```
+Note: If user wants to run sparkplug in TLS mode then please make sure "rootca" dir is present at ../build/provision/, If not present then please run following in PROD mode or run entire 02 script for any non sparkplug recipe in PROD mode.
+
+$ cd ../build/provision
+$ sudo ./provision.sh ../docker-compose.yml --generate_certs  
+```
+
 ## Build and Run all EII and UWC services
 Builds all the micro-services of the recipe & runs them as containers in background (daemon process).
 ```sh
