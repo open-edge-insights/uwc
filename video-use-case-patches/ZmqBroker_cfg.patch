@@ -1,0 +1,32 @@
+diff --git a/config.json b/config.json
+index 49c7c11..cb95ce4 100644
+--- a/config.json
++++ b/config.json
+@@ -4,8 +4,11 @@
+         "Subscribers": [
+             {
+                 "Name": "frontend",
+-                "Type": "zmq_tcp",
+-                "EndPoint": "0.0.0.0:60514",
++                "Type": "zmq_ipc",
++                "EndPoint": {
++                    "SocketDir": "/EII/sockets",
++                    "SocketFile": "frontend-socket"
++                },
+                 "Topics": ["*"],
+                 "PublisherAppName": "*",
+                 "AllowedClients": ["*"]
+@@ -14,8 +17,11 @@
+         "Publishers": [
+             {
+                 "Name": "backend",
+-                "Type": "zmq_tcp",
+-                "EndPoint": "0.0.0.0:60515",
++                "Type": "zmq_ipc",
++                "EndPoint": {
++                    "SocketDir": "/EII/sockets",
++                    "SocketFile": "backend-socket"
++                },
+                 "Topics": ["*"],
+                 "AllowedClients": ["*"]
+             }

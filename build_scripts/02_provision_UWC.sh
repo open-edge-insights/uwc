@@ -160,6 +160,9 @@ configure_usecase()
         echo "6) Running Basic UWC micro-services with time series services (Telegraf & InfluxDBCOnnector) along with KPI-tactic app"
         echo "7) Running Basic UWC micro-services with time series services (Telegraf & InfluxDBCOnnector) along with Sparkplug service"
         echo "8) Running the sample DB publisher with Telegraf, InfluxDBCOnnector, ZmqBroker & Etcd container."
+        echo "9) Running the basic UWC services, video services, ImageStore & webvisualizer"
+        echo "10) [PLACEHOLDER-USE-CASE]: Running the basic UWC services, [TO-ADD-VIDEO-USE-CASES], ImageStore, Sample publisher with Telegraf/InfuxDB"
+        echo "11) [PLACEHOLDER-USE-CASE]: Running the basic UWC services, [TO-ADD-VIDEO-USE-CASES] & ImageStore"
         read yn
     fi
     cd ${eii_build_dir}
@@ -278,6 +281,36 @@ configure_usecase()
             8)
                 echo "Running the sample DB publisher with Telegraf, InfluxDBConnector, ZmqBroker & Etcd container  "
                 python3 builder.py -f ../uwc/uwc_recipes/uwc-pipeline-sample-publisher.yml
+                if [ "$?" != 0 ]; then
+                    echo "${RED}Error running EII builder script. Check the recipe configuration file...!${NC}"
+                    exit 1
+                fi
+                echo "${GREEN}EII builder script successfully generated consolidated docker-compose & configuration files.${NC}"
+                break
+                ;;
+            9)
+                echo "Running the basic UWC services, video use cases & ImageStore  "
+                python3 builder.py -f ../uwc/uwc_recipes/uwc-uwc-pipeline-basic-VI-VA-imagestore-Ref.yml
+                if [ "$?" != 0 ]; then
+                    echo "${RED}Error running EII builder script. Check the recipe configuration file...!${NC}"
+                    exit 1
+                fi
+                echo "${GREEN}EII builder script successfully generated consolidated docker-compose & configuration files.${NC}"
+                break
+                ;;
+            10)
+                echo "[PLACEHOLDER-USE-CASE]: Running the basic UWC services, [TO-ADD-VIDEO-USE-CASES], ImageStore, Sample publisher with Telegraf/InfuxDB  "
+                python3 builder.py -f ../uwc/uwc_recipes/uwc-pipeline-basic-imagestore-InfluxDB-Ref.yml
+                if [ "$?" != 0 ]; then
+                    echo "${RED}Error running EII builder script. Check the recipe configuration file...!${NC}"
+                    exit 1
+                fi
+                echo "${GREEN}EII builder script successfully generated consolidated docker-compose & configuration files.${NC}"
+                break
+                ;;
+            11)
+                echo "[PLACEHOLDER-USE-CASE]: Running the basic UWC services, [TO-ADD-VIDEO-USE-CASES] & ImageStore "
+                python3 builder.py -f ../uwc/uwc_recipes/uwc-pipeline-basic-imagestore-Ref.yml
                 if [ "$?" != 0 ]; then
                     echo "${RED}Error running EII builder script. Check the recipe configuration file...!${NC}"
                     exit 1
@@ -417,8 +450,11 @@ parse_command_line_args()
                             5: Basic UWC micro-services with Time series micro-services (Telegraf & InfluxDBConnector)
                             6: Running Basic UWC micro-services with time series services (Telegraf & InfluxDBCOnnector) along with KPI-tactic app
                             7: Running Basic UWC micro-services with time series services (Telegraf & InfluxDBCOnnector) along with Sparkplug service
-                            8: Running the sample DB publisher with Telegraf, InfluxDBCOnnector, ZmqBroker & Etcd container"
-        echo "Enter the recipe (e.g. --recipe=1 or 2 or 3 or 4 or 5 or 6 or 7 or 8 ):"
+                            8: Running the sample DB publisher with Telegraf, InfluxDBCOnnector, ZmqBroker & Etcd container
+                            9: Running the basic UWC services, video use cases & ImageStore
+                            10: [PLACEHOLDER-USE-CASE]: Running the basic UWC services, [TO-ADD-VIDEO-USE-CASES], ImageStore, Sample publisher with Telegraf/InfuxDB
+                            11: [PLACEHOLDER-USE-CASE]: Running the basic UWC services, [TO-ADD-VIDEO-USE-CASES] & ImageStore."
+        echo "Enter the recipe (e.g. --recipe=1 or 2 or 3 or 4 or 5 or 6 or 7 or 8 or 9 or 10 or 11):"
         read recipe 
         if [ -z $recipe ]; then 
             echo "${RED}Error:: Empty value entered..${NC}"
@@ -457,7 +493,10 @@ usage()
                             5: Basic UWC micro-services with Time series micro-services (Telegraf & InfluxDBConnector)
                             6: Running Basic UWC micro-services with time series services (Telegraf & InfluxDBCOnnector) along with KPI-tactic app
                             7: Running Basic UWC micro-services with time series services (Telegraf & InfluxDBCOnnector) along with Sparkplug service
-                            8: Running the sample DB publisher with Telegraf, InfluxDBCOnnector, ZmqBroker & Etcd container"
+                            8: Running the sample DB publisher with Telegraf, InfluxDBCOnnector, ZmqBroker & Etcd container
+                            9: Running the basic UWC services, video use cases & ImageStore
+                            10: [PLACEHOLDER-USE-CASE]: Running the basic UWC services, [TO-ADD-VIDEO-USE-CASES], ImageStore, Sample publisher with Telegraf/InfuxDB
+                            11: [PLACEHOLDER-USE-CASE]: Running the basic UWC services, [TO-ADD-VIDEO-USE-CASES] & ImageStore"
     echo
     echo "${INFO}--isTLS  yes/no to enable/disable TLS for sparkplug-bridge. Only applicable for recipes 3 and 4"
     echo 

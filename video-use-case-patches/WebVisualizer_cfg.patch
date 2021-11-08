@@ -1,0 +1,20 @@
+diff --git a/config.json b/config.json
+index 932e1d1..94123ba 100644
+--- a/config.json
++++ b/config.json
+@@ -36,9 +36,12 @@
+         "Subscribers": [
+             {
+                 "Name": "default",
+-                "Type": "zmq_tcp",
+-                "EndPoint": "ia_video_analytics:65013",
+-                "PublisherAppName": "VideoAnalytics",
++                "Type": "zmq_ipc",
++                "EndPoint": {
++                    "SocketDir": "/EII/sockets",
++                    "SocketFile": "backend-socket"
++                },
++                "PublisherAppName": "ZmqBroker",
+                 "Topics": [
+                     "camera1_stream_results"
+                 ]
