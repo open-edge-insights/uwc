@@ -164,7 +164,7 @@ configure_usecase()
         case $yn in
             1)
                 echo "Running Basic UWC micro-services without KPI-tactic Application & Sparkplug-Bridge"
-                python3.6 builder.py -f ../uwc/uwc_recipes/uwc-pipeline-without-sparkplug-bridge.yml
+                python3 builder.py -f ../uwc/uwc_recipes/uwc-pipeline-without-sparkplug-bridge.yml
                 if [ "$?" != 0 ]; then
                     echo "${RED}Error running EII builder script. Check the recipe configuration file...!${NC}" 
                     exit 1
@@ -174,7 +174,7 @@ configure_usecase()
                 ;;
             2)
                 echo "Running Basic UWC micro-services with KPI-tactic Application & without Sparkplug-Bridge"
-                python3.6 builder.py -f ../uwc/uwc_recipes/uwc-pipeline-with-kpi-no-sparkplug-bridge.yml
+                python3 builder.py -f ../uwc/uwc_recipes/uwc-pipeline-with-kpi-no-sparkplug-bridge.yml
                 if [ "$?" != 0 ]; then
                     echo "${RED}Error running EII builder script. Check the recipe configuration file...!${NC}" 
                     exit 1
@@ -184,7 +184,7 @@ configure_usecase()
                 ;;
             3)
                 echo "Running Basic UWC micro-services with KPI-tactic Application & with Sparkplug-Bridge"
-                python3.6 builder.py -f ../uwc/uwc_recipes/uwc-pipeline-with-sparkplug-bridge_and_kpi.yml
+                python3 builder.py -f ../uwc/uwc_recipes/uwc-pipeline-with-sparkplug-bridge_and_kpi.yml
                 if [ "$?" != 0 ]; then
                     echo "${RED}Error running EII builder script. Check the recipe configuration file...!${NC}" 
                     exit 1
@@ -207,7 +207,7 @@ configure_usecase()
                 ;;                
             4)
                 echo "Running Basic UWC micro-services with no KPI-tactic Application & with Sparkplug-Bridge"
-                python3.6 builder.py -f ../uwc/uwc_recipes/uwc-pipeline-with-sparkplug-bridge-no-kpi.yml
+                python3 builder.py -f ../uwc/uwc_recipes/uwc-pipeline-with-sparkplug-bridge-no-kpi.yml
                 if [ "$?" != 0 ]; then
                     echo "${RED}Error running EII builder script. Check the recipe configuration file...!${NC}" 
                     exit 1
