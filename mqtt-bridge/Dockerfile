@@ -19,6 +19,8 @@
 # SOFTWARE.
 
 ARG EII_VERSION
+ARG UBUNTU_IMAGE_VERSION
+
 FROM uwc_common:$EII_VERSION as uwc_common
 LABEL description="MQTT Bridge Application"
 
@@ -40,6 +42,7 @@ COPY --from=uwc_common /EII/log4cpp/build/include/log4cpp /MQTT-Bridge/include/l
 COPY --from=uwc_common /EII/log4cpp/build/lib/* /MQTT-Bridge/lib/
 COPY --from=uwc_common /uwc_util/Release/libuwc-common.so /MQTT-Bridge/lib/
 COPY --from=uwc_common /uwc_util/include/* /MQTT-Bridge/include/
+ARG CMAKE_INSTALL_PREFIX
 COPY --from=uwc_common $CMAKE_INSTALL_PREFIX/include /usr/local/include
 COPY --from=uwc_common $CMAKE_INSTALL_PREFIX/lib /usr/local/lib
 
@@ -48,10 +51,8 @@ RUN cd /MQTT-Bridge/Release \
     &&	export LD_LIBRARY_PATH='/MQTT-Bridge/lib:/usr/local/lib' \
     &&  export INCLUDE_DIR='/bin' \
     &&	make clean all -s
-
 # Build mqtt bridge container service
-FROM ia_common:$EII_VERSION as mqtt-bridge-service
-
+FROM ubuntu:$UBUNTU_IMAGE_VERSION as runtime
 WORKDIR /
 # creating base directories
 ENV APP_WORK_DIR /opt/intel/app/
@@ -61,7 +62,6 @@ RUN mkdir -p /opt/intel/app \
 	&& mkdir -p /opt/intel/eii/uwc_data
 
 WORKDIR ${APP_WORK_DIR}
-
 # copy required dependencies
 COPY --from=mqtt-bridge /MQTT-Bridge/Release/MQTT_Bridge ${APP_WORK_DIR}
 COPY --from=uwc_common /usr/yaml/lib/*.so.* ${APP_WORK_DIR}
@@ -72,6 +72,7 @@ COPY --from=uwc_common /usr/ssl/include/* /usr/local/include/
 COPY --from=uwc_common /EII/log4cpp/build/lib/* ${APP_WORK_DIR}
 COPY --from=mqtt-bridge /MQTT-Bridge/Config/log4cpp.properties /opt/intel/config
 COPY --from=uwc_common /uwc_util/Release/libuwc-common.so ${APP_WORK_DIR}
+ARG CMAKE_INSTALL_PREFIX
 COPY --from=uwc_common $CMAKE_INSTALL_PREFIX/lib ${APP_WORK_DIR}
 # set permissions to working dir for eiiuser
 RUN chown -R ${EII_UID}:${EII_UID} /opt/intel/config \

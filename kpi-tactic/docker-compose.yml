@@ -34,7 +34,9 @@ services:
           EII_UID: ${EII_UID}
           EII_USER_NAME: ${EII_USER_NAME}
           BUILD_NUMBER: ${BUILD_NUMBER}
-      image: ${DOCKER_REGISTRY}kpi-tactic:${EII_VERSION}
+          UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
+          CMAKE_INSTALL_PREFIX: ${EII_INSTALL_PATH}
+      image: ${DOCKER_REGISTRY}openedgeinsights/kpi-tactic:${EII_VERSION}
       container_name: kpi-tactic-app
       hostname: kpi-tactic
       read_only: true

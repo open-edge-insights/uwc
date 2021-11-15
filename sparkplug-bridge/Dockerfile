@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 ARG EII_VERSION
+ARG UBUNTU_IMAGE_VERSION
 FROM uwc_common:$EII_VERSION as uwc_common
 FROM ia_eiibase:$EII_VERSION as eiibase
 LABEL description="SPARKPLUG BRIDGE container"
@@ -36,6 +37,7 @@ RUN apt-get update && apt-get install -y libmosquitto-dev \
 # Build SPARKPLUG-BRIDGE application
 FROM ia_common:$EII_VERSION as sparkplug-bridge
 WORKDIR /
+ARG CMAKE_INSTALL_PREFIX
 # copy required dependencies
 COPY SPARKPLUG-BRIDGE /SPARKPLUG-BRIDGE/.
 COPY --from=uwc_common /usr/yaml/include/yaml-cpp /usr/local/include/yaml-cpp
@@ -63,8 +65,7 @@ RUN cd /SPARKPLUG-BRIDGE/Release \
     &&	make clean all -s
 
 # Build sparkplug-bridge container service
-FROM ia_common:$EII_VERSION as sparkplug-bridge-service
-
+FROM ubuntu:$UBUNTU_IMAGE_VERSION as runtime
 WORKDIR /
 # creating base directories
 ENV APP_WORK_DIR /opt/intel/app/

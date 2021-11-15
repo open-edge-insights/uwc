@@ -28,14 +28,15 @@
 3. [Install UWC specific pre-requisites](#install-UWC-specific-pre-requisites)
 4. [Provision EII and UWC services](#Provision-EII-and-UWC-services)
 5. [Build and Run all EII and UWC services](#build-and-run-all-eii-and-uwc-services)
-6. [Verify container status](#verify-container-status)
-7. [Apply configuration changes](#apply-configuration-changes)
-8. [Uninstallation script](#uninstallation-script)
-9. [Data Persistence feature](#data-persistence-feature)
-10. [Sample DB Publisher](#sample-db-publisher)
-11. [Unit Tests](#unit-tests)
-12. [Debugging steps](#debugging-steps) 
-13. [Troubleshooting](#troubleshooting)
+6. [Multi stage build](#multi-stage-build)
+7. [Verify container status](#verify-container-status)
+8. [Apply configuration changes](#apply-configuration-changes)
+9. [Uninstallation script](#uninstallation-script)
+10. [Data Persistence feature](#data-persistence-feature)
+11. [Sample DB Publisher](#sample-db-publisher)
+12. [Unit Tests](#unit-tests)
+13. [Debugging steps](#debugging-steps) 
+14. [Troubleshooting](#troubleshooting)
 
 ## Directory details
 The directory comprises of following:
@@ -119,6 +120,14 @@ Builds all the micro-services of the recipe & runs them as containers in backgro
 ```sh
   $ cd <working-dir>/IEdgeInsights/uwc/build_scripts
   $ sudo -E ./03_Build_Run_UWC.sh 
+```
+## Multi stage build
+
+There are two ways in which the containers can be build either by using the opensource pre-build images as present in [openedgeinsights](https://hub.docker.com/u/openedgeinsights) or by building images locally. 
+
+Note: For usage details, Please run the following command :
+```sh
+$ sudo ./02_provision_UWC.sh --help
 ```
 
 ## Verify container status
