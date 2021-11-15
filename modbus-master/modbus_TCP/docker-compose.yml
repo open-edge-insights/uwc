@@ -32,7 +32,9 @@ services:
         EII_VERSION: ${EII_VERSION}
         EII_UID: ${EII_UID}
         EII_USER_NAME: ${EII_USER_NAME}
-    image: ${DOCKER_REGISTRY}modbus-tcp-master:${EII_VERSION}
+        UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
+        CMAKE_INSTALL_PREFIX: ${EII_INSTALL_PATH}
+    image: ${DOCKER_REGISTRY}openedgeinsights/modbus-tcp-master:${EII_VERSION}
     container_name: modbus-tcp-master
     hostname: modbus-tcp-master
     read_only: true

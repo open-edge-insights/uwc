@@ -29,7 +29,7 @@ eii_build_dir="$Current_Dir/../../build"
 Dev_Mode="false"
 IS_SCADA=0
 source uwc_common_lib.sh
-
+preBuild=""
 deployMode=""
 recipe=""
 tls_req=""
@@ -391,6 +391,7 @@ parse_command_line_args()
         case "$KEY" in
             --deployMode)   deployMode=${VALUE} ;;  
             --recipe)       recipe=${VALUE} ;;
+            --preBuild)    preBuild=${VALUE} ;;
             --usage)        usage;;
             --help)         usage;;
         esac
@@ -426,8 +427,69 @@ parse_command_line_args()
             exit 1 
         fi 
     fi
+    if [ -z $preBuild ]; then
+        echo "Pre build  not provided. "
+        echo "Do you want to use pre-build images from public docker hub (enter yes or no ):"
+        read preBuild
+        if [ -z $preBuild ]; then
+            echo "${RED}Error:: Empty value entered..${NC}"
+            echo "${RED}Kindly enter correct values and re-run the script..${NC}"
+            exit 1
+        fi
+    fi
+
 }
 
+#------------------------------------------------------------------
+# preBuild_images
+#
+# Description:
+#       To set preBuild true if pre-build images are to be used else false. It passes either "yes" or "no"
+#       in non-interactive mode.
+# Return:
+#        None
+# Usage:
+#       preBuild_images
+#       preBuild_images "yes"
+#       preBuild_images "no"
+#------------------------------------------------------------------
+preBuild_images()
+{
+    temp_preBuild=""
+    if [ ! -z "$preBuild" ]; then
+        if [ "$preBuild" == "yes" ]; then
+            echo "Using pre-build images"
+            echo "preBuild="true""> ./setenv  
+        else
+            echo "Building images locally"
+            echo "preBuild="false" "> ./setenv
+        fi
+    else 
+        echo "Do you want to use pre-build images from public docker hub ?"
+        echo "1) Yes"
+        echo "2) No"
+        read temp_preBuild             
+                 
+    
+        case $temp_preBuild in 
+            "yes"|"Yes"|"1")
+        
+                echo "Using pre-build images"
+                echo "preBuild="true" "> ./setenv
+                ;;
+    
+            "no"|"No"|"2")
+        
+                echo "Building images locally"
+                echo "preBuild="false" "> ./setenv            
+                ;;
+            *)
+                echo "User entered wrong option, Please enter either 1 or 2."
+                exit 1
+        esac
+    fi
+
+}
 #------------------------------------------------------------------
 # usage
 #
@@ -447,8 +509,10 @@ usage()
     echo
     echo "${INFO}List of available options..."
     echo 
-    echo "${INFO}--deployMode  dev or prod"
-    echo
+    echo "${INFO}--deployMode dev or prod"
+
+    echo "${INFO}--preBuild yes to use pre-build images else no to build images locally"
+    
     echo "${INFO}--recipe  Recipe file to be referred for provisioning:
                             1: All basic UWC module. (no KPI-tactic Application, no SPARKPLUG-BRIDGE)
                             2: All basic UWC modules + KPI-tactic Application (no SPARKPLUG-BRIDGE)
@@ -491,23 +555,28 @@ usage()
         2. sparkplug-bridge without TLS  and no KPI-tactic Application
          sudo ./02_provision_UWC.sh --deployMode=dev --recipe=4 --isTLS=no --brokerAddr=\"192.168.1.89\" --brokerPort=1883 --qos=1
 
+        3. To use pre-build images.
+	 sudo ./02_provision_UWC.sh --deployMode=dev --recipe=<any> --preBuild=yes
 
-        3. All UWC basic modules (no KPI-tactic Application, no SPARKPLUG-BRIDGE) Note: TLS not required here.
+	4. To build images locally.
+         sudo ./02_provision_UWC.sh --deployMode=dev --recipe=<any> --preBuild=no 
+
+        5. All UWC basic modules (no KPI-tactic Application, no SPARKPLUG-BRIDGE) Note: TLS not required here.
          sudo ./02_provision_UWC.sh --deployMode=dev --recipe=1 
 
-        4. All UWC basic modules (with KPI-tactic Application, no SPARKPLUG-BRIDGE). Note: TLS not required here.
+        6. All UWC basic modules (with KPI-tactic Application, no SPARKPLUG-BRIDGE). Note: TLS not required here.
          sudo ./02_provision_UWC.sh --deployMode=dev --recipe=2 
 
-        5. All UWC modules (with KPI-tactic Application and with SPARKPLUG-BRIDGE). Note: This use case does not use TLS mode.
+        7. All UWC modules (with KPI-tactic Application and with SPARKPLUG-BRIDGE). Note: This use case does not use TLS mode.
          sudo ./02_provision_UWC.sh --deployMode=dev --recipe=3 --isTLS=no  
          --brokerAddr=\"192.168.1.23\" --brokerPort=1883 --qos=1
 
-        6. All UWC modules (with KPI-tactic Application and with SPARKPLUG-BRIDGE). Note: This use case uses TLS mode.
+        8. All UWC modules (with KPI-tactic Application and with SPARKPLUG-BRIDGE). Note: This use case uses TLS mode.
           sudo ./02_provision_UWC.sh --deployMode=dev --recipe=3 --isTLS=yes  
           --caFile=\"scada_ext_certs/ca/root-ca.crt\" --crtFile=\"scada_ext_certs/client/client.crt\" 
           --keyFile=\"scada_ext_certs/client/client.key\" --brokerAddr=\"192.168.1.11\" --brokerPort=1883 --qos=1
-
-        7. Fully interactive
+       
+        9. Fully interactive
           sudo ./02_provision_UWC.sh
        "
     echo "${INFO}===================================================================================${NC}"
@@ -524,10 +593,12 @@ docker_compose_verify
 if [ -z "$1" ]; then
     set_mode
     configure_usecase 
+    preBuild_images
 else
     parse_command_line_args "$@"
     set_mode  "$deployMode"
     configure_usecase   "$recipe"
+    preBuild_images  "$preBuild"
     if [[ "${IS_SCADA}" -eq "1" ]]; then
            ./2.1_ConfigureScada.sh "$@"
         ret="$?"

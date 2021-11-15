@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 ARG EII_VERSION
+ARG UBUNTU_IMAGE_VERSION
 FROM uwc_common:$EII_VERSION as uwc_common
 LABEL description="Modbus RTU Master Application"
 
@@ -65,7 +66,7 @@ RUN cd /Modbus-App/Release \
     &&	make clean all -s
 
 # Build Modbus container service
-FROM ia_common:$EII_VERSION as modbus-service
+FROM ubuntu:$UBUNTU_IMAGE_VERSION as runtime
 WORKDIR /
 
 ENV APP_WORK_DIR /opt/intel/app/
@@ -74,7 +75,7 @@ RUN mkdir -p /opt/intel/app \
 	&& mkdir -p /opt/intel/config \
 	&& mkdir -p /opt/intel/eii/uwc_data
 WORKDIR ${APP_WORK_DIR}
-
+ARG CMAKE_INSTALL_PREFIX
 # copy required libs and includes
 COPY --from=modbus-lib /modconn/Release/libModbusMasterStack.so ${APP_WORK_DIR}
 COPY --from=modbus-app /Modbus-App/Release/ModbusMaster ${APP_WORK_DIR}
@@ -84,8 +85,7 @@ COPY --from=modbus-app /Modbus-App/Config/log4cpp.properties /opt/intel/config
 COPY --from=uwc_common /uwc_util/Release/libuwc-common.so ${APP_WORK_DIR}
 COPY --from=uwc_common /usr/lib/libpaho* ${APP_WORK_DIR}
 COPY --from=uwc_common /usr/paho-cpp/lib/lib* ${APP_WORK_DIR}
-COPY --from=uwc_common $CMAKE_INSTALL_PREFIX/lib ${APP_WORK_DIR}
-
+COPY --from=uwc_common $CMAKE_INSTALL_PREFIX/lib/* ${APP_WORK_DIR}
 # set permissions to working dir for eiiuser
 RUN chown -R ${EII_UID}:${EII_UID} /opt/intel/config \
    && chown -R ${EII_UID}:${EII_UID} ${APP_WORK_DIR} \
