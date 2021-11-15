@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 ARG EII_VERSION
+ARG UBUNTU_IMAGE_VERSION
 FROM ia_eiibase:$EII_VERSION as eiibase
 LABEL description="Common library container"
 ARG EII_UID
@@ -109,8 +110,10 @@ RUN	cp -r /usr/yaml/include/* /uwc_util/include/yaml-cpp/ \
 	&& cp -r /usr/lib/libpaho* /uwc_util/lib/
 
 COPY --from=common $CMAKE_INSTALL_PREFIX/include /usr/local/include
+COPY --from=common $CMAKE_INSTALL_PREFIX/include $CMAKE_INSTALL_PREFIX/include
 COPY --from=common $CMAKE_INSTALL_PREFIX/lib /usr/local/lib
-
+COPY --from=common $CMAKE_INSTALL_PREFIX/lib $CMAKE_INSTALL_PREFIX/lib
+RUN cp -r /usr/ssl/lib/* $CMAKE_INSTALL_PREFIX/lib/
 # compile wuc-lib sources
 RUN cd /uwc_util/Release \
     &&	export LD_LIBRARY_PATH='/uwc_util/lib' \

@@ -118,10 +118,18 @@ uninstall_containers()
 	return 0
 }
 
+delete_file()
+{
+    echo -e "${INFO}---------------------------------------Deleting setenv file-----------------------${NC}"
+    del_file ./setenv
+}
+
 cd ${Current_Dir}
 check_root_user
 uninstall_containers
 uninstall_docker
 uninstall_docker_compose
+delete_file
+
 echo ""
 echo -e "${GREEN}---------------------------------------Uninstallation Completed-----------------------------------${NC}"
