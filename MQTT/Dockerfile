@@ -19,12 +19,11 @@
 # SOFTWARE
 
 ARG EII_VERSION
-FROM ia_eiibase:$EII_VERSION as eiibase
+ARG UBUNTU_IMAGE_VERSION
+FROM ubuntu:$UBUNTU_IMAGE_VERSION as runtime
 LABEL description="MQTT container"
 ARG EII_UID
 ARG EII_USER_NAME
-
-FROM eiibase
 WORKDIR /
 
 RUN apt-get update && apt-get install -y mosquitto mosquitto-clients

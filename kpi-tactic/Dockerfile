@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 ARG EII_VERSION
+ARG UBUNTU_IMAGE_VERSION
 FROM uwc_common:$EII_VERSION as uwc_common
 LABEL description="KPI Tactic Application"
 
@@ -49,8 +50,7 @@ RUN cd /KPIApp/Release \
     &&	make clean all -s
 
 # Build KPI App container service
-FROM ia_common:$EII_VERSION as KPIApp-service
-
+FROM ubuntu:$UBUNTU_IMAGE_VERSION as runtime
 WORKDIR /
 # creating base directories
 ENV APP_WORK_DIR /opt/intel/app/
@@ -70,7 +70,8 @@ COPY --from=uwc_common /usr/paho-cpp/lib/lib* ${APP_WORK_DIR}
 COPY --from=uwc_common /EII/log4cpp/build/lib/* ${APP_WORK_DIR}
 COPY --from=kpitactic /KPIApp/Config/log4cpp.properties /opt/intel/config
 COPY --from=uwc_common /uwc_util/Release/libuwc-common.so ${APP_WORK_DIR}
-COPY --from=uwc_common $CMAKE_INSTALL_PREFIX/lib  ${APP_WORK_DIR}
+ARG CMAKE_INSTALL_PREFIX
+COPY --from=uwc_common $CMAKE_INSTALL_PREFIX/lib/*  ${APP_WORK_DIR}
 # set permissions to working dir for eiiuser
 RUN chown -R ${EII_UID}:${EII_UID} /opt/intel/config \
    && chown -R ${EII_UID}:${EII_UID} ${APP_WORK_DIR} \

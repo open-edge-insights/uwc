@@ -31,7 +31,8 @@ services:
       args:
         EII_VERSION: ${EII_VERSION}
         EII_UID: ${EII_UID}
-    image: ${DOCKER_REGISTRY}mqtt_container:${EII_VERSION}
+        UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
+    image: ${DOCKER_REGISTRY}openedgeinsights/mqtt_container:${EII_VERSION}
     container_name: mqtt_container
     hostname: mqtt_container
     read_only: true
