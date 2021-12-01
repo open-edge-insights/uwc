@@ -30,12 +30,13 @@
 5. [Build and Run all EII and UWC services](#build-and-run-all-eii-and-uwc-services)
 6. [Verify container status](#verify-container-status)
 7. [Apply configuration changes](#apply-configuration-changes)
-8. [Uninstallation script](#uninstallation-script)
-9. [Data Persistence feature](#data-persistence-feature)
-10. [Sample DB Publisher](#sample-db-publisher)
-11. [Unit Tests](#unit-tests)
-12. [Debugging steps](#debugging-steps) 
-13. [Troubleshooting](#troubleshooting)
+8. [Change the usecase](#change-the-usecase)
+9. [Uninstallation script](#uninstallation-script)
+10. [Data Persistence feature](#data-persistence-feature)
+11. [Sample DB Publisher](#sample-db-publisher)
+12. [Unit Tests](#unit-tests)
+13. [Debugging steps](#debugging-steps) 
+14. [Troubleshooting](#troubleshooting)
 
 ## Directory details
 The directory comprises of following:
@@ -133,6 +134,9 @@ If any configuration changes are done to UWC YML files, then run this script whi
   $ cd <working-dir>/IEdgeInsights/uwc/build_scripts
   $ sudo -E 05_applyConfigChanges.sh
   ```
+## Change the usecase
+While a particular usecase is running & if user intends to change the usecase, then the script "./02_provision_UWC.sh" has to be re-run. This would kill (remove) all the containers of the existing use case & re-create the consolidated docker-compose.yml & consolidated eii_config.json file as per the new use case selected in "./02_provision_UWC.sh". Provisioning is also done as part of this script. 
+"03_Build_Run_UWC.sh" script should be executed  post "02_provision_UWC.sh" is run, which would build the containers of the newly selected usecase.
 
 ## Uninstallation script
 Used to uninstall & remove the UWC installation.
