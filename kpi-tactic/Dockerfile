@@ -20,7 +20,8 @@
 
 ARG EII_VERSION
 ARG UBUNTU_IMAGE_VERSION
-FROM uwc_common:$EII_VERSION as uwc_common
+ARG UWC_VERSION
+FROM uwc_common:$UWC_VERSION as uwc_common
 LABEL description="KPI Tactic Application"
 
 # Build KPI Tactic application
