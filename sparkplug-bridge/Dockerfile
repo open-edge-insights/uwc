@@ -20,7 +20,8 @@
 
 ARG EII_VERSION
 ARG UBUNTU_IMAGE_VERSION
-FROM uwc_common:$EII_VERSION as uwc_common
+ARG UWC_VERSION
+FROM uwc_common:$UWC_VERSION as uwc_common
 FROM ia_eiibase:$EII_VERSION as eiibase
 LABEL description="SPARKPLUG BRIDGE container"
 

@@ -20,8 +20,8 @@
 
 ARG EII_VERSION
 ARG UBUNTU_IMAGE_VERSION
-
-FROM uwc_common:$EII_VERSION as uwc_common
+ARG UWC_VERSION
+FROM uwc_common:$UWC_VERSION as uwc_common
 LABEL description="MQTT Bridge Application"
 
 # Build MQTT-Bridge application
