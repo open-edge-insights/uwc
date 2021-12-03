@@ -64,8 +64,9 @@ services:
       dockerfile: $PWD/../uwc/uwc_common/Dockerfile.common.test
       args:
         EII_VERSION: ${EII_VERSION}
+        UWC_VERSION: ${UWC_VERSION}
     read_only: true
-    image: ${DOCKER_REGISTRY}uwc_test_common:${EII_VERSION}
+    image: ${DOCKER_REGISTRY}uwc_test_common:${UWC_VERSION}
     environment:
       CMAKE_INSTALL_PREFIX: ${EII_INSTALL_PATH}
 
@@ -170,8 +171,10 @@ services:
       dockerfile: $PWD/../uwc/MQTT/Dockerfile
       args:
         EII_VERSION: ${EII_VERSION}
+        UWC_VERSION: ${UWC_VERSION}
         EII_UID: ${EII_UID}
-    image: ${DOCKER_REGISTRY}mqtt_test_container:${EII_VERSION}
+        UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
+    image: ${DOCKER_REGISTRY}mqtt_test_container:${UWC_VERSION}
     container_name: mqtt_test_container
     hostname: mqtt_test_container
     read_only: true
@@ -219,9 +222,10 @@ services:
       dockerfile: $PWD/../uwc/mqtt-bridge/Dockerfile_UT
       args:
         EII_VERSION: ${EII_VERSION}
+        UWC_VERSION: ${UWC_VERSION}
         EII_UID: ${EII_UID}
         EII_USER_NAME: ${EII_USER_NAME}
-    image: ${DOCKER_REGISTRY}mqtt-bridge-test:${EII_VERSION}
+    image: ${DOCKER_REGISTRY}mqtt-bridge-test:${UWC_VERSION}
     container_name: mqtt-bridge-test
     hostname: mqtt-bridge-test
     # restart: unless-stopped
@@ -290,9 +294,10 @@ services:
       dockerfile: $PWD/../uwc/modbus-master/Dockerfile_UT
       args:
         EII_VERSION: ${EII_VERSION}
+        UWC_VERSION: ${UWC_VERSION}
         EII_UID: ${EII_UID}
         EII_USER_NAME: ${EII_USER_NAME}
-    image: ${DOCKER_REGISTRY}modbus-tcp-master-test:${EII_VERSION}
+    image: ${DOCKER_REGISTRY}modbus-tcp-master-test:${UWC_VERSION}
     container_name: modbus-tcp-master-test
     hostname: modbus-tcp-master-test
     #read_only: true
@@ -356,7 +361,8 @@ services:
         EII_VERSION: ${EII_VERSION}
         EII_UID: ${EII_UID}
         EII_USER_NAME: ${EII_USER_NAME}
-    image: ${DOCKER_REGISTRY}modbus-rtu-master-test:${EII_VERSION}
+        UWC_VERSION: ${UWC_VERSION}
+    image: ${DOCKER_REGISTRY}modbus-rtu-master-test:${UWC_VERSION}
     container_name: modbus-rtu-master-test
     hostname: modbus-rtu-master-test
     # read_only: true
@@ -425,7 +431,8 @@ services:
         EII_UID: ${EII_UID}
         EII_USER_NAME: ${EII_USER_NAME}
         BUILD_NUMBER: ${BUILD_NUMBER}
-    image: ${DOCKER_REGISTRY}sparkplug-bridge-test:${EII_VERSION}
+        UWC_VERSION: ${UWC_VERSION}
+    image: ${DOCKER_REGISTRY}sparkplug-bridge-test:${UWC_VERSION}
     container_name: sparkplug-bridge-test
     hostname: sparkplug-bridge-test
     restart: unless-stopped
@@ -491,7 +498,8 @@ services:
         EII_UID: ${EII_UID}
         EII_USER_NAME: ${EII_USER_NAME}
         BUILD_NUMBER: ${BUILD_NUMBER}
-    image: ${DOCKER_REGISTRY}kpi-tactic-test:${EII_VERSION}
+        UWC_VERSION: ${UWC_VERSION}
+    image: ${DOCKER_REGISTRY}kpi-tactic-test:${UWC_VERSION}
     container_name: kpi-tactic-test
     hostname: kpi-tactic-test
     # read_only: true
@@ -558,7 +566,8 @@ services:
         EII_USER_NAME: ${EII_USER_NAME}
         ETCD_HOST: ${ETCD_HOST}
         BUILD_NUMBER: ${BUILD_NUMBER}
-    image: ${DOCKER_REGISTRY}uwc-util-test:${EII_VERSION}
+        UWC_VERSION: ${UWC_VERSION}
+    image: ${DOCKER_REGISTRY}uwc-util-test:${UWC_VERSION}
     container_name: uwc-util-test
     hostname: uwc-util-test
     # read_only: true
