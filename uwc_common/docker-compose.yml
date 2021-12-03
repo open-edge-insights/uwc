@@ -30,10 +30,12 @@ services:
       dockerfile: $PWD/../uwc/uwc_common/Dockerfile.common
       args:
           EII_VERSION: ${EII_VERSION}
+          UWC_VERSION: ${UWC_VERSION}
           UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
           CMAKE_INSTALL_PREFIX: ${EII_INSTALL_PATH}
+          EII_INSTALL_PATH: ${EII_INSTALL_PATH}
     read_only: true
-    image: ${DOCKER_REGISTRY}uwc_common:${EII_VERSION}
+    image: ${DOCKER_REGISTRY}uwc_common:${UWC_VERSION}
     environment:
       AppName: "uwc-common"
 networks:

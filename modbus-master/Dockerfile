@@ -20,7 +20,8 @@
 
 ARG EII_VERSION
 ARG UBUNTU_IMAGE_VERSION
-FROM uwc_common:$EII_VERSION as uwc_common
+ARG UWC_VERSION
+FROM uwc_common:$UWC_VERSION as uwc_common
 LABEL description="Modbus TCP Master Application"
 
 # Build Modbus Stack
@@ -29,6 +30,9 @@ WORKDIR /
 
 # compile modbus stack
 COPY modconn /modconn/.
+COPY --from=uwc_common ${CMAKE_INSTALL_PREFIX}/include /usr/local/include
+COPY --from=uwc_common ${CMAKE_INSTALL_PREFIX}/lib /usr/local/lib
+RUN ls -a /usr/local/include
 WORKDIR modconn
 RUN cd Release \
     && make clean all -s
@@ -68,6 +72,10 @@ RUN mkdir -p /opt/intel/app \
 	&& mkdir -p /opt/intel/app/logs \
 	&& mkdir -p /opt/intel/config \
 	&& mkdir -p /opt/intel/eii/uwc_data
+
+RUN apt update && apt install --no-install-recommends -y libcjson1 libzmq5 zlib1g && \
+    rm -rf /var/lib/apt/lists/*
+
 WORKDIR ${APP_WORK_DIR}
 
 # copy required libs and includes

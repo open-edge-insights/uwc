@@ -29,9 +29,12 @@ services:
       context: $PWD/../uwc/MQTT/
       dockerfile: $PWD/../uwc/MQTT/Dockerfile
       args:
+        UWC_VERSION: ${UWC_VERSION}
         EII_UID: ${EII_UID}
         UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
-    image: ${DOCKER_REGISTRY}openedgeinsights/mqtt_container:${EII_VERSION}
+        EII_USER_NAME: ${EII_USER_NAME}
+        EII_INSTALL_PATH: ${EII_INSTALL_PATH}
+    image: ${DOCKER_REGISTRY}openedgeinsights/mqtt_container:${UWC_VERSION}
     container_name: mqtt_container
     hostname: mqtt_container
     read_only: true
@@ -45,13 +48,11 @@ services:
       AppName: "MQTT"
       DEV_MODE: ${DEV_MODE}
       no_proxy: ${eii_no_proxy}
-      CertType: "zmq"
-    user: ${EII_UID}
+      #user: ${EII_UID}
     # userns_mode: host
-    secrets:
-      - ca_broker
-      - broker_cert
-      - broker_key
+    volumes:
+      - ./Certificates/mymqttcerts:/run/secrets/mymqttcerts      
+      - ./Certificates/rootca:/run/secrets/rootca        
     security_opt:
     - no-new-privileges
     ulimits:
@@ -71,11 +72,5 @@ services:
       - eii
     ports:
       - 11883:11883
-secrets:
-  ca_broker:
-    file: provision/Certificates/ca/ca_certificate.pem
-  broker_cert:
-    file: provision/Certificates/mymqttcerts/mymqttcerts_server_certificate.pem
-  broker_key:
-    file: provision/Certificates/mymqttcerts/mymqttcerts_server_key.pem
+
 

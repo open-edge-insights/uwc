@@ -29,12 +29,14 @@ services:
       context: $PWD/../uwc/modbus-master/
       dockerfile: $PWD/../uwc/modbus-master/Dockerfile_RTU
       args:
+        UWC_VERSION: ${UWC_VERSION}
         EII_VERSION: ${EII_VERSION}
         EII_UID: ${EII_UID}
         EII_USER_NAME: ${EII_USER_NAME}
         UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
         CMAKE_INSTALL_PREFIX: ${EII_INSTALL_PATH}
-    image: ${DOCKER_REGISTRY}openedgeinsights/modbus-rtu-master:${EII_VERSION}
+        EII_INSTALL_PATH: ${EII_INSTALL_PATH}
+    image: ${DOCKER_REGISTRY}openedgeinsights/modbus-rtu-master:${UWC_VERSION}
     container_name: modbus-rtu-master
     hostname: modbus-rtu-master
     read_only: true
@@ -55,7 +57,6 @@ services:
       MY_APP_ID: 2
       CUTOFF_INTERVAL_PERCENTAGE: 90
       SERIAL_PORT_RETRY_INTERVAL: 1
-      CertType: "zmq"
       PROFILING_MODE: ${PROFILING_MODE}
       NETWORK_TYPE: RTU
       DEVICES_GROUP_LIST_FILE_NAME: "Devices_group_list.yml"
@@ -68,18 +69,16 @@ services:
         max-size: "10m"
     volumes:
     - "${EII_INSTALL_PATH}/uwc_data:/opt/intel/eii/uwc_data:ro"
-    - "vol_uwc_socket:${SOCKET_DIR}:z"
+    - "${EII_INSTALL_PATH}/sockets:${SOCKET_DIR}:z"
     - "${EII_INSTALL_PATH}/uwc_data/common_config:${EII_INSTALL_PATH}/uwc_data/common_config:ro"
     - "${EII_INSTALL_PATH}/container_logs/modbus-rtu-master:/opt/intel/app/logs"
+    - ./Certificates/RTU:/run/secrets/RTU
+    - ./Certificates/rootca:/run/secrets/rootca      
     user: ${EII_UID}
     # userns_mode: host
     devices:
       - /dev:/dev
     privileged: true
-    secrets:
-      - ca_etcd
-      - etcd_RTU_cert
-      - etcd_RTU_key
     security_opt:
     - no-new-privileges
     healthcheck:
@@ -90,20 +89,3 @@ services:
       retries: 3
       start_period: 0s
 
-volumes:
-  vol_uwc_socket:
-    driver: local
-    driver_opts:
-      type: local
-      o: bind
-      device: ${EII_INSTALL_PATH}/sockets
-
-secrets:
-  etcd_root_cert:
-    file: provision/Certificates/root/root_client_certificate.pem
-  etcd_root_key:
-    file: provision/Certificates/root/root_client_key.pem
-  etcd_RTU_cert:
-    file: provision/Certificates/RTU/RTU_client_certificate.pem
-  etcd_RTU_key:
-    file: provision/Certificates/RTU/RTU_client_key.pem

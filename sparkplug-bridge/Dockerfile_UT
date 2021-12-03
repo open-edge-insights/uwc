@@ -20,7 +20,8 @@
 
 ARG EII_VERSION
 ARG EII_UID
-FROM uwc_test_common:$EII_VERSION as uwc_test_common
+ARG UWC_VERSION 
+FROM uwc_test_common:$UWC_VERSION as uwc_test_common
 FROM ia_eiibase:$EII_VERSION as eiibase
 LABEL description="SPARKPLUG BRIDGE Unit Testing container"
 

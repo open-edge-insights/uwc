@@ -1,11 +1,11 @@
 SAN = "IP:127.0.0.1,DNS:localhost,URI:urn:unconfigured:application"
-common_name = mqtt
+common_name = @COMMON_NAME@
 
 [ ca ]
 default_ca = root_ca
 
 [ root_ca ]
-root_ca_dir = rootca
+root_ca_dir = ../../build/Certificates/rootca  
 
 certificate   = $root_ca_dir/cacert.pem
 database      = $root_ca_dir/index.txt

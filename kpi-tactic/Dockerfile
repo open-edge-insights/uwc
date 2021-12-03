@@ -20,13 +20,14 @@
 
 ARG EII_VERSION
 ARG UBUNTU_IMAGE_VERSION
-FROM uwc_common:$EII_VERSION as uwc_common
+ARG UWC_VERSION
+FROM uwc_common:$UWC_VERSION as uwc_common
 LABEL description="KPI Tactic Application"
-
+ARG EII_INSTALL_PATH
 # Build KPI Tactic application
 FROM ia_common:$EII_VERSION as kpitactic
 WORKDIR /
-
+RUN echo ${EII_INSTALL_PATH}
 # copy required dependencies
 COPY KPIApp /KPIApp/. 
 COPY --from=uwc_common /usr/yaml/include/yaml-cpp /usr/local/include/yaml-cpp
@@ -58,6 +59,10 @@ RUN mkdir -p /opt/intel/app \
 	&& mkdir -p /opt/intel/app/logs \
 	&& mkdir -p /opt/intel/config \
 	&& mkdir -p /opt/intel/eii/uwc_data
+
+RUN apt update && apt install --no-install-recommends -y libcjson1 libzmq5 zlib1g && \
+    rm -rf /var/lib/apt/lists/*
+
 WORKDIR ${APP_WORK_DIR}
 
 # copy required dependencies

@@ -19,7 +19,8 @@
 # SOFTWARE.
 
 ARG EII_VERSION
-FROM uwc_test_common:$EII_VERSION as uwc_test_common
+ARG UWC_VERSION
+FROM uwc_test_common:$UWC_VERSION as uwc_test_common
 LABEL description="Modbus TCP Master Unit Testing container"
 
 # Build Modbus Stack
