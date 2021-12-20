@@ -456,6 +456,9 @@ parse_command_line_args()
 preBuild_images()
 {
     temp_preBuild=""
+    if [ -e ./setenv ]; then
+        rm ./setenv
+    fi
     if [ ! -z "$preBuild" ]; then
         if [ "$preBuild" == "yes" ]; then
             echo "Using pre-build images"
