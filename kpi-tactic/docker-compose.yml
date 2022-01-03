@@ -56,7 +56,6 @@ services:
         MQTT_URL: "${MQTT_PROTOCOL}://127.0.0.1:11883"
         KPIAPPConfigFile: "ControlLoopConfig.yml"
         # Clients: "TCP,RTU"
-        CertType: "zmq"
         BUILD_NUMBER: ${BUILD_NUMBER}
         PROFILING_MODE: ${PROFILING_MODE}
         WriteRequest_RT: "RT_KPIAPP_WrReq_RT"
@@ -70,17 +69,13 @@ services:
       networks:
         - eii
       volumes:
-      - "vol_uwc_socket:${SOCKET_DIR}:z"
+      - "${EII_INSTALL_PATH}/sockets:${SOCKET_DIR}:z"
       - "${EII_INSTALL_PATH}/uwc_data:/opt/intel/eii/uwc_data:ro"
       - "${EII_INSTALL_PATH}/uwc_data/common_config:${EII_INSTALL_PATH}/uwc_data/common_config:ro"
       - "${EII_INSTALL_PATH}/container_logs/kpi-tactic:/opt/intel/app/logs"
-      secrets:
-        - ca_etcd
-        - etcd_KPIAPP_cert
-        - etcd_KPIAPP_key
-        - ca_broker
-        - client_cert
-        - client_key     
+      - ./Certificates/KPIAPP:/run/secrets/KPIAPP
+      - ./Certificates/rootca:/run/secrets/rootca
+        
       security_opt:
         - no-new-privileges
       healthcheck:
@@ -90,15 +85,4 @@ services:
         retries: 3
         start_period: 0s
 
-secrets:
-  etcd_KPIAPP_cert:
-    file: provision/Certificates/KPIAPP/KPIAPP_client_certificate.pem
-  etcd_KPIAPP_key:
-    file: provision/Certificates/KPIAPP/KPIAPP_client_key.pem
-  ca_broker:
-    file: provision/Certificates/ca/ca_certificate.pem
-  client_cert:
-    file: provision/Certificates/mymqttcerts/mymqttcerts_client_certificate.pem
-  client_key:
-    file: provision/Certificates/mymqttcerts/mymqttcerts_client_key.pem  
     

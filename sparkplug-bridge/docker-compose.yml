@@ -58,7 +58,6 @@ services:
       INTERNAL_MQTT_URL: "${MQTT_PROTOCOL}://mqtt_container:11883"
       NETWORK_TYPE: "ALL"
       TOPIC_SEPARATOR: '-'
-      CertType: "zmq"
       BUILD_NUMBER: ${BUILD_NUMBER}
       PROFILING_MODE: ${PROFILING_MODE}
     logging:
@@ -71,13 +70,8 @@ services:
      - "${EII_INSTALL_PATH}/uwc_data:/opt/intel/eii/uwc_data:ro"
      - "${EII_INSTALL_PATH}/uwc_data/common_config:${EII_INSTALL_PATH}/uwc_data/common_config:ro"
      - "${EII_INSTALL_PATH}/container_logs/sparkplug-bridge:/opt/intel/app/logs"
-    secrets:
-      - ca_etcd
-      - etcd_SPARKPLUG-BRIDGE_cert
-      - etcd_SPARKPLUG-BRIDGE_key
-      - ca_broker
-      - client_cert
-      - client_key      
+     - ./Certificates/SPARKPLUG-BRIDGE:/run/secrets/SPARKPLUG-BRIDGE
+     - ./Certificates/rootca:/run/secrets/rootca       
     security_opt:
       - no-new-privileges
     healthcheck:
@@ -89,25 +83,4 @@ services:
     networks:
       - eii      
 
-volumes:      
-  vol_uwc_socket:
-    driver: local
-    driver_opts:
-      type: local
-      o: bind
-      device: ${EII_INSTALL_PATH}/sockets
 
-secrets:
-  ca_etcd:
-    file: provision/Certificates/ca/ca_certificate.pem
-  ca_broker:
-    file: provision/Certificates/ca/ca_certificate.pem
-  client_cert:
-    file: provision/Certificates/mymqttcerts/mymqttcerts_client_certificate.pem
-  client_key:
-    file: provision/Certificates/mymqttcerts/mymqttcerts_client_key.pem
-  etcd_SPARKPLUG-BRIDGE_cert:
-    file: provision/Certificates/SPARKPLUG-BRIDGE/SPARKPLUG-BRIDGE_client_certificate.pem
-  etcd_SPARKPLUG-BRIDGE_key:
-    file: provision/Certificates/SPARKPLUG-BRIDGE/SPARKPLUG-BRIDGE_client_key.pem
-  

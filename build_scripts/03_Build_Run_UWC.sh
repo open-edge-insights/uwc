@@ -86,7 +86,7 @@ build_run_UWC()
         fi         
     else 
         echo "Building images locally"
-        docker-compose -f docker-compose-build.yml build
+        docker-compose -f docker-compose-build.yml build 
         if [ "$?" -eq "0" ];then
 	    echo "*****************************************************************"
             echo "${GREEN}UWC containers built successfully.${NC}"
@@ -95,7 +95,13 @@ build_run_UWC()
 	    echo "*****************************************************************"
             exit 1
         fi
+        docker-compose up -d ia_configmgr_agent
+        sleep 30
+        cd "${Current_Dir}"
+        mqtt_certs
+        cd "${eii_build_dir}"
         docker-compose up -d
+
         if [ "$?" -eq "0" ];then
             echo "*****************************************************************"
             echo "${GREEN}Installed UWC containers successfully.${NC}"
@@ -124,13 +130,39 @@ function harden()
 	docker container update --pids-limit=100 --restart=on-failure:5 --cpu-shares 512 -m 1G --memory-swap -1 modbus-tcp-master
 	docker container update --pids-limit=100 --restart=on-failure:5 --cpu-shares 512 -m 1G --memory-swap -1 mqtt_container
 	docker container update --pids-limit=100 --restart=on-failure:5 --cpu-shares 512 -m 1G --memory-swap -1 modbus-rtu-master
-	docker container update --pids-limit=100 --restart=on-failure:5 --cpu-shares 512 -m 1G --memory-swap -1 ia_etcd
-	docker container update --pids-limit=100 --restart=on-failure:5 --cpu-shares 512 -m 1G --memory-swap -1 ia_etcd_provision
+	#docker container update --pids-limit=100 --restart=on-failure:5 --cpu-shares 512 -m 1G --memory-swap -1 ia_etcd
+	#docker container update --pids-limit=100 --restart=on-failure:5 --cpu-shares 512 -m 1G --memory-swap -1 ia_etcd_provision
 	docker ps -q --filter "name=sparkplug-bridge" | grep -q . && docker container update --pids-limit=100 --restart=on-failure:5 --cpu-shares 512 -m 1G --memory-swap -1 sparkplug-bridge
 	# Increase pid limit for KPI to 500 for processing larger count of threads.
 	docker ps -q --filter "name=kpi-tactic-app" | grep -q . && docker container update --pids-limit=500 --restart=on-failure:5 --cpu-shares 512 -m 1G --memory-swap -1 kpi-tactic-app
 }
+mqtt_certs()
+{
+    echo "${GREEN} Genrating certs for mqtt${NC}"	
+    mkdir ./temp ./temp/client ./temp/server
+    #chmod 755 -R ../../build/Certificates
+    openssl req -config ../Others/mqtt_certs/openssl.cnf -new -newkey rsa:3072 -keyout  ./temp/client/key.pem -out ./temp/client/req.pem -days 3650 -outform PEM -subj /CN=mymqttcerts/O=client/L=$$$/ -nodes
 
+    openssl req -config ../Others/mqtt_certs/openssl.cnf -new -newkey rsa:3072 -keyout  ./temp/server/key.pem -out ./temp/server/req.pem -days 3650 -outform PEM -subj /CN=mymqttcerts/O=server/L=$$$/ -nodes
+
+    echo "worked till here"
+    openssl ca -days 3650 -cert ../../build/Certificates/rootca/cacert.pem -keyfile ../../build/Certificates/rootca/cakey.pem -in ./temp/server/req.pem -out ./temp/mymqttcerts_server_certificate.pem  -outdir ../../build/Certificates/rootca/certs -notext -batch -extensions server_extensions -config ../Others/mqtt_certs/openssl.cnf
+
+    openssl ca -days 3650 -cert ../../build/Certificates/rootca/cacert.pem -keyfile ../../build/Certificates/rootca/cakey.pem -in ./temp/client/req.pem -out ./temp/mymqttcerts_client_certificate.pem -outdir ../../build/Certificates/rootca/certs -notext -batch -extensions client_extensions -config ../Others/mqtt_certs/openssl.cnf
+    if [ -e ../../build/Certificates/mymqttcerts ];then
+        rm -r ../../build/Certificates/mymqttcerts
+        
+    fi
+    mkdir ../../build/Certificates/mymqttcerts
+    cp -rf ./temp/mymqttcerts_server_certificate.pem ../../build/Certificates/mymqttcerts/mymqttcerts_server_certificate.pem
+    cp -rf ./temp/mymqttcerts_client_certificate.pem ../../build/Certificates/mymqttcerts/mymqttcerts_client_certificate.pem
+    cp -rf ./temp/server/key.pem  ../../build/Certificates/mymqttcerts/mymqttcerts_server_key.pem
+    cp -rf ./temp/client/key.pem ../../build/Certificates/mymqttcerts/mymqttcerts_client_key.pem
+   
+    sudo chown -R eiiuser:eiiuser ../../build/Certificates/mymqttcerts/ 
+    rm -rf ./temp
+    return 0
+}
 function main()
 {
     echo "${INFO}Deployment started${NC}"
@@ -141,6 +173,10 @@ function main()
     docker_compose_verify
     build_run_UWC
     verify_container
+    cd "${Current_Dir}"
+#    if [[ "$deployMode" == "prod" ]]; then    
+#        mqtt_certs
+ #   fi
     harden
     echo "${INFO}Deployment Completed${NC}"
     ENDTIME=$(date +%s)

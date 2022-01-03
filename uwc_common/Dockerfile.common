@@ -24,10 +24,10 @@ FROM ia_eiibase:$EII_VERSION as eiibase
 LABEL description="Common library container"
 ARG EII_UID
 
-FROM ia_common:$EII_VERSION as common
+FROM ia_common:3.0-RC1 as common
 
 # build openssl library
-FROM ia_common:$EII_VERSION as openssl-build
+FROM ia_common:3.0-RC1 as openssl-build
 ARG OPENSSL_DIR=openssl
 
 RUN mkdir -p ${OPENSSL_DIR} \
@@ -53,7 +53,7 @@ RUN git clone --branch develop https://github.com/eclipse/paho.mqtt.c.git \
     &&	make install
 
 #Build Paho CPP Library
-FROM ia_common:$EII_VERSION
+FROM ia_common:3.0-RC1
 COPY --from=build-pahoc /usr/paho-c /usr/.
 COPY --from=openssl-build /usr/ssl /usr/ssl
 
@@ -109,11 +109,21 @@ RUN	cp -r /usr/yaml/include/* /uwc_util/include/yaml-cpp/ \
 	&& cp -r /usr/paho-cpp/lib/lib* /uwc_util/lib/ \
 	&& cp -r /usr/lib/libpaho* /uwc_util/lib/
 
+RUN apt update && apt install --no-install-recommends -y libcjson1 libzmq5 zlib1g && \
+    rm -rf /var/lib/apt/lists/*
+
 COPY --from=common $CMAKE_INSTALL_PREFIX/include /usr/local/include
-COPY --from=common $CMAKE_INSTALL_PREFIX/include $CMAKE_INSTALL_PREFIX/include
+#COPY --from=common $CMAKE_INSTALL_PREFIX/include $CMAKE_INSTALL_PREFIX/include
 COPY --from=common $CMAKE_INSTALL_PREFIX/lib /usr/local/lib
-COPY --from=common $CMAKE_INSTALL_PREFIX/lib $CMAKE_INSTALL_PREFIX/lib
+#COPY --from=common $CMAKE_INSTALL_PREFIX/lib $CMAKE_INSTALL_PREFIX/lib
+#COPY --from=common /usr/local/lib $CMAKE_INSTALL_PREFIX/lib
+#COPY --from=common /usr/local/include $CMAKE_INSTALL_PREFIX/include
 RUN cp -r /usr/ssl/lib/* $CMAKE_INSTALL_PREFIX/lib/
+RUN cp -r /usr/yaml/lib/* $CMAKE_INSTALL_PREFIX/lib/
+RUN cp -r /usr/paho-cpp/lib/* $CMAKE_INSTALL_PREFIX/lib/
+RUN ls -a /usr/local/include 
+RUN ls -a /usr/local/lib
+RUN ls -a /usr/local/bin
 # compile wuc-lib sources
 RUN cd /uwc_util/Release \
     &&	export LD_LIBRARY_PATH='/uwc_util/lib' \

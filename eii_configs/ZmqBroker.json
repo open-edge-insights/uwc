@@ -1,5 +1,7 @@
 {
-    "config": {},
+    "config": {
+	"cert_type": ["zmq"]    
+    },
     "interfaces": {
         "Subscribers": [
             {
