@@ -48,7 +48,8 @@ extern std::function<bool(std::string, std::string)> regExFun;
 /** zmq_handler is a namespace holding context regarding information and functions for zmq communication*/
 namespace zmq_handler
 {
-
+	void* m_pub_msgbus_ctx = NULL;
+	config_t* m_pub_config;
 	/** structure maintain context related information*/
 	struct stZmqContext
 	{
