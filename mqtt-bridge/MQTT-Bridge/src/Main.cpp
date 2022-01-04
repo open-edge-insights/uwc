@@ -85,7 +85,7 @@ bool processMsg(msg_envelope_t *msg, CMQTTPublishHandler &mqttPublisher)
 	}
 	else
 	{
-		revdTopic = data->body.string;
+		revdTopic = data->body.string; // has the topic /flowmeter/PL0/D18/update
 
 		std::string strTsRcvd = std::to_string(CCommon::getInstance().get_micros(tsMsgRcvd));
 		msg_envelope_elem_body_t* tsMsgRcvdPut = msgbus_msg_envelope_new_string(strTsRcvd.c_str());
@@ -175,33 +175,33 @@ void getOperation(std::string topic, globalConfig::COperation& operation)
 
 /**
  * Thread function to listen on EII and send data to MQTT
- * @param topic :[in] topic to listen onto
+ * @param topic :[in] topic prefix to listen onto
  * @param context :[in] msg bus context
  * @param subContext :[in] sub context
  * @param operation :[in] operation type this thread needs to perform
  * @return None
  */
-void listenOnEII(std::string topic, zmq_handler::stZmqContext context, zmq_handler::stZmqSubContext subContext, globalConfig::COperation operation)
+void listenOnEII(std::string topicPrefix, zmq_handler::stZmqContext context, zmq_handler::stZmqSubContext subContext, globalConfig::COperation operation)
 {
 	globalConfig::set_thread_sched_param(operation);
-	globalConfig::display_thread_sched_attr(topic + " listenOnEII");
+	globalConfig::display_thread_sched_attr(topicPrefix + " listenOnEII");
 	int qos = operation.getQos();
 
 	if(context.m_pContext == NULL || subContext.sub_ctx == NULL)
 	{
-		DO_LOG_ERROR("Cannot start listening on EII for topic : " + topic);
+		DO_LOG_ERROR("Cannot start listening on EII for topicPrefix : " + topicPrefix);
 		return;
 	}
 
-	void *msgbus_ctx = context.m_pContext;
-	recv_ctx_t *sub_ctx = subContext.sub_ctx;
+	void *msgbus_ctx = context.m_pContext; // this is per subscriber
+	recv_ctx_t *sub_ctx = subContext.sub_ctx; // this is per SUB topic
 
 	//consider topic name as distinguishing factor for publisher
 	CMQTTPublishHandler mqttPublisher(EnvironmentInfo::getInstance().getDataFromEnvMap("MQTT_URL_FOR_EXPORT").c_str(),
-					topic, qos);
+					topicPrefix, qos);
 	mqttPublisher.connect();
 	
-	DO_LOG_INFO("ZMQ listening for topic : " + topic);
+	DO_LOG_INFO("ZMQ listening for topic : " + topicPrefix);
 
 	while ((false == g_shouldStop.load()) && (msgbus_ctx != NULL) && (sub_ctx != NULL))
 	{
@@ -238,10 +238,10 @@ void listenOnEII(std::string topic, zmq_handler::stZmqContext context, zmq_handl
 /**
  * publish message to EII
  * @param a_oRcvdMsg  :[in] message to publish on EII
- * @param a_sEiiTopic :[in] EII topic
+ * @param embTopic :[in] EII topic
  * @return true/false based on success/failure
  */
-bool publishEIIMsg(CMessageObject &a_oRcvdMsg, const std::string &a_sEiiTopic)
+bool publishEIIMsg(CMessageObject &a_oRcvdMsg, const std::string &embTopic)
 {
 	bool retVal = false;
 
@@ -258,6 +258,7 @@ bool publishEIIMsg(CMessageObject &a_oRcvdMsg, const std::string &a_sEiiTopic)
 			return retVal;
 		}
 		std::string eiiMsg = a_oRcvdMsg.getStrMsg();
+		//TODO: Remove the realtime flag in JSON body before publishing to EMB.
 		//parse from root element
 		root = cJSON_Parse(eiiMsg.c_str());
 		if (NULL == root)
@@ -330,7 +331,7 @@ bool publishEIIMsg(CMessageObject &a_oRcvdMsg, const std::string &a_sEiiTopic)
 		
 		std::string strTsReceived{""};
 		bool bRet = true;
-		if(true == zmq_handler::publishJson(strTsReceived, msg, a_sEiiTopic, "tsMsgPublishOnEII"))
+		if(true == zmq_handler::publishJson(strTsReceived, msg, embTopic, "tsMsgPublishOnEII"))
 		{
 			bRet = true;
 		}
@@ -367,12 +368,44 @@ bool publishEIIMsg(CMessageObject &a_oRcvdMsg, const std::string &a_sEiiTopic)
 }
 
 /**
+ * Map MQTT topic to new EMB topic format
+ * @param mqttTopic :[in] MQTT topic format received from MQTT client (example: /flowmeter/PL0/D13/read)
+ * @param isRealTime :[in] flag to indicate this thread function is running in RT or NRT thread
+ * @return : New Topic format mapped topic (example: RT/read/flowmeter/PL0/D13)
+ */
+std::string mapMqttToEMBTopic(std::string mqttTopic, bool isRealTime) {
+
+	// delimeter
+	char delim = '/';
+
+	// To store the index of last
+	// character found
+	size_t index;
+
+	// Function to find the last delimeter "/"
+	index = mqttTopic.find_last_of(delim);
+
+	// If topic doesn't have
+	// character delim present in it
+	if (index == string::npos) {
+		throw "Delimeter " + delim + " is not present in the topic" + mqttTopic + "received from MQTT client";
+	}
+	
+	std::string dataPointAbsPath = mqttTopic.substr(0,index); // ABsolute path of the data point : example: /flowmeter/PL0/D13 
+	index +=1; // update index to teh char immediately after last "/"
+	std::string operation = str.substr(index);
+	std::string rtOrNrt = (isRealTime == true)?"RT":"NRT";
+	std::string embTopic = rtOrNrt + "/" + operation + "/" + dataPointAbsPath; // RT/read//flowmeter/PL0/D13 or NRT/read/flowmeter/PL0/D13
+	return embTopic;
+}
+
+/**
  * Process message received from MQTT and send it on EII
- * @param recvdMsg :[in] message to publish on EII
- * @param a_sEiiTopic :[in] EII topic
+ * @param recvdMsg :[in] message received from MQTT client to publish on EII
+ * @param isRealtime :[in] RT or Non RT.
  * @return true/false based on success/failure
  */
-void processMsgToSendOnEII(CMessageObject &recvdMsg, const std::string a_sEiiTopic)
+void processMsgToSendOnEII(CMessageObject &recvdMsg, const bool isRealtime)
 {
 	try
 	{
@@ -389,23 +422,30 @@ void processMsgToSendOnEII(CMessageObject &recvdMsg, const std::string a_sEiiTop
 
 		DO_LOG_DEBUG("Request received from MQTT for topic "+ rcvdTopic);
 
-		if (a_sEiiTopic.empty())
+		// To add the mapping logic from MQTT topic format to NEW mapped EII topic format
+		// /flowmeter/PL0/D13/read to RT|NRT/read/flowmeter/PL0/D13
+		std::string embTopic = mapMqttToEMBTopic(rcvdTopic, isRealtime);
+
+		//Get the context for this EMB PUB topic
+		zmq_handler::prepareContext(true, zmq_handler::m_pub_msgbus_ctx, embTopic, zmq_handler::m_pub_config);
+
+		if (embTopic.empty())
 		{
-			DO_LOG_ERROR("EII topic is not set to publish on EII"+ rcvdTopic);
+			DO_LOG_ERROR("EMB topic is not set to publish on EMB"+ rcvdTopic);
 			return;
 		}
 		else
 		{
 			//publish data to EII
-			DO_LOG_DEBUG("Received mapped EII topic : " + a_sEiiTopic);
+			DO_LOG_DEBUG("MQTT topic is Mapped to new EMB topic format : " + embTopic);
 
-			if(publishEIIMsg(recvdMsg, a_sEiiTopic))
+			if(publishEIIMsg(recvdMsg, embTopic))
 			{
-				DO_LOG_DEBUG("Published EII message : "	+ strMsg + " on topic :" + a_sEiiTopic);
+				DO_LOG_DEBUG("Published EII message : "	+ strMsg + " on topic :" + embTopic);
 			}
 			else
 			{
-				DO_LOG_ERROR("Failed to publish EII message : "	+ strMsg + " on topic :" + a_sEiiTopic);
+				DO_LOG_ERROR("Failed to publish EII message : "	+ strMsg + " on topic :" + embTopic);
 			}
 		}
 	}
@@ -470,7 +510,7 @@ void postMsgsToEII(QMgr::CQueueMgr& qMgr)
 {
 	DO_LOG_DEBUG("Starting thread to send messages on EII");
 
-	bool isRealtime = qMgr.isRealTime();
+	bool isRealtime = qMgr.isRealTime(); // RT is extracted from JSON body sent from mqtt client. for backward compatibility will keep this. 
 	bool isRead = qMgr.isRead();
 
 	//set priority to send msgs on EII from MQTT-export (on-demand)
@@ -478,29 +518,29 @@ void postMsgsToEII(QMgr::CQueueMgr& qMgr)
 
 	globalConfig::display_thread_sched_attr("postMsgsToEII");
 
-	std::string eiiTopic = "";
-	if(! isRead)//write request
-	{
-		if(isRealtime)
-		{
-			eiiTopic.assign(EnvironmentInfo::getInstance().getDataFromEnvMap("WriteRequest_RT"));
-		}
-		else
-		{
-			eiiTopic.assign(EnvironmentInfo::getInstance().getDataFromEnvMap("WriteRequest"));
-		}
-	}
-	else//read request
-	{
-		if(isRealtime)
-		{
-			eiiTopic.assign(EnvironmentInfo::getInstance().getDataFromEnvMap("ReadRequest_RT"));
-		}
-		else
-		{
-			eiiTopic.assign(EnvironmentInfo::getInstance().getDataFromEnvMap("ReadRequest"));
-		}
-	}
+	// std::string eiiTopic = "";
+	// if(! isRead)//write request
+	// {
+	// 	if(isRealtime)
+	// 	{
+	// 		eiiTopic.assign(EnvironmentInfo::getInstance().getDataFromEnvMap("WriteRequest_RT"));
+	// 	}
+	// 	else
+	// 	{
+	// 		eiiTopic.assign(EnvironmentInfo::getInstance().getDataFromEnvMap("WriteRequest"));
+	// 	}
+	// }
+	// else//read request
+	// {
+	// 	if(isRealtime)
+	// 	{
+	// 		eiiTopic.assign(EnvironmentInfo::getInstance().getDataFromEnvMap("ReadRequest_RT"));
+	// 	}
+	// 	else
+	// 	{
+	// 		eiiTopic.assign(EnvironmentInfo::getInstance().getDataFromEnvMap("ReadRequest"));
+	// 	}
+	// }
 
 	try
 	{
@@ -509,7 +549,7 @@ void postMsgsToEII(QMgr::CQueueMgr& qMgr)
 			CMessageObject oTemp;
 			if(true == qMgr.isMsgArrived(oTemp))
 			{
-				processMsgToSendOnEII(oTemp, eiiTopic);
+				processMsgToSendOnEII(oTemp, isRealtime);
 			}
 		}
 	}
@@ -568,7 +608,6 @@ bool initEIIContext()
 	bool retVal = true;
 	// Initializing all the pub/sub topic base context for ZMQ
 	int num_of_publishers = zmq_handler::getNumPubOrSub("pub");
-	// const char* env_pubTopics = std::getenv("PubTopics");
 	if (num_of_publishers >= 1)
 	{
 		if (true != zmq_handler::prepareCommonContext("pub"))
