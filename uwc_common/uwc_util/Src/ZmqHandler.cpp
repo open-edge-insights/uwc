@@ -73,7 +73,7 @@ std::function<bool(std::string, std::string)> regExFun = [](std::string a_sTopic
  * @return 	true : on success,
  * 			false : on error
  */
-bool zmq_handler::prepareContext(bool a_bIsPub,
+bool zmq_handler::prepareContext(bool a_bIsPub, 
 		void* msgbus_ctx,
 		std::string a_sTopic,
 		config_t *config)
@@ -90,7 +90,7 @@ bool zmq_handler::prepareContext(bool a_bIsPub,
 		goto err;
 	}
 
-	if(a_bIsPub)
+	if(a_bIsPub) 
 	{
 		retVal = msgbus_publisher_new(msgbus_ctx, a_sTopic.c_str(), &pub_ctx);
 	}
@@ -111,6 +111,7 @@ bool zmq_handler::prepareContext(bool a_bIsPub,
 		bRetVal = true;
 		stZmqContext objTempCtx{msgbus_ctx};
 		zmq_handler::insertCTX(a_sTopic, objTempCtx);
+		//TODO: INserting all PUB topics into this map will grow the map very long which might not be needed. So, this logic needs to be uupdated.
 		if(a_bIsPub)
 		{
 			stZmqPubContext objTempPubCtx;
@@ -149,6 +150,7 @@ err:
 	return false;
 }
 
+
 /**
  * Prepare all EII contexts for zmq communications based on topic configured in
  * SubTopics or PubTopics section from docker-compose.yml file
@@ -164,7 +166,7 @@ err:
  */
 bool zmq_handler::prepareCommonContext(std::string topicType)
 {
-	DO_LOG_DEBUG("Start:");
+	DO_LOG_DEBUG("Start: zmq_handler::prepareCommonContext");
 	bool retValue = false;
 
 	PublisherCfg* pub_ctx;
@@ -192,27 +194,29 @@ bool zmq_handler::prepareCommonContext(std::string topicType)
         			DO_LOG_ERROR("Failed to get message bus config");
         			return false;
     			}
-
+				m_pub_config = pub_config;
 				g_msgbus_ctx = msgbus_initialize(pub_config);
     			if (g_msgbus_ctx == NULL) {
         			DO_LOG_ERROR("Failed to initialize message bus");
         			return false;
     			}
+				m_pub_msgbus_ctx = g_msgbus_ctx;
 
-				std::vector<std::string> topics = pub_ctx->getTopics();
-				if(topics.empty()){
-        			DO_LOG_ERROR("Failed to get topics");
-        			return false;
-    			}
+				// std::vector<std::string> topics = pub_ctx->getTopics();
+				// if(topics.empty()){
+        		// 	DO_LOG_ERROR("Failed to get topics");
+        		// 	return false;
+    			// }
 
-				for (auto topic_it = 0; topic_it < topics.size(); topic_it++) {
-     				std::string ind_topic = topics.at(topic_it);
-					 DO_LOG_INFO("Topic for ZMQ Publish is :: " + ind_topic);
-					prepareContext(true, g_msgbus_ctx, ind_topic, pub_config);
+				// for (auto topic_it = 0; topic_it < topics.size(); topic_it++) {
+     			// 	std::string ind_topic = topics.at(topic_it);
+				// 	 DO_LOG_INFO("Topic for ZMQ Publish is :: " + ind_topic);
+				// 	prepareContext(true, g_msgbus_ctx, ind_topic, pub_config);
 					
-    			}
+    			// }
 			}
-		} else {  // else if its sub
+		} 
+		else {  // else if its sub
 				int numSubscribers = CfgManager::Instance().getEiiCfgMgr()->getNumSubscribers();
 				for(auto it =0; it<numSubscribers; ++it) {
 				sub_ctx = CfgManager::Instance().getEiiCfgMgr()->getSubscriberByIndex(it);
@@ -236,7 +240,7 @@ bool zmq_handler::prepareCommonContext(std::string topicType)
 					prepareContext(false, g_msgbus_ctx, ind_topic, sub_config);
     			}
 			}
-		}	// end of sub part else
+	//	}	// end of sub part else
 	} // end of if eii configmgr created if() 
 	else
 	{
