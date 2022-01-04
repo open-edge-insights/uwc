@@ -36,7 +36,6 @@ services:
         EII_USER_NAME: ${EII_USER_NAME}
         UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
         CMAKE_INSTALL_PREFIX: ${EII_INSTALL_PATH}
-        EII_INSTALL_PATH: ${EII_INSTALL_PATH}
     image: ${DOCKER_REGISTRY}openedgeinsights/mqtt-bridge:${UWC_VERSION}
     container_name: mqtt-bridge
     hostname: mqtt-bridge

@@ -65,58 +65,8 @@ modifying_env()
 	fi	
   
 }
-#------------------------------------------------------------------
-# eii_provision
-#
-# Description:
-#        Performs prvovisioning as per docker-compose.yml file.
-# Return:
-#        None
-# Usage:
-#       eii_provision
-#------------------------------------------------------------------
-eii_provision()
-{
-    docker stop $(docker ps -a -q)
-    if [ -d "${eii_build_dir}/provision/" ];then
-        cd "${eii_build_dir}/provision/"
-    else
-        echo "${RED}ERROR: ${eii_build_dir}/provision/ is not present.${NC}"
-        exit 1 # terminate and indicate error
-    fi
 
-    ./provision.sh ../docker-compose.yml 
-    check_for_errors "$?" "Provisioning is failed. Please check logs" \
-                    "${GREEN}Provisioning is done successfully.${NC}"
-    echo "${GREEN}>>>>>${NC}"
-    echo "${GREEN}For building & running UWC services,run 03_Build_Run_UWC.sh script${NC}"
 
-    return 0
-}
-
-mqtt_certs()
-{
-    echo "${GREEN} Genrating certs for mqtt${NC}"	
-    mkdir ./temp ./temp/client ./temp/server
-
-    openssl req -config ../../uwc/Others/mqtt_certs/mqtt_cert_openssl_config -new -newkey rsa:3072 -keyout  ./temp/client/key.pem -out ./temp/client/req.pem -days 3650 -outform PEM -subj /CN=mymqttcerts/O=client/L=$$$/ -nodes
-
-    openssl req -config ../../uwc/Others/mqtt_certs/mqtt_cert_openssl_config -new -newkey rsa:3072 -keyout  ./temp/server/key.pem -out ./temp/server/req.pem -days 3650 -outform PEM -subj /CN=mymqttcerts/O=server/L=$$$/ -nodes
-
-    openssl ca -days 3650 -cert ../../build/provision/rootca/cacert.pem -keyfile ../../build/provision/rootca/cakey.pem -in ./temp/server/req.pem -out ./temp/mymqttcerts_server_certificate.pem  -outdir ../../build/provision/rootca/certs -notext -batch -extensions server_extensions -config ../../uwc/Others/mqtt_certs/mqtt_cert_openssl_config
-
-    openssl ca -days 3650 -cert ../../build/provision/rootca/cacert.pem -keyfile ../../build/provision/rootca/cakey.pem -in ./temp/client/req.pem -out ./temp/mymqttcerts_client_certificate.pem -outdir ../../build/provision/rootca/certs -notext -batch -extensions client_extensions -config ../../uwc/Others/mqtt_certs/mqtt_cert_openssl_config
-
-    mkdir ../../build/provision/Certificates/mymqttcerts
-    cp -rf ./temp/mymqttcerts_server_certificate.pem ../../build/provision/Certificates/mymqttcerts/mymqttcerts_server_certificate.pem
-    cp -rf ./temp/mymqttcerts_client_certificate.pem ../../build/provision/Certificates/mymqttcerts/mymqttcerts_client_certificate.pem
-    cp -rf ./temp/server/key.pem  ../../build/provision/Certificates/mymqttcerts/mymqttcerts_server_key.pem
-    cp -rf ./temp/client/key.pem ../../build/provision/Certificates/mymqttcerts/mymqttcerts_client_key.pem
-   
-    sudo chown -R eiiuser:eiiuser ../../build/provision/Certificates/mymqttcerts/ 
-    rm -rf ./temp
-    return 0
-}
 
 harden()
 {
@@ -203,6 +153,7 @@ configure_usecase()
                         ./2.1_ConfigureScada.sh "--deployModeInteract=dev"
                         ret="$?"
                     else
+                        echo "here"
                         ./2.1_ConfigureScada.sh
                         ret="$?"
                     fi
@@ -456,6 +407,9 @@ parse_command_line_args()
 preBuild_images()
 {
     temp_preBuild=""
+    if [ -e ./setenv ]; then
+        rm ./setenv
+    fi
     if [ ! -z "$preBuild" ]; then
         if [ "$preBuild" == "yes" ]; then
             echo "Using pre-build images"
@@ -613,12 +567,12 @@ if [[ "${IS_SCADA}" -eq "1" ]]; then
         echo "${GREEN}ConfigureScada successfully.${NC}"
     fi   
 fi
-eii_provision
 if [[ "$deployMode" == "prod" ]]; then
-    mqtt_certs
+    echo "deployMode="prod"">> ./setenv
 fi
 if [[ "${IS_SCADA}" -eq "1" ]]; then 
    cd  ${Current_Dir}
-  ./2.2_CopyScadaCertsToProvision.sh
+   ./2.2_CopyScadaCertsToProvision.sh
 fi
-harden
+docker rm $(docker ps -qa) --force
+#harden

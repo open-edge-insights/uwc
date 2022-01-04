@@ -26,31 +26,12 @@ ARG EII_USER_NAME
 WORKDIR /
 
 RUN apt-get update && apt-get install -y mosquitto mosquitto-clients
-
-#ARG EII_UID
-#ARG EII_USER_NAME
-RUN groupadd $EII_USER_NAME -g $EII_UID && \
-    useradd -r -u $EII_UID -g $EII_USER_NAME $EII_USER_NAME
-
 RUN mkdir -p /mosquitto/config /mosquitto/data /mosquitto/log
 COPY mosquitto_prod.conf /etc/mosquitto/mosquitto_prod.conf
 COPY mosquitto_dev.conf /etc/mosquitto/mosquitto_dev.conf
-RUN apt update && apt install --no-install-recommends -y libcjson1 libzmq5 zlib1g && \
-    rm -rf /var/lib/apt/lists/*
-
+#RUN apt update && apt install --no-install-recommends -y libcjson1 libzmq5 zlib1g
 
 COPY mqtt_broker_start.sh /
-COPY startup.sh /
 RUN chmod +x mqtt_broker_start.sh
-RUN chmod +x  startup.sh
 
-RUN chown  $EII_UID:$EII_UID mqtt_broker_start.sh 
-RUN chown  $EII_UID:$EII_UID startup.sh
-
-ENV EIIUSER=${EII_USER_NAME}
-ENV EIIUID=${EII_UID}
-RUN echo $EIIUID
-RUN echo $EIIUSER
-#CMD ["./mqtt_broker_start.sh"]
-#ENTRYPOINT ["sleep", "infinity"]
-ENTRYPOINT ["./startup.sh", "./mqtt_broker_start.sh"]
+CMD ["./mqtt_broker_start.sh"]
