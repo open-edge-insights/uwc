@@ -67,63 +67,6 @@ configure_external_certs()
 }
 
 #------------------------------------------------------------------
-# edit_docker_compose_file
-#
-# Description:
-#        This function is used to add docker secrets as per command line args
-# Return:
-#        None
-# Usage:
-#        edit_docker_compose_file
-#------------------------------------------------------------------
-edit_docker_compose_file()
-{
-    echo "${GREEN}Adding docker secrets for sparkplug-bridge...${NC}"
-	if [ "$MODE" == "dev" ]; then 
-		echo "${GREEN} Add sparkplug-bridge-secret section in docker-compose.yml in dev mode and when TLS is required ..${NC}"
-		sed -i '/sparkplug-bridge:\/opt/ a\    secrets:\n    - scadahost_ca_cert\n    - scadahost_client_key\n    - scadahost_client_cert\n' ${eii_build_dir}/docker-compose.yml
-	else
-	    sed -i '/- etcd_SPARKPLUG-BRIDGE_key/ a\    - scadahost_ca_cert\n    - scadahost_client_key\n    - scadahost_client_cert' ${eii_build_dir}/docker-compose.yml
-	fi
-	    check_for_errors "$?" "Error in adding external MQTT certificates secrets under sparkplug-bridge-secret container definition in docker-compose.yml" \
-	                     "${GREEN}"".${NC}"
-
-	echo "${GREEN}Adding docker secrets paths for sparkplug-bridge...${NC}"
-	if [ "$MODE" == "dev" ]; then 
-		sed -i '$ a\secrets:' ${eii_build_dir}/docker-compose.yml
-		echo "${GREEN} Adding secret section at the end of docker-compose.yml file"
-	fi
-	ca_file_name=$(basename ${CA})
-	client_cert_file_name=$(basename ${CLIENT_CERT})
-	client_key_file_name=$(basename ${CLIENT_KEY})
-
-	sed -i '$ a\  scadahost_ca_cert:' ${eii_build_dir}/docker-compose.yml
-	check_for_errors "$?" " Error in adding scadahost_ca_cert secret section in docker-compose.yml" \
-                     "${GREEN}"".${NC}"
-
-	sed -i "$ a\    file: provision\/Certificates\/scada_ext_certs\/ca\/$ca_file_name" ${eii_build_dir}/docker-compose.yml
-	check_for_errors "$?" "Error in adding scadahost_ca_cert secret path in docker-compose.yml" \
-                     "${GREEN}"".${NC}"
-
-	sed -i '$ a\  scadahost_client_cert:' ${eii_build_dir}/docker-compose.yml
-	check_for_errors "$?" "Error in adding scadahost_client_cert secret section in docker-compose.yml" \
-                     "${GREEN}"".${NC}"
-
-	sed -i "$ a\    file: provision\/Certificates\/scada_ext_certs\/client_crt\/$client_cert_file_name" ${eii_build_dir}/docker-compose.yml
-	check_for_errors "$?" "Error in adding scadahost_client_cert secret path in docker-compose.yml" \
-                     "${GREEN}"".${NC}"
-
-	sed -i '$ a\  scadahost_client_key:' ${eii_build_dir}/docker-compose.yml
-	check_for_errors "$?" "Error in adding scadahost_client_key secret section in docker-compose.yml" \
-                     "${GREEN}"".${NC}"
-
-	sed -i "$ a\    file: provision\/Certificates\/scada_ext_certs\/client_key\/$client_key_file_name" ${eii_build_dir}/docker-compose.yml
-	check_for_errors "$?" "Error in adding scadahost_client_key secret path in docker-compose.yml" \
-                     "${GREEN}"".${NC}"
-	echo "${GREEN}Done...${NC}"
-}
-
-#------------------------------------------------------------------
 # print_all_args
 #
 # Description:
@@ -195,21 +138,21 @@ get_user_inputs()
 			echo "${RED}Invalid value entered. Allowed values (yes/no)${NC}"
 		elif [ $TLS == "yes" ];then
 			IS_TLS=true
-			echo "Enter the CA certificate full path including file name (e.g. /home/certs/root-ca.crt):"
+			echo "Enter the CA certificate full path including file name (e.g. <Work_Dir>/IEdgeInsights/build/Certificates/rootca/cacert.pem):"
 			read CA 
 				if [ -z $CA ]; then 
 					echo "${RED}Error:: Empty value entered..${NC}" 
 					echo "${RED}Kindly enter correct values and re-run the script..${NC}" 
 					exit 1; 
 				fi 
-			echo "Enter the client certificate full path including file name (e.g. /home/certs/client.crt):"
+			echo "Enter the client certificate full path including file name (e.g. <Work_Dir>/IEdgeInsights/build/Certificates/mymqttcerts/mymqttcerts_client_certificate.pem ):"
 			read CLIENT_CERT
 				if [ -z $CLIENT_CERT ]; then 
 					echo "${RED}Error:: Empty value entered..${NC}" 
 					echo "${RED}Kindly enter correct values and re-run the script..${NC}"
 					exit 1; 
 				fi
-			echo "Enter the client key certificate full path including file name (e.g. /home/certs/client.key):"
+			echo "Enter the client key certificate full path including file name (e.g. <Work_Dir>/IEdgeInsights/build/Certificates/mymqttcerts/mymqttcerts_client_key.pem ):"
 			read CLIENT_KEY
 				if [ -z $CLIENT_KEY ]; then 
 					echo "${RED}Error:: Empty value entered..${NC}" 
@@ -300,7 +243,7 @@ parse_command_line_args()
     done    
     if [ "$IS_TLS" == "1" ] || [ "$IS_TLS" == "true" ] ||  [ "$IS_TLS" == "yes" ] ;then
    		if [ -z "$CA" ]; then 
-   			echo "Enter the CA certificate full path including file name (e.g. /home/certs/root-ca.crt):"
+   			echo "Enter the CA certificate full path including file name (e.g. <Work_Dir>/IEdgeInsights/build/Certificates/rootca/cacert.pem):"
 			read CA
 			if [ -z "$CA" ]; then 
 				echo "${RED}Error:: Empty value entered..${NC}" 
@@ -310,7 +253,7 @@ parse_command_line_args()
    		fi
 
    		if [ -z "$CLIENT_CERT" ]; then 
-   			echo "Enter the client certificate full path including file name (e.g. /home/certs/client.crt):"
+   			echo "Enter the client certificate full path including file name (e.g. <Work_Dir>/IEdgeInsights/build/Certificates/mymqttcerts/mymqttcerts_client_certificate.pem):"
 			read CLIENT_CERT   
 			if [ -z "$CLIENT_CERT" ]; then 
 				echo "${RED}Error:: Empty value entered..${NC}"; 
@@ -320,7 +263,7 @@ parse_command_line_args()
    		fi
 
    		if [ -z "$CLIENT_KEY" ]; then 
-   			echo "Enter the client key certificate full path including file name (e.g. /home/certs/client.key):"
+   			echo "Enter the client key certificate full path including file name (e.g. <Work_Dir>/IEdgeInsights/build/Certificates/mymqttcerts/mymqttcerts_client_key.pem):"
 			read CLIENT_KEY
    			if [ -z "$CLIENT_KEY" ]; then 
    				echo "${RED}Error:: Empty value entered..${NC}" 
@@ -399,7 +342,6 @@ else
 fi
 if [ "$IS_TLS" == "1" ] || [ "$IS_TLS" == "true" ] ||  [ "$IS_TLS" == "yes" ] ;then
 	configure_external_certs
-	edit_docker_compose_file
 else
 	echo "Cert configuration is not required.."
 fi

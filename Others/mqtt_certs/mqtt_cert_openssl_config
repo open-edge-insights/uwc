@@ -5,7 +5,7 @@ common_name = mqtt
 default_ca = root_ca
 
 [ root_ca ]
-root_ca_dir = rootca
+root_ca_dir = ../../build/Certificates/rootca
 
 certificate   = $root_ca_dir/cacert.pem
 database      = $root_ca_dir/index.txt

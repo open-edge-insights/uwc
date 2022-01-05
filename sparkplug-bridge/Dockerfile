@@ -75,6 +75,9 @@ RUN mkdir -p /opt/intel/app \
 	&& mkdir -p /opt/intel/config \
 	&& mkdir -p /opt/intel/eii/uwc_data
 
+RUN apt update && apt install --no-install-recommends -y libcjson1 libzmq5 zlib1g && \
+    rm -rf /var/lib/apt/lists/*
+
 WORKDIR ${APP_WORK_DIR}
 
 # copy required dependencies

@@ -59,7 +59,6 @@ services:
       WriteRequest: MQTT_Export_WrReq
       ReadRequest_RT: RT_MQTT_Export_RdReq_RT
       WriteRequest_RT: RT_MQTT_Export_WrReq_RT
-      CertType: "zmq"
       PROFILING_MODE: ${PROFILING_MODE}
       # general topics
       mqtt_SubReadTopic: "/+/+/+/read"
@@ -76,16 +75,12 @@ services:
     ports:
       - 63514:63514      
     volumes:
-    - "vol_uwc_socket:${SOCKET_DIR}"
+    - "${EII_INSTALL_PATH}/sockets:${SOCKET_DIR}"
     - "${EII_INSTALL_PATH}/uwc_data/common_config:${EII_INSTALL_PATH}/uwc_data/common_config:ro"
     - "${EII_INSTALL_PATH}/container_logs/mqtt-bridge:/opt/intel/app/logs"
-    secrets:
-    - ca_etcd
-    - etcd_MQTT_Bridge_cert
-    - etcd_MQTT_Bridge_key
-    - ca_broker
-    - client_cert
-    - client_key
+    - ./Certificates/MQTT_Bridge:/run/secrets/MQTT_Bridge
+    - ./Certificates/rootca:/run/secrets/rootca
+    - ./Certificates/mymqttcerts:/run/secrets/mymqttcerts
     security_opt:
       - no-new-privileges
     healthcheck:
@@ -103,14 +98,4 @@ volumes:
       o: bind
       device: ${EII_INSTALL_PATH}/sockets
 
-secrets:
-  etcd_MQTT_Bridge_cert:
-    file: provision/Certificates/MQTT_Bridge/MQTT_Bridge_client_certificate.pem
-  etcd_MQTT_Bridge_key:
-    file: provision/Certificates/MQTT_Bridge/MQTT_Bridge_client_key.pem
-  ca_broker:
-    file: provision/Certificates/ca/ca_certificate.pem
-  client_cert:
-    file: provision/Certificates/mymqttcerts/mymqttcerts_client_certificate.pem
-  client_key:
-    file: provision/Certificates/mymqttcerts/mymqttcerts_client_key.pem
+
