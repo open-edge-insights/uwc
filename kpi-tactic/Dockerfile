@@ -61,6 +61,8 @@ RUN mkdir -p /opt/intel/app \
 	&& mkdir -p /opt/intel/eii/uwc_data
 WORKDIR ${APP_WORK_DIR}
 
+RUN apt update && apt install --no-install-recommends -y libcjson1 libzmq5 zlib1g && \
+    rm -rf /var/lib/apt/lists/*
 # copy required dependencies
 COPY --from=kpitactic /KPIApp/Release/KPIApp ${APP_WORK_DIR}
 COPY --from=uwc_common /usr/yaml/lib/*.so.* ${APP_WORK_DIR}

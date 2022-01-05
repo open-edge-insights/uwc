@@ -106,7 +106,7 @@ set_dev_mode()
 generate_unit_test_report()
 {
     cd "${eii_build_dir}"
-    docker-compose -f docker-compose-build.yml build 
+    docker-compose -f docker-compose.yml build 
     if [ "$?" -eq "0" ];then
 	echo "*****************************************************************"
         echo "${GREEN}Unit test containers built successfully.${NC}"
@@ -115,6 +115,13 @@ generate_unit_test_report()
 	echo "*****************************************************************"
         exit 1
     fi
+    docker-compose up -d ia_configmgr_agent
+    sleep 20
+    cd "${Current_Dir}"
+    if [[ "$deployMode" == "prod" ]]; then
+        mqtt_certs
+    fi
+    cd "${eii_build_dir}"   
     docker-compose up -d
     if [ "$?" -eq "0" ];then
         echo "*****************************************************************"
@@ -146,7 +153,7 @@ function cleanup()
 {
 	cd $Current_Dir
 	chown -R $SUDO_USER:$SUDO_USER ${eii_build_dir}/unit_test_reports
-	docker stop $(docker ps -a -q)
+	#docker stop $(docker ps -a -q)
 	sed -i 's/MQTT_PROTOCOL=tcp/MQTT_PROTOCOL=ssl/g' $eii_build_dir/.env
 }
 
@@ -159,17 +166,17 @@ mqtt_certs()
 
     openssl req -config ../../uwc/Others/mqtt_certs/mqtt_cert_openssl_config -new -newkey rsa:3072 -keyout  ./temp/server/key.pem -out ./temp/server/req.pem -days 3650 -outform PEM -subj /CN=mymqttcerts/O=server/L=$$$/ -nodes
 
-    openssl ca -days 3650 -cert ../../build/provision/rootca/cacert.pem -keyfile ../../build/provision/rootca/cakey.pem -in ./temp/server/req.pem -out ./temp/mymqttcerts_server_certificate.pem  -outdir ../../build/provision/rootca/certs -notext -batch -extensions server_extensions -config ../../uwc/Others/mqtt_certs/mqtt_cert_openssl_config
+    openssl ca -days 3650 -cert ../../build/Certificates/rootca/cacert.pem -keyfile ../../build/Certificates/rootca/cakey.pem -in ./temp/server/req.pem -out ./temp/mymqttcerts_server_certificate.pem  -outdir ../../build/Certificates/rootca/certs -notext -batch -extensions server_extensions -config ../../uwc/Others/mqtt_certs/mqtt_cert_openssl_config
 
-    openssl ca -days 3650 -cert ../../build/provision/rootca/cacert.pem -keyfile ../../build/provision/rootca/cakey.pem -in ./temp/client/req.pem -out ./temp/mymqttcerts_client_certificate.pem -outdir ../../build/provision/rootca/certs -notext -batch -extensions client_extensions -config ../../uwc/Others/mqtt_certs/mqtt_cert_openssl_config
+    openssl ca -days 3650 -cert ../../build/Certificates/rootca/cacert.pem -keyfile ../../build/Certificates/rootca/cakey.pem -in ./temp/client/req.pem -out ./temp/mymqttcerts_client_certificate.pem -outdir ../../build/Certificates/rootca/certs -notext -batch -extensions client_extensions -config ../../uwc/Others/mqtt_certs/mqtt_cert_openssl_config
 
-    mkdir ../../build/provision/Certificates/mymqttcerts
-    cp -rf ./temp/mymqttcerts_server_certificate.pem ../../build/provision/Certificates/mymqttcerts/mymqttcerts_server_certificate.pem
-    cp -rf ./temp/mymqttcerts_client_certificate.pem ../../build/provision/Certificates/mymqttcerts/mymqttcerts_client_certificate.pem
-    cp -rf ./temp/server/key.pem  ../../build/provision/Certificates/mymqttcerts/mymqttcerts_server_key.pem
-    cp -rf ./temp/client/key.pem ../../build/provision/Certificates/mymqttcerts/mymqttcerts_client_key.pem
+    mkdir ../../build/Certificates/Certificates/mymqttcerts
+    cp -rf ./temp/mymqttcerts_server_certificate.pem ../../build/Certificates/Certificates/mymqttcerts/mymqttcerts_server_certificate.pem
+    cp -rf ./temp/mymqttcerts_client_certificate.pem ../../build/Certificates/Certificates/mymqttcerts/mymqttcerts_client_certificate.pem
+    cp -rf ./temp/server/key.pem  ../../build/Certificates/Certificates/mymqttcerts/mymqttcerts_server_key.pem
+    cp -rf ./temp/client/key.pem ../../build/Certificates/Certificates/mymqttcerts/mymqttcerts_client_key.pem
    
-    sudo chown -R eiiuser:eiiuser ../../build/provision/Certificates/mymqttcerts/ 
+    sudo chown -R 1999:1999 ../../build/Certificates/Certificates/mymqttcerts/ 
     rm -rf ./temp
     return 0
 }
@@ -196,16 +203,6 @@ eii_provision()
         exit 1 # terminate and indicate error
     fi
 
-    ./provision.sh ../docker-compose.yml 
-    check_for_errors "$?" "Provisioning is failed. Please check logs" \
-                    "${GREEN}Provisioning is done successfully.${NC}"
-    echo "${GREEN}>>>>>${NC}"
-    echo "${GREEN}For building & running UWC services,run 03_Build_Run_UWC.sh script${NC}"
-
-    return 0
-    echo "${GREEN}>>>>>${NC}"
-    echo "${GREEN}For building & running UWC services,run 03_Build_Run_UWC.sh script${NC}"
-    return 0
 }
 
 #------------------------------------------------------------------
@@ -240,10 +237,9 @@ check_internet_connection
 modifying_env
 docker_verify
 docker_compose_verify
-create_test_dir
+CREAte_test_dir
 set_dev_mode "false"
 eii_provision
-mqtt_certs
 create_sparkplug-bridge_config_file_ut
 generate_unit_test_report
 
@@ -253,3 +249,4 @@ echo "It may take few minutes ..."
 sleep 90s
 cleanup
 exit 0
+

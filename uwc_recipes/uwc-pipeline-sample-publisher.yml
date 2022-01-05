@@ -1,4 +1,5 @@
 AppContexts:
+- ConfigMgrAgent
 - EtcdUI
 - ZmqBroker
 - Telegraf

@@ -42,20 +42,19 @@ public:
 		int iQOS = 1;
 		CMQTTBaseHandler  CMQTTBaseHandler_obj{strPlBusUrl, EnvironmentInfo::getInstance().getDataFromEnvMap("AppName")+SUBSCRIBER_ID,
 			iQOS, (false == CcommonEnvManager::Instance().getDevMode()),
-			"/run/secrets/ca_broker", "/run/secrets/client_cert",
-			"/run/secrets/client_key", "MQTTSubListener"};
+			"/run/secrets/rootca/cacert.pem", "/run/secrets/mymqttcerts/mymqttcerts_client_certificate.pem",
+			"/run/secrets/mymqttcerts/mymqttcerts_client_key.pem", "MQTTSubListener"};
 
 
 		CMQTTPubSubClient CMQTTPubSubClient_obj{strPlBusUrl, ClientID,
 				iQOS,
-				(false == CcommonEnvManager::Instance().getDevMode()), "/run/secrets/ca_broker",
-				"/run/secrets/client_cert", "/run/secrets/client_key",
+				(false == CcommonEnvManager::Instance().getDevMode()), "/run/secrets/rootca/cacert.pem",
+				"/run/secrets/mymqttcerts/mymqttcerts_client_certificate.pem", "/run/secrets/mymqttcerts/mymqttcerts_client_key.pem",
 				"MQTTSubListener"};
 		CMQTTPubSubClient CMQTTPubSubClient_obj2{strPlBusUrl, ClientID,
 						iQOS,
-						true, "/run/secrets/ca_broker",
-						"/run/secrets/client_cert", "/run/secrets/client_key",
-						"MQTTSubListener"};
+						true, "/run/secrets/rootca/cacert.pem",
+						"/run/secrets/mymqttcerts/mymqttcerts_client_certificate.pem", "/run/secrets/mymqttcerts/mymqttcerts_client_key.pem","MQTTSubListener"};
 
 
 

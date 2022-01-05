@@ -40,8 +40,8 @@ extern std::atomic<bool> g_stopThread;
 CMqttHandler::CMqttHandler(const std::string &strPlBusUrl, int iQOS):
 	CMQTTBaseHandler(strPlBusUrl, EnvironmentInfo::getInstance().getDataFromEnvMap("AppName")+SUBSCRIBER_ID, 
 	iQOS, (false == CcommonEnvManager::Instance().getDevMode()),
-	"/run/secrets/ca_broker", "/run/secrets/client_cert", 
-	"/run/secrets/client_key", "MQTTSubListener")
+	"/run/secrets/rootca/cacert.pem", "/run/secrets/mymqttcerts/mymqttcerts_client_certificate.pem", 
+	"/run/secrets/mymqttcerts/mymqttcerts_client_key.pem", "MQTTSubListener")
 {
 	try
 	{

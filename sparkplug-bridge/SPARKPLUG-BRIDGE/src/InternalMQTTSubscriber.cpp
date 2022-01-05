@@ -44,8 +44,8 @@ extern std::atomic<bool> g_shouldStop;
  */
 CIntMqttHandler::CIntMqttHandler(const std::string &strPlBusUrl, int iQOS):
 	CMQTTBaseHandler(strPlBusUrl, SUBSCRIBER_ID, iQOS, (false == CcommonEnvManager::Instance().getDevMode()),
-	"/run/secrets/ca_broker", "/run/secrets/client_cert", 
-	"/run/secrets/client_key", "InternalMQTTListener"),
+	"/run/secrets/rootca/cacert.pem", "/run/secrets/mymqttcerts/mymqttcerts_client_certificate.pem",
+	"/run/secrets/mymqttcerts/mymqttcerts_client_key.pem", "InternalMQTTListener"),
 	m_enLastConStatus{enCON_NONE}, m_bIsInTimeoutState{false}
 {
 	try

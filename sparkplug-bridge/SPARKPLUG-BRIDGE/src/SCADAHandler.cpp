@@ -41,8 +41,8 @@ CSCADAHandler::CSCADAHandler(const std::string &strMqttURL, int iQOS) :
 	CMQTTBaseHandler(strMqttURL, 
 	SCADASUBSCRIBERID + CCommon::getInstance().getGroupName() + CCommon::getInstance().getNodeName(),
 	iQOS, CCommon::getInstance().isScadaTLS(), 
-	"/run/secrets/scadahost_ca_cert", "/run/secrets/scadahost_client_cert", 
-	"/run/secrets/scadahost_client_key", "SCADAMQTTListener")
+	"/run/secrets/scada_ext_certs/cacert.pem", "/run/secrets/scada_ext_certs/mymqttcerts_client_certificate.pem",
+	"/run/secrets/scada_ext_certs/mymqttcerts_client_key.pem", "SCADAMQTTListener")
 {
 	try
 	{

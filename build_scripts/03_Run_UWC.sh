@@ -42,68 +42,14 @@ source uwc_common_lib.sh
 build_run_UWC()
 {
     cd "${eii_build_dir}"
-    if [ -e ./setenv ]; then
-        source ./setenv
-    fi 
-    if [[ $preBuild == "true" ]]; then
-        echo "Using pre-build images for building"
-	# Checking if ia_telegraf is part of the recipe use case selected.
-        is_ia_telegraf_present=`grep "ia_telegraf" "docker-compose-build.yml"`
-        if [ ! -z "$is_ia_telegraf_present" ]; then
-	# Checking if emb_publisher is part of the recipe use case selected
-            is_emb_publisher_present=`grep "emb_publisher" "docker-compose-build.yml"`
-            if [ ! -z "$is_emb_publisher_present" ]; then
-                docker-compose -f docker-compose-build.yml build ia_eiibase ia_common ia_telegraf emb_publisher 
-                if [ "$?" -eq "0" ];then
-	            echo "*****************************************************************"
-                    echo "${GREEN}UWC containers built successfully.${NC}"
-                else
-                    echo "${RED}Failed to built  UWC containers.${NC}"
-	            echo "*****************************************************************"
-                    exit 1
-                fi
-            else 
-                docker-compose -f docker-compose-build.yml build ia_eiibase ia_common ia_telegraf 
-                if [ "$?" -eq "0" ];then
-	            echo "*****************************************************************"
-                    echo "${GREEN}UWC containers built successfully.${NC}"
-                else
-                    echo "${RED}Failed to built  UWC containers.${NC}"
-	            echo "*****************************************************************"
-                    exit 1
-                fi                    
-            fi  
-        fi     
-     
-        docker-compose up -d
-        if [ "$?" -eq "0" ];then
-            echo "*****************************************************************"
-            echo "${GREEN}Installed UWC containers successfully.${NC}"
-        else
-            echo "${RED}Failed to install UWC containers.${NC}"
-            echo "*****************************************************************"
-            exit 1
-        fi         
-    else 
-        echo "Building images locally"
-        docker-compose -f docker-compose-build.yml build
-        if [ "$?" -eq "0" ];then
-	    echo "*****************************************************************"
-            echo "${GREEN}UWC containers built successfully.${NC}"
-        else
-            echo "${RED}Failed to built  UWC containers.${NC}"
-	    echo "*****************************************************************"
-            exit 1
-        fi
-        docker-compose up -d
-        if [ "$?" -eq "0" ];then
-            echo "*****************************************************************"
-            echo "${GREEN}Installed UWC containers successfully.${NC}"
-        else
-            echo "${RED}Failed to install UWC containers.${NC}"
-            echo "*****************************************************************"
-            exit 1
-        fi
+    docker-compose up -d
+    if [ "$?" -eq "0" ];then
+        echo "*****************************************************************"
+        echo "${GREEN}Installed UWC containers successfully.${NC}"
+    else
+        echo "${RED}Failed to install UWC containers.${NC}"
+        echo "*****************************************************************"
+        exit 1
     fi
     return 0
 }
@@ -124,13 +70,11 @@ function harden()
 	docker container update --pids-limit=100 --restart=on-failure:5 --cpu-shares 512 -m 1G --memory-swap -1 modbus-tcp-master
 	docker container update --pids-limit=100 --restart=on-failure:5 --cpu-shares 512 -m 1G --memory-swap -1 mqtt_container
 	docker container update --pids-limit=100 --restart=on-failure:5 --cpu-shares 512 -m 1G --memory-swap -1 modbus-rtu-master
-	docker container update --pids-limit=100 --restart=on-failure:5 --cpu-shares 512 -m 1G --memory-swap -1 ia_etcd
-	docker container update --pids-limit=100 --restart=on-failure:5 --cpu-shares 512 -m 1G --memory-swap -1 ia_etcd_provision
 	docker ps -q --filter "name=sparkplug-bridge" | grep -q . && docker container update --pids-limit=100 --restart=on-failure:5 --cpu-shares 512 -m 1G --memory-swap -1 sparkplug-bridge
 	# Increase pid limit for KPI to 500 for processing larger count of threads.
 	docker ps -q --filter "name=kpi-tactic-app" | grep -q . && docker container update --pids-limit=500 --restart=on-failure:5 --cpu-shares 512 -m 1G --memory-swap -1 kpi-tactic-app
+	docker container update --pids-limit=100 --restart=on-failure:5 --cpu-shares 512 -m 1G --memory-swap -1 ia_configmgr_agent
 }
-
 function main()
 {
     echo "${INFO}Deployment started${NC}"
