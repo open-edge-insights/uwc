@@ -1,5 +1,6 @@
 {
     "config": {
+        "cert_type": ["zmq", "pem"],	    
         "influxdb": {
             "retention": "23h00m00s",
             "username": "admin",

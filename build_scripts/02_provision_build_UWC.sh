@@ -65,6 +65,7 @@ modifying_env()
 	fi	
   
 }
+
 #------------------------------------------------------------------
 # eii_provision
 #
@@ -78,51 +79,74 @@ modifying_env()
 eii_provision()
 {
     docker stop $(docker ps -a -q)
-    if [ -d "${eii_build_dir}/provision/" ];then
-        cd "${eii_build_dir}/provision/"
-    else
-        echo "${RED}ERROR: ${eii_build_dir}/provision/ is not present.${NC}"
-        exit 1 # terminate and indicate error
+    cd "${eii_build_dir}"
+    if [ -e "$eii_build_dir/Certificates" ];then
+	echo "removing old "$eii_build_dir/Certificates""
+	rm -rf "$eii_build_dir/Certificates"
+    fi
+    if [[ $preBuild == "true" ]]; then
+        echo "Using pre-build images for building"
+	# Checking if ia_telegraf is part of the recipe use case selected.
+        is_ia_telegraf_present=`grep "ia_telegraf" "docker-compose-build.yml"`
+        if [ ! -z "$is_ia_telegraf_present" ]; then
+	# Checking if emb_publisher is part of the recipe use case selected
+            is_emb_publisher_present=`grep "emb_publisher" "docker-compose-build.yml"`
+            if [ ! -z "$is_emb_publisher_present" ]; then
+                docker-compose -f docker-compose-build.yml build ia_eiibase ia_common ia_telegraf emb_publisher 
+                if [ "$?" -eq "0" ];then
+	            echo "*****************************************************************"
+                    echo "${GREEN}UWC containers built successfully.${NC}"
+                else
+                    echo "${RED}Failed to built  UWC containers.${NC}"
+	            echo "*****************************************************************"
+                    exit 1
+                fi
+            else 
+                docker-compose -f docker-compose-build.yml build ia_eiibase ia_common ia_telegraf 
+                if [ "$?" -eq "0" ];then
+	            echo "*****************************************************************"
+                    echo "${GREEN}UWC containers built successfully.${NC}"
+                else
+                    echo "${RED}Failed to built  UWC containers.${NC}"
+	            echo "*****************************************************************"
+                    exit 1
+                fi                    
+            fi  
+        fi     
+     
+        docker-compose up -d ia_configmgr_agent
+	sleep 10
+        if [ "$?" -eq "0" ];then
+            echo "*****************************************************************"
+            echo "${GREEN}Installed UWC containers successfully.${NC}"
+        else
+            echo "${RED}Failed to install UWC containers.${NC}"
+            echo "*****************************************************************"
+            exit 1
+        fi         
+    else 
+        echo "Building images locally"
+        docker-compose -f docker-compose-build.yml build 
+        if [ "$?" -eq "0" ];then
+	    echo "*****************************************************************"
+            echo "${GREEN}UWC containers built successfully.${NC}"
+        else
+            echo "${RED}Failed to built  UWC containers.${NC}"
+	    echo "*****************************************************************"
+            exit 1
+        fi
+        docker-compose up -d ia_configmgr_agent
+        sleep 10
+    fi
+    if [[ "$deployMode" == "prod" ]]; then
+        cd "${Current_Dir}"
+        mqtt_certs
     fi
 
-    ./provision.sh ../docker-compose.yml 
-    check_for_errors "$?" "Provisioning is failed. Please check logs" \
-                    "${GREEN}Provisioning is done successfully.${NC}"
-    echo "${GREEN}>>>>>${NC}"
-    echo "${GREEN}For building & running UWC services,run 03_Build_Run_UWC.sh script${NC}"
-
+    
     return 0
 }
 
-mqtt_certs()
-{
-    echo "${GREEN} Genrating certs for mqtt${NC}"	
-    mkdir ./temp ./temp/client ./temp/server
-
-    openssl req -config ../../uwc/Others/mqtt_certs/mqtt_cert_openssl_config -new -newkey rsa:3072 -keyout  ./temp/client/key.pem -out ./temp/client/req.pem -days 3650 -outform PEM -subj /CN=mymqttcerts/O=client/L=$$$/ -nodes
-
-    openssl req -config ../../uwc/Others/mqtt_certs/mqtt_cert_openssl_config -new -newkey rsa:3072 -keyout  ./temp/server/key.pem -out ./temp/server/req.pem -days 3650 -outform PEM -subj /CN=mymqttcerts/O=server/L=$$$/ -nodes
-
-    openssl ca -days 3650 -cert ../../build/provision/rootca/cacert.pem -keyfile ../../build/provision/rootca/cakey.pem -in ./temp/server/req.pem -out ./temp/mymqttcerts_server_certificate.pem  -outdir ../../build/provision/rootca/certs -notext -batch -extensions server_extensions -config ../../uwc/Others/mqtt_certs/mqtt_cert_openssl_config
-
-    openssl ca -days 3650 -cert ../../build/provision/rootca/cacert.pem -keyfile ../../build/provision/rootca/cakey.pem -in ./temp/client/req.pem -out ./temp/mymqttcerts_client_certificate.pem -outdir ../../build/provision/rootca/certs -notext -batch -extensions client_extensions -config ../../uwc/Others/mqtt_certs/mqtt_cert_openssl_config
-
-    mkdir ../../build/provision/Certificates/mymqttcerts
-    cp -rf ./temp/mymqttcerts_server_certificate.pem ../../build/provision/Certificates/mymqttcerts/mymqttcerts_server_certificate.pem
-    cp -rf ./temp/mymqttcerts_client_certificate.pem ../../build/provision/Certificates/mymqttcerts/mymqttcerts_client_certificate.pem
-    cp -rf ./temp/server/key.pem  ../../build/provision/Certificates/mymqttcerts/mymqttcerts_server_key.pem
-    cp -rf ./temp/client/key.pem ../../build/provision/Certificates/mymqttcerts/mymqttcerts_client_key.pem
-   
-    sudo chown -R eiiuser:eiiuser ../../build/provision/Certificates/mymqttcerts/ 
-    rm -rf ./temp
-    return 0
-}
-
-harden()
-{
-    docker container update --pids-limit=100 --restart=on-failure:5 --cpu-shares 512 -m 1G --memory-swap -1 ia_etcd
-    docker container update --pids-limit=100 --restart=on-failure:5 --cpu-shares 512 -m 128M --memory-swap -1 ia_etcd_provision
-}
 
 #------------------------------------------------------------------
 # configure_usecase
@@ -143,7 +167,7 @@ configure_usecase()
     interactive=1
     if [ ! -z "$1" ]; then
         interactive=0       
-        if [[ "$1" -ge 1 ]] && [[ "$1" -le 4 ]]; then
+        if [[ "$1" -ge 1 ]] && [[ "$1" -le 8 ]]; then
             yn="$1"
         else 
             echo "Invalid Option inputted for UWC recipes"
@@ -195,18 +219,7 @@ configure_usecase()
                 fi
                 echo "${GREEN}EII builder script successfully generated consolidated docker-compose & configuration files.${NC}"
                 echo "${GREEN}Sparkplug-Bridge related configurations are being updated to the consolidated docker-compose.yml file.${NC}"
-
                 IS_SCADA=1
-                cd  ${Current_Dir}
-                if [ $interactive == 1 ]; then
-                    if [ "$deployMode" == "dev" ]; then
-                        ./2.1_ConfigureScada.sh "--deployModeInteract=dev"
-                        ret="$?"
-                    else
-                        ./2.1_ConfigureScada.sh
-                        ret="$?"
-                    fi
-                fi
                 break
                 ;;                
             4)
@@ -220,16 +233,6 @@ configure_usecase()
                 echo "${GREEN}Sparkplug-Bridge related configurations are being updated to the consolidated docker-compose.yml file.${NC}"
 
                 IS_SCADA=1
-                cd  ${Current_Dir}
-                if [ $interactive == 1 ]; then                        
-                    if [ "$deployMode" == "dev" ]; then
-                        ./2.1_ConfigureScada.sh "--deployModeInteract=dev"
-                        ret="$?"
-                    else
-                        ./2.1_ConfigureScada.sh
-                        ret="$?"
-                    fi
-                fi
                 break
                 ;;
             5)
@@ -261,17 +264,6 @@ configure_usecase()
                 fi
                 echo "${GREEN}EII builder script successfully generated consolidated docker-compose & configuration files.${NC}"
 		IS_SCADA=1
-
-                cd  ${Current_Dir}
-                if [ $interactive == 1 ]; then
-                    if [ "$deployMode" == "dev" ]; then
-                        ./2.1_ConfigureScada.sh "--deployModeInteract=dev"
-                        ret="$?"
-                    else
-                        ./2.1_ConfigureScada.sh
-                        ret="$?"
-                    fi
-                fi		
 
                 break
                 ;;
@@ -456,16 +448,11 @@ parse_command_line_args()
 preBuild_images()
 {
     temp_preBuild=""
-    if [ -e ./setenv ]; then
-        rm ./setenv
-    fi
     if [ ! -z "$preBuild" ]; then
         if [ "$preBuild" == "yes" ]; then
             echo "Using pre-build images"
-            echo "preBuild="true""> ./setenv  
         else
             echo "Building images locally"
-            echo "preBuild="false" "> ./setenv
         fi
     else 
         echo "Do you want to use pre-build images from public docker hub ?"
@@ -478,13 +465,13 @@ preBuild_images()
             "yes"|"Yes"|"1")
         
                 echo "Using pre-build images"
-                echo "preBuild="true" "> ./setenv
-                ;;
+                preBuild="true"
+		;;
     
             "no"|"No"|"2")
         
                 echo "Building images locally"
-                echo "preBuild="false" "> ./setenv            
+                preBuild="false"             
                 ;;
             *)
                 echo "User entered wrong option, Please enter either 1 or 2."
@@ -492,6 +479,34 @@ preBuild_images()
         esac
     fi
 
+}
+mqtt_certs()
+{
+    echo "${GREEN} Genrating certs for mqtt${NC}"	
+    
+    mkdir -p ./temp ./temp/client ./temp/server
+
+    mymqttcerts_path=${eii_build_dir}/Certificates/mymqttcerts/ 
+
+    openssl req -config ../Others/mqtt_certs/mqtt_cert_openssl_config -new -newkey rsa:3072 -keyout  ./temp/client/key.pem -out ./temp/client/req.pem -days 3650 -outform PEM -subj /CN=mymqttcerts/O=client/L=$$$/ -nodes
+
+    openssl req -config ../Others/mqtt_certs/mqtt_cert_openssl_config -new -newkey rsa:3072 -keyout  ./temp/server/key.pem -out ./temp/server/req.pem -days 3650 -outform PEM -subj /CN=mymqttcerts/O=server/L=$$$/ -nodes
+
+    openssl ca -days 3650 -cert ../../build/Certificates/rootca/cacert.pem -keyfile ../../build/Certificates/rootca/cakey.pem -in ./temp/server/req.pem -out ./temp/mymqttcerts_server_certificate.pem  -outdir ../../build/Certificates/rootca/certs -notext -batch -extensions server_extensions -config ../Others/mqtt_certs/mqtt_cert_openssl_config
+
+    openssl ca -days 3650 -cert ../../build/Certificates/rootca/cacert.pem -keyfile ../../build/Certificates/rootca/cakey.pem -in ./temp/client/req.pem -out ./temp/mymqttcerts_client_certificate.pem -outdir ../../build/Certificates/rootca/certs -notext -batch -extensions client_extensions -config ../Others/mqtt_certs/mqtt_cert_openssl_config
+    if [ -e ${mymqttcerts_path} ];then
+        rm -r ${mymqttcerts_path}
+        
+    fi
+    mkdir ../../build/Certificates/mymqttcerts
+    cp -rf ./temp/mymqttcerts_server_certificate.pem ${mymqttcerts_path}/mymqttcerts_server_certificate.pem
+    cp -rf ./temp/mymqttcerts_client_certificate.pem ${mymqttcerts_path}/mymqttcerts_client_certificate.pem
+    cp -rf ./temp/server/key.pem  ${mymqttcerts_path}/mymqttcerts_server_key.pem
+    cp -rf ./temp/client/key.pem ${mymqttcerts_path}/mymqttcerts_client_key.pem
+    sudo chown -R 1999:1999 ${mymqttcerts_path} 
+    rm -rf ./temp
+    return 0
 }
 #------------------------------------------------------------------
 # usage
@@ -594,14 +609,29 @@ modifying_env
 docker_verify
 docker_compose_verify
 if [ -z "$1" ]; then
+    echo "Running in interactive mode"	
     set_mode
     configure_usecase 
     preBuild_images
+    eii_provision
+    cd  ${Current_Dir}
+    if [ "${IS_SCADA}" -eq "1" ]; then
+        if [ "$deployMode" == "dev" ]; then
+            ./2.1_ConfigureScada.sh "--deployModeInteract=dev"
+            ret="$?"
+        else
+            ./2.1_ConfigureScada.sh
+            ret="$?"
+        fi
+    fi
 else
+    echo "Running in non-interactive mode"	
     parse_command_line_args "$@"
     set_mode  "$deployMode"
     configure_usecase   "$recipe"
     preBuild_images  "$preBuild"
+    eii_provision
+    cd  ${Current_Dir}
     if [[ "${IS_SCADA}" -eq "1" ]]; then
            ./2.1_ConfigureScada.sh "$@"
         ret="$?"
@@ -613,15 +643,7 @@ if [[ "${IS_SCADA}" -eq "1" ]]; then
         usage
         exit 1
     else
+        ./2.2_CopyScadaCertsToProvision.sh
         echo "${GREEN}ConfigureScada successfully.${NC}"
     fi   
 fi
-eii_provision
-if [[ "$deployMode" == "prod" ]]; then
-    mqtt_certs
-fi
-if [[ "${IS_SCADA}" -eq "1" ]]; then 
-   cd  ${Current_Dir}
-  ./2.2_CopyScadaCertsToProvision.sh
-fi
-harden
