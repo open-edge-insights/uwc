@@ -28,7 +28,7 @@
 #include "SCADAHandler.hpp"
 #include "InternalMQTTSubscriber.hpp"
 #include "SparkPlugDevMgr.hpp"
-
+#include "ZmqHandler.hpp"
 #ifdef UNIT_TEST
 #include <gtest/gtest.h>
 #endif
@@ -134,6 +134,86 @@ bool initDataPoints()
 	}
 	return true;
 }
+/**
+ * Subscribe messages from EII message bus
+ * @return true/false based on success/failure
+ */
+bool sub_data_from_eii(std::atomic<bool> *loop)
+{
+   ConfigMgr* sub_ch = NULL;
+   recv_ctx_t* g_sub_ctx = NULL;
+   void* g_msgbus_ctx = NULL;
+   msg_envelope_t* msg = NULL;
+   DO_LOG_INFO("subscriber");
+   int num_of_subscriber = zmq_handler::getNumPubOrSub("sub");
+   if (num_of_subscriber >= 1)
+    {
+		if (true != zmq_handler::prepareCommonContext("sub"))
+		{
+			DO_LOG_ERROR("Context creation failed for pub topic ");
+			return false;
+		}
+	}
+	msgbus_ret_t ret;
+	zmq_handler::stZmqContext& context = zmq_handler::getCTX("TCP_PolledData");
+	zmq_handler::stZmqSubContext& subContext = zmq_handler::getSubCTX("TCP_PolledData");
+        void *msgbus_ctx = context.m_pContext;
+	recv_ctx_t *sub_ctx = subContext.sub_ctx;
+        if((msgbus_ctx==NULL) || (sub_ctx==NULL))
+        {
+        	DO_LOG_ERROR("MSG Bus or Subscriber context is Null");
+		return false;
+        }
+	while (loop->load()) {  
+	    ret = msgbus_recv_wait(msgbus_ctx, sub_ctx, &msg);
+	    if (ret != MSG_SUCCESS)
+	    {
+       	// Interrupt is an acceptable error
+		    if (ret == MSG_ERR_EINTR)
+		    {
+	    	    	DO_LOG_ERROR("received MSG_ERR_EINT");
+		    }
+		    DO_LOG_ERROR("Failed to receive message errno: " + std::to_string(ret));
+	
+	    }  
+	    msg_envelope_elem_body_t* data;
+	    msgbus_ret_t msgRet = msgbus_msg_envelope_get(msg, "data_topic", &data);
+	    if(msgRet != MSG_SUCCESS)
+	    { 
+	    	DO_LOG_ERROR("topic key not present in zmq message");
+		return false;
+	    }   
+	    std::string sRcvdTopic{data->body.string}; 
+	    msg_envelope_serialized_part_t *parts = NULL;
+	    int num_parts = msgbus_msg_envelope_serialize(msg, &parts);
+	    if (num_parts <= 0)
+	    {
+	    	DO_LOG_ERROR("Failed to serialize message");
+	    }
+	    else if(NULL != parts)
+	    {
+	    	if(NULL != parts[0].bytes)
+		{
+			std::string sMsgBody(parts[0].bytes);
+                        fprintf(stderr, "msg is");
+            	        fprintf(stderr, sMsgBody.c_str());
+            	        fprintf(stderr, "topic is");
+			fprintf(stderr, sRcvdTopic.c_str());
+		}
+	   }else
+	   {
+           	DO_LOG_ERROR("NULL pointer received");
+	   }
+	   if(NULL != parts)
+	   {
+	   	msgbus_msg_envelope_serialize_destroy(parts, num_parts);
+		parts = NULL;
+	   }   
+
+	}  
+    return true;
+
+}
 
 /**
  * Main function of application
@@ -145,9 +225,8 @@ int main(int argc, char *argv[])
 {
 	try
 	{
-		
-		CLogger::initLogger(std::getenv("Log4cppPropsFile"));
 
+		CLogger::initLogger(std::getenv("Log4cppPropsFile"));
 		DO_LOG_DEBUG("Starting SparkPlug-Bridge ...");
 		DO_LOG_INFO("SparkPlug-Bridge container app version is set to :: "+  std::string(APP_VERSION));
 		if(!CCommon::getInstance().loadYMLConfig())
@@ -191,7 +270,18 @@ int main(int argc, char *argv[])
 #endif
 		g_vThreads.push_back(std::thread(processInternalMqttMsgs, std::ref(QMgr::getDatapointsQ())));
 		g_vThreads.push_back(std::thread(processExternalMqttMsgs, std::ref(QMgr::getScadaSubQ())));
-
+                if(zmq_handler::eii_enable() == true){
+			DO_LOG_INFO("Subscribing from EII msg bus");
+		    	fprintf(stderr, "\nSubscribing from EII msg bus\n");
+			std::atomic<bool> *loop;
+		        loop = new std::atomic<bool>;
+		        *loop = true;
+                    	bool subscribe_status = sub_data_from_eii(loop);
+			if( subscribe_status != true ){
+				DO_LOG_ERROR("Failed to publish msg on EII");
+			}
+			delete loop;
+		}		
 		for (auto &th : g_vThreads)
 		{
 			if (th.joinable())

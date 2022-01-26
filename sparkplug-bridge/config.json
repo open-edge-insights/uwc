@@ -1,6 +1,184 @@
 {
     "config": {
-        "cert_type": ["zmq"]      
+    "enable_eii": true,
+	"cert_type": ["zmq"]
     },
-    "interfaces": {}
+    "interfaces": {
+        "Publishers": [
+            {
+                "AllowedClients": [
+                    "*"
+                ],
+                "BrokerAppName": "ZmqBroker",
+                "EndPoint": {
+                    "SocketDir": "/EII/sockets",
+                    "SocketFile": "frontend-socket"
+                },
+                "Name": "sparkplug_pub",
+                "Topics": [
+                    "SP_ExportData"
+                ],
+                "Type": "zmq_ipc",
+                "brokered": true
+            }
+        ],
+        "Subscribers": [
+            {
+                "EndPoint": {
+                    "SocketDir": "/EII/sockets",
+                    "SocketFile": "backend-socket"
+                },
+                "Name": "TCP_PolledData",
+                "PublisherAppName": "ZmqBroker",
+                "Topics": [
+                    "TCP_PolledData"
+                ],
+                "Type": "zmq_ipc",
+                "zmq_recv_hwm": 1000
+            },
+            {
+                "EndPoint": {
+                    "SocketDir": "/EII/sockets",
+                    "SocketFile": "backend-socket"
+                },
+                "Name": "TCP_RdResp",
+                "PublisherAppName": "ZmqBroker",
+                "Topics": [
+                    "TCP_RdResp"
+                ],
+                "Type": "zmq_ipc",
+                "zmq_recv_hwm": 1000
+            },
+            {
+                "EndPoint": {
+                    "SocketDir": "/EII/sockets",
+                    "SocketFile": "backend-socket"
+                },
+                "Name": "TCP_WrResp",
+                "PublisherAppName": "ZmqBroker",
+                "Topics": [
+                    "TCP_WrResp"
+                ],
+                "Type": "zmq_ipc",
+                "zmq_recv_hwm": 1000
+            },
+            {
+                "EndPoint": {
+                    "SocketDir": "/EII/sockets",
+                    "SocketFile": "backend-socket"
+                },
+                "Name": "RT_TCP_PolledData_RT",
+                "PublisherAppName": "ZmqBroker",
+                "Topics": [
+                    "RT_TCP_PolledData_RT"
+                ],
+                "Type": "zmq_ipc",
+                "zmq_recv_hwm": 1000
+            },
+            {
+                "EndPoint": {
+                    "SocketDir": "/EII/sockets",
+                    "SocketFile": "backend-socket"
+                },
+                "Name": "RT_TCP_RdResp_RT",
+                "PublisherAppName": "ZmqBroker",
+                "Topics": [
+                    "RT_TCP_RdResp_RT"
+                ],
+                "Type": "zmq_ipc",
+                "zmq_recv_hwm": 1000
+            },
+            {
+                "EndPoint": {
+                    "SocketDir": "/EII/sockets",
+                    "SocketFile": "backend-socket"
+                },
+                "Name": "RT_TCP_WrResp_RT",
+                "PublisherAppName": "ZmqBroker",
+                "Topics": [
+                    "RT_TCP_WrResp_RT"
+                ],
+                "Type": "zmq_ipc",
+                "zmq_recv_hwm": 1000
+            },
+            {
+                "EndPoint": {
+                    "SocketDir": "/EII/sockets",
+                    "SocketFile": "backend-socket"
+                },
+                "Name": "RTU_PolledData",
+                "PublisherAppName": "ZmqBroker",
+                "Topics": [
+                    "RTU_PolledData"
+                ],
+                "Type": "zmq_ipc",
+                "zmq_recv_hwm": 1000
+            },
+            {
+                "EndPoint": {
+                    "SocketDir": "/EII/sockets",
+                    "SocketFile": "backend-socket"
+                },
+                "Name": "RTU_RdResp",
+                "PublisherAppName": "ZmqBroker",
+                "Topics": [
+                    "RTU_RdResp"
+                ],
+                "Type": "zmq_ipc",
+                "zmq_recv_hwm": 1000
+            },
+            {
+                "EndPoint": {
+                    "SocketDir": "/EII/sockets",
+                    "SocketFile": "backend-socket"
+                },
+                "Name": "RTU_WrResp",
+                "PublisherAppName": "ZmqBroker",
+                "Topics": [
+                    "RTU_WrResp"
+                ],
+                "Type": "zmq_ipc",
+                "zmq_recv_hwm": 1000
+            },
+            {
+                "EndPoint": {
+                    "SocketDir": "/EII/sockets",
+                    "SocketFile": "backend-socket"
+                },
+                "Name": "RT_RTU_PolledData_RT",
+                "PublisherAppName": "ZmqBroker",
+                "Topics": [
+                    "RT_RTU_PolledData_RT"
+                ],
+                "Type": "zmq_ipc",
+                "zmq_recv_hwm": 1000
+            },
+            {
+                "EndPoint": {
+                    "SocketDir": "/EII/sockets",
+                    "SocketFile": "backend-socket"
+                },
+                "Name": "RT_RTU_RdResp_RT",
+                "PublisherAppName": "ZmqBroker",
+                "Topics": [
+                    "RT_RTU_RdResp_RT"
+                ],
+                "Type": "zmq_ipc",
+                "zmq_recv_hwm": 1000
+            },
+            {
+                "EndPoint": {
+                    "SocketDir": "/EII/sockets",
+                    "SocketFile": "backend-socket"
+                },
+                "Name": "RT_RTU_WrResp_RT",
+                "PublisherAppName": "ZmqBroker",
+                "Topics": [
+                    "RT_RTU_WrResp_RT"
+                ],
+                "Type": "zmq_ipc",
+                "zmq_recv_hwm": 1000
+            }
+        ]
+    }
 }

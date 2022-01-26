@@ -25,11 +25,9 @@
 #include "ConfigManager.hpp"
 #include "SparkPlugDevices.hpp"
 #include "SCADAHandler.hpp"
-
 #include <chrono>
 #include <ctime>
 #include <errno.h>
-
 #define SUBSCRIBER_ID "SCADA_INT_MQTT_SUBSCRIBER"
 #define RECONN_TIMEOUT_SEC (60)
 
@@ -378,6 +376,41 @@ int CIntMqttHandler::getAppSeqNo()
 }
 
 /**
+ * Publish the message on EII message bus
+ * for MQTT-Export
+ * @param strPubMsg :[in] payload to be published
+ * @param strMsgTopic : [in] Topic on which payload is received
+ * @return true/false based on success/failure
+ */
+bool CIntMqttHandler::publish_msg_to_eii(string strPubMsg,string strMsgTopic)
+{
+    int num_of_publishers = zmq_handler::getNumPubOrSub("pub");
+        if (num_of_publishers >= 1)
+        {
+                if (true != zmq_handler::prepareCommonContext("pub"))
+                {
+                        DO_LOG_ERROR("Context creation failed for pub topic ");
+			return false;
+                }
+        }
+    msg_envelope_t* g_msg = msgbus_msg_envelope_new(CT_JSON);
+    msg_envelope_elem_body_t* topic;
+    topic = msgbus_msg_envelope_new_string(strMsgTopic.c_str());
+    msgbus_msg_envelope_put(g_msg, strPubMsg.c_str() , topic);
+    std::string strTsReceived{""};
+    if (true != zmq_handler::publishJson(strTsReceived, g_msg, zmq_handler::getTopics()[0].c_str(),""))
+    {
+        DO_LOG_INFO("Message Published on EII message bus");
+	return false;
+    }
+    return true;
+}
+
+
+
+
+
+/**
  * Prepare a message in CJSON format to be sent on Inetnal MQTT
  * for MQTT-Export
  * @param m_refSparkPlugDev :[in] ref of sparkplugDev class
@@ -415,7 +448,17 @@ bool CIntMqttHandler::prepareWriteMsg(std::reference_wrapper<CSparkPlugDev>& a_r
 				if((root != NULL) && (! strMsgTopic.empty()))
 				{
 					string strPubMsg = cJSON_Print(root);
-					publishMsg(strPubMsg, strMsgTopic);
+            		                if(zmq_handler::eii_enable()==true){
+						DO_LOG_INFO("Publishing on EII msg bus");
+						bool publish_status = CIntMqttHandler::publish_msg_to_eii(strPubMsg, strMsgTopic);
+						if( publish_status != true ){
+							DO_LOG_ERROR("Failed to publish msg on EII");
+						}
+					}else{
+   		    			        DO_LOG_INFO("Publishing on MQTT");
+						publishMsg(strPubMsg, strMsgTopic);
+					}					
+					
 				}
 			}
 			if (root != NULL)
@@ -478,7 +521,6 @@ bool CIntMqttHandler::prepareCMDMsg(std::reference_wrapper<CSparkPlugDev>& a_ref
 			}
 			return false;
 		}
-
 		if (false == a_refSparkPlugDev.get().getCMDMsg(strMsgTopic, a_mapChangedMetrics, metricArray))
 		{
 			DO_LOG_ERROR("Failed to prepare CJSON message for internal MQTT");
@@ -492,8 +534,19 @@ bool CIntMqttHandler::prepareCMDMsg(std::reference_wrapper<CSparkPlugDev>& a_ref
 			DO_LOG_DEBUG("Publishing message on internal MQTT for CMD:");
 			DO_LOG_DEBUG("Topic : " + strMsgTopic);
 			DO_LOG_DEBUG("Payload : " + strPubMsg);
+                        if(zmq_handler::eii_enable()==true){
+				DO_LOG_INFO("Publishing on EII msg bus");
+				fprintf(stderr, "\nPublishing on EII msg bus\n");
+				bool publish_status = CIntMqttHandler::publish_msg_to_eii(strPubMsg, strMsgTopic);
+				if( publish_status != true ){
+					DO_LOG_ERROR("Failed to publish msg on EII");
+                                 }
 
-			publishMsg(strPubMsg, strMsgTopic);
+			}else{
+   		    	DO_LOG_INFO("Publishing on MQTT");
+				fprintf(stderr, "\nPublishing on MQTT\n");
+				publishMsg(strPubMsg, strMsgTopic);
+			}
 		}
 
 		if (root != NULL)
@@ -532,23 +585,19 @@ bool CIntMqttHandler::prepareCJSONMsg(std::vector<stRefForSparkPlugAction>& a_st
 			//get this device name to add in topic
 			string strDeviceName = "";
 			strDeviceName.append(itr.m_refSparkPlugDev.get().getSparkPlugName());
-
 			if (strDeviceName.size() == 0)
 			{
 				DO_LOG_ERROR("Device name is blank");
 				return false;
 			}
-
 			//parse the site name from the topic
 			vector<string> vParsedTopic = { };
 			CSparkPlugDevManager::getInstance().getTopicParts(strDeviceName, vParsedTopic, "-");
-
 			if (vParsedTopic.size() != 2)
 			{
 				DO_LOG_ERROR("Invalid device name found while preparing request for internal MQTT");
 				return false;
 			}
-
 			//list of changed metrics for which to send CMD or write-on-demand CJSON request
 			if(itr.m_refSparkPlugDev.get().isVendorApp())
 			{
