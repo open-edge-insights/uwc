@@ -48,8 +48,11 @@
 		CMessageObject(const std::string &a_sTopic, const std::string &a_sMsg) 
 			: m_stTs{}
 		{
+			fprintf(stderr, "GREEN.........1\n\n\n");
 			m_mqttMsg = mqtt::make_message(a_sTopic, a_sMsg);
+			fprintf(stderr, "GREEN.........2\n\n\n");
 			timespec_get(&m_stTs, TIME_UTC);
+			fprintf(stderr, "GREEN.........3\n\n\n");
 		}
 		
 		CMessageObject(mqtt::const_message_ptr a_mqttMsg) 

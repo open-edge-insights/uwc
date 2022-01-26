@@ -78,7 +78,7 @@ modifying_env()
 #------------------------------------------------------------------
 eii_provision()
 {
-    docker stop $(docker ps -a -q)
+    docker rm $(docker ps -a -q) --force
     cd "${eii_build_dir}"
     if [ -e "$eii_build_dir/Certificates" ];then
 	echo "removing old "$eii_build_dir/Certificates""

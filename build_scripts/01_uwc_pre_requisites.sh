@@ -60,7 +60,8 @@ create_docker_volume_dir()
 	mkdir -p /opt/intel/eii/container_logs/modbus-rtu-master
 	mkdir -p /opt/intel/eii/container_logs/mqtt-bridge
 	mkdir -p /opt/intel/eii/container_logs/sparkplug-bridge
-    mkdir -p /opt/intel/eii/container_logs/kpi-tactic
+        mkdir -p /opt/intel/eii/container_logs/kpi-tactic
+	chown -R 1999:1999 /opt/intel/eii/container_logs
 	if [ "$?" -eq "0" ]; then
 		echo "${GREEN}/opt/intel/eii/container_logs is sucessfully created. ${NC}"
 	else

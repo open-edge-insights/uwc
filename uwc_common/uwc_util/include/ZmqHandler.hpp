@@ -120,7 +120,12 @@ namespace zmq_handler
 
 	/** function to remove entry from the map*/
 	void removePubCTX(std::string);
+	/** function to get eii_enable value set in config.json*/
+        bool eii_enable();
+	/** function to get topic set in config.json*/
+        std::vector<std::string> getTopics();
 
+	bool getkeys(std::string);
 	/** function to publish json data on ZMQ*/
 	bool publishJson(std::string &a_sUsec, msg_envelope_t* msg, const std::string &a_sTopic, std::string a_sPubTimeField);
 

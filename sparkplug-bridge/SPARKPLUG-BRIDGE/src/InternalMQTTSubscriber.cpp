@@ -25,16 +25,16 @@
 #include "ConfigManager.hpp"
 #include "SparkPlugDevices.hpp"
 #include "SCADAHandler.hpp"
-
 #include <chrono>
 #include <ctime>
 #include <errno.h>
-
 #define SUBSCRIBER_ID "SCADA_INT_MQTT_SUBSCRIBER"
 #define RECONN_TIMEOUT_SEC (60)
 
 extern std::atomic<bool> g_shouldStop;
-
+std::atomic<bool> sp_shouldStop(false);
+vector<std::thread> spThreads;
+std::atomic<bool> *loop;
 /**
  * Constructor Initializes MQTT publisher
  * @param strPlBusUrl :[in] MQTT broker URL
@@ -294,6 +294,79 @@ void CIntMqttHandler::handleConnMonitoringThread()
 	}
 }
 
+void sub_data_from_eii(std::string eachTopic,zmq_handler::stZmqContext context, zmq_handler::stZmqSubContext subContext){
+
+  	ConfigMgr* sub_ch = NULL;
+    recv_ctx_t* g_sub_ctx = NULL;
+    void* g_msgbus_ctx = NULL;
+    msg_envelope_t* msg = NULL;
+	//std::string eachTopic="TCP_PolledData";
+    //msgbus_ret_t ret;   
+    DO_LOG_INFO("subscriber");
+	fprintf(stderr, "GREEN.........2\n\n\n");
+    int num_of_subscriber = zmq_handler::getNumPubOrSub("sub");
+	fprintf(stderr, "GREEN.........3\n\n\n");
+	fprintf(stderr, "GREEN.........4\n\n\n");
+	msgbus_ret_t ret;
+
+    fprintf(stderr, "GREEN.........5\n\n\n");
+    void *msgbus_ctx = context.m_pContext;
+	recv_ctx_t *sub_ctx = subContext.sub_ctx;
+    if((msgbus_ctx==NULL) || (sub_ctx==NULL))
+    {
+       	DO_LOG_ERROR("MSG Bus or Subscriber context is Null");
+			//return false;
+    }
+	fprintf(stderr, "GREEN.........6\n\n\n");
+	
+	
+	fprintf(stderr, "GREEN.........7\n\n\n");
+    while ((false == sp_shouldStop.load()) && (msgbus_ctx != NULL) && (sub_ctx != NULL)) {  
+	fprintf(stderr, "GREEN.........8\n\n\n");	
+	ret = msgbus_recv_wait(msgbus_ctx, sub_ctx, &msg);
+	if (ret != MSG_SUCCESS)
+	{
+       	// Interrupt is an acceptable error
+		if (ret == MSG_ERR_EINTR)
+		{
+	    	DO_LOG_ERROR("received MSG_ERR_EINT");
+		}
+		DO_LOG_ERROR("Failed to receive message errno: " + std::to_string(ret));
+
+    }
+	fprintf(stderr, "GREEN.........9\n\n\n");
+	msg_envelope_elem_body_t* data;
+	msgbus_ret_t msgRet = msgbus_msg_envelope_get(msg, "data_topic", &data);
+	fprintf(stderr, "GREEN.........10\n\n\n");
+	if(msgRet != MSG_SUCCESS)
+	{ 
+	    DO_LOG_ERROR("topic key not present in zmq message");
+				//return false;o
+    } 
+	std::string sRcvdTopic{data->body.string}; 
+	msg_envelope_serialized_part_t *parts = NULL;
+	fprintf(stderr, "GREEN.........11\n\n\n");
+    int num_parts = msgbus_msg_envelope_serialize(msg, &parts);
+	fprintf(stderr, "GREEN.........12\n\n\n");
+    if(NULL != parts[0].bytes)
+	{
+		std::string sMsgBody(parts[0].bytes);
+        fprintf(stderr, "msg is");
+        fprintf(stderr, sMsgBody.c_str());
+        fprintf(stderr, "topic is");
+		fprintf(stderr, sRcvdTopic.c_str());
+		CMessageObject oMsg{sRcvdTopic,sMsgBody};
+		QMgr::getDatapointsQ().pushMsg(oMsg);
+	
+
+    }else{
+		fprintf(stderr, "GREEN.........13\n\n\n");
+	}
+
+	}
+	fprintf(stderr, "GREEN.........15555\n\n\n");
+    
+}
 /**
  * Thread function to handle SCADA connection success scenario.
  * It listens on a semaphore to know the connection status.
@@ -303,10 +376,43 @@ void CIntMqttHandler::handleConnSuccessThread()
 {
 	while(false == g_shouldStop.load())
 	{
-		try
+
+			
+	try
 		{
 			do
 			{
+            if(zmq_handler::eii_enable()==true){
+                fprintf(stderr, "GREEN.........-1\n\n\n");	
+				std::vector<std::string> vecTopics;
+        		bool tempRet = zmq_handler::returnAllTopics("sub", vecTopics);
+				fprintf(stderr, "GREEN.........0\n\n\n");	
+				for(std::string eachTopic : vecTopics) {
+					fprintf(stderr, "GREEN.........1\n\n\n");	
+					fprintf(stderr, "__________________________ADITI______________________");                       
+    				fprintf(stderr, eachTopic.c_str());
+    				fprintf(stderr, "___________________________________________________");					
+					// loop = new std::atomic<bool>;
+                    // *loop = true;
+					zmq_handler::stZmqContext& context = zmq_handler::getCTX(eachTopic);
+					zmq_handler::stZmqSubContext& subContext = zmq_handler::getSubCTX(eachTopic);
+					fprintf(stderr, "GREEN.........1a\n\n\n");
+					spThreads.push_back(std::thread(sub_data_from_eii,eachTopic,context,subContext));
+					//std::thread(sub_data_from_eii,eachTopic).detach();
+                    //spThreads.push_back(std::thread{ std::bind(sub_data_from_eii,std::ref(eachTopic)) });
+				    //delete loop;
+					fprintf(stderr, "GREEN.........14\n\n\n");	
+					//sub_data_from_eii(eachTopic);
+					for (auto &th : spThreads)
+		            {
+						fprintf(stderr, "GREEN.........3\n\n\n");	
+						if (th.joinable())
+						{
+							th.join();
+						}
+					}	
+
+			}}else{
 				if((sem_wait(&m_semConnSuccess)) == -1 && errno == EINTR)
 				{
 					// Continue if interrupted by handler
@@ -329,7 +435,7 @@ void CIntMqttHandler::handleConnSuccessThread()
 					{
 						sem_post(&m_semConnSuccessToTimeOut);
 					}
-
+				}}
 					//Send dbirth
 					CSCADAHandler::instance().signalIntMQTTConnEstablishThread();
 
@@ -341,7 +447,7 @@ void CIntMqttHandler::handleConnSuccessThread()
 						DO_LOG_INFO("START_BIRTH_PROCESS message is published");
 						m_bIsFirstConnectDone = false;
 					}
-				}
+				
 			} while(0);
 
 		}
@@ -376,6 +482,41 @@ int CIntMqttHandler::getAppSeqNo()
 
 	return m_appSeqNo;
 }
+
+/**
+ * Publish the message on EII message bus
+ * for MQTT-Export
+ * @param strPubMsg :[in] payload to be published
+ * @param strMsgTopic : [in] Topic on which payload is received
+ * @return true/false based on success/failure
+ */
+bool CIntMqttHandler::publish_msg_to_eii(string strPubMsg,string strMsgTopic)
+{
+    int num_of_publishers = zmq_handler::getNumPubOrSub("pub");
+        if (num_of_publishers >= 1)
+        {
+                if (true != zmq_handler::prepareCommonContext("pub"))
+                {
+                        DO_LOG_ERROR("Context creation failed for pub topic ");
+			return false;
+                }
+        }
+    msg_envelope_t* g_msg = msgbus_msg_envelope_new(CT_JSON);
+    msg_envelope_elem_body_t* topic;
+    topic = msgbus_msg_envelope_new_string(strMsgTopic.c_str());
+    msgbus_msg_envelope_put(g_msg, strPubMsg.c_str() , topic);
+    std::string strTsReceived{""};
+    if (true != zmq_handler::publishJson(strTsReceived, g_msg, zmq_handler::getTopics()[0].c_str(),""))
+    {
+        DO_LOG_INFO("Message Published on EII message bus");
+	return false;
+    }
+    return true;
+}
+
+
+
+
 
 /**
  * Prepare a message in CJSON format to be sent on Inetnal MQTT
@@ -415,7 +556,17 @@ bool CIntMqttHandler::prepareWriteMsg(std::reference_wrapper<CSparkPlugDev>& a_r
 				if((root != NULL) && (! strMsgTopic.empty()))
 				{
 					string strPubMsg = cJSON_Print(root);
-					publishMsg(strPubMsg, strMsgTopic);
+            		                if(zmq_handler::eii_enable()==true){
+						DO_LOG_INFO("Publishing on EII msg bus");
+						bool publish_status = CIntMqttHandler::publish_msg_to_eii(strPubMsg, strMsgTopic);
+						if( publish_status != true ){
+							DO_LOG_ERROR("Failed to publish msg on EII");
+						}
+					}else{
+   		    			        DO_LOG_INFO("Publishing on MQTT");
+						publishMsg(strPubMsg, strMsgTopic);
+					}					
+					
 				}
 			}
 			if (root != NULL)
@@ -478,7 +629,6 @@ bool CIntMqttHandler::prepareCMDMsg(std::reference_wrapper<CSparkPlugDev>& a_ref
 			}
 			return false;
 		}
-
 		if (false == a_refSparkPlugDev.get().getCMDMsg(strMsgTopic, a_mapChangedMetrics, metricArray))
 		{
 			DO_LOG_ERROR("Failed to prepare CJSON message for internal MQTT");
@@ -492,8 +642,19 @@ bool CIntMqttHandler::prepareCMDMsg(std::reference_wrapper<CSparkPlugDev>& a_ref
 			DO_LOG_DEBUG("Publishing message on internal MQTT for CMD:");
 			DO_LOG_DEBUG("Topic : " + strMsgTopic);
 			DO_LOG_DEBUG("Payload : " + strPubMsg);
+                        if(zmq_handler::eii_enable()==true){
+				DO_LOG_INFO("Publishing on EII msg bus");
+				fprintf(stderr, "\nPublishing on EII msg bus\n");
+				bool publish_status = CIntMqttHandler::publish_msg_to_eii(strPubMsg, strMsgTopic);
+				if( publish_status != true ){
+					DO_LOG_ERROR("Failed to publish msg on EII");
+                                 }
 
-			publishMsg(strPubMsg, strMsgTopic);
+			}else{
+   		    	DO_LOG_INFO("Publishing on MQTT");
+				fprintf(stderr, "\nPublishing on MQTT\n");
+				publishMsg(strPubMsg, strMsgTopic);
+			}
 		}
 
 		if (root != NULL)
@@ -532,23 +693,19 @@ bool CIntMqttHandler::prepareCJSONMsg(std::vector<stRefForSparkPlugAction>& a_st
 			//get this device name to add in topic
 			string strDeviceName = "";
 			strDeviceName.append(itr.m_refSparkPlugDev.get().getSparkPlugName());
-
 			if (strDeviceName.size() == 0)
 			{
 				DO_LOG_ERROR("Device name is blank");
 				return false;
 			}
-
 			//parse the site name from the topic
 			vector<string> vParsedTopic = { };
 			CSparkPlugDevManager::getInstance().getTopicParts(strDeviceName, vParsedTopic, "-");
-
 			if (vParsedTopic.size() != 2)
 			{
 				DO_LOG_ERROR("Invalid device name found while preparing request for internal MQTT");
 				return false;
 			}
-
 			//list of changed metrics for which to send CMD or write-on-demand CJSON request
 			if(itr.m_refSparkPlugDev.get().isVendorApp())
 			{

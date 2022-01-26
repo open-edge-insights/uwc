@@ -81,8 +81,21 @@
                 ],
                 "Type": "zmq_ipc",
                 "zmq_recv_hwm": 1000
+            },
+            {
+                "EndPoint": {
+                    "SocketDir": "/EII/sockets",
+                    "SocketFile": "backend-socket"
+                },
+                "Name": "SP_ExportData",
+                "PublisherAppName": "ZmqBroker",
+                "Topics": [
+                    "SP_ExportData"
+                ],
+                "Type": "zmq_ipc",
+                "zmq_recv_hwm": 1000
             }
-        ],
+        ],        
         "Publishers": [
             {
                 "AllowedClients": [

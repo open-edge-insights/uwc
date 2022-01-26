@@ -48,6 +48,8 @@ namespace
 	std::map<std::string, stZmqContext> g_mapContextMap;
 	std::map<std::string, stZmqSubContext> g_mapSubContextMap;
 	std::map<std::string, stZmqPubContext> g_mapPubContextMap;
+	std::vector<std::string> topics;
+	bool enable_eii;
 }
 
 // lamda function to return true if given key matches the given pattern
@@ -82,7 +84,6 @@ bool zmq_handler::prepareContext(bool a_bIsPub,
 	msgbus_ret_t retVal = MSG_SUCCESS;
 	publisher_ctx_t* pub_ctx = NULL;
 	recv_ctx_t* sub_ctx = NULL;
-
 	if(NULL == msgbus_ctx || NULL == config || a_sTopic.empty())
 	{
 		DO_LOG_ERROR("NULL pointers received while creating context for topic ::" + a_sTopic);
@@ -199,18 +200,18 @@ bool zmq_handler::prepareCommonContext(std::string topicType)
         			return false;
     			}
 
-				std::vector<std::string> topics = pub_ctx->getTopics();
-				if(topics.empty()){
+				topics = pub_ctx->getTopics();
+	                        if(topics.empty()){
         			DO_LOG_ERROR("Failed to get topics");
         			return false;
-    			}
+    			        } 
 
 				for (auto topic_it = 0; topic_it < topics.size(); topic_it++) {
      				std::string ind_topic = topics.at(topic_it);
 					 DO_LOG_INFO("Topic for ZMQ Publish is :: " + ind_topic);
 					prepareContext(true, g_msgbus_ctx, ind_topic, pub_config);
 					
-    			}
+    		          	}
 			}
 		} else {  // else if its sub
 				int numSubscribers = CfgManager::Instance().getEiiCfgMgr()->getNumSubscribers();
@@ -244,6 +245,21 @@ bool zmq_handler::prepareCommonContext(std::string topicType)
 	}
 	DO_LOG_DEBUG("End: ");
 	return true;
+}
+
+bool zmq_handler::eii_enable(){
+	ConfigMgr* pub_ch = new ConfigMgr();
+	AppCfg* cfg = pub_ch->getAppConfig();
+    config_value_t* app_config = cfg->getConfigValue("enable_eii");
+	bool enable_eii = app_config->body.boolean;
+    
+	if(enable_eii==true){
+	 	fprintf(stderr, "\n Publishing on EII \n");
+		return true;
+	}else{
+		return false;
+	}
+
 }
 
 /**
@@ -299,6 +315,10 @@ stZmqContext& zmq_handler::getCTX(std::string a_sTopic)
 	return g_mapContextMap.at(a_sTopic);
 }
 
+std::vector<std::string> zmq_handler::getTopics()
+{
+   return topics;   
+}
 /**
  * Insert msgbus context
  * @param a_sTopic	:[in] topic for which to insert msgbus context
@@ -408,7 +428,6 @@ bool zmq_handler::publishJson(std::string &a_sUsec, msg_envelope_t* msg, const s
 		DO_LOG_ERROR(": Failed to publish message - context is NULL: " + a_sTopic);
 		return false;
 	}
-
 	msgbus_ret_t ret;
 
 	{
@@ -424,7 +443,8 @@ bool zmq_handler::publishJson(std::string &a_sUsec, msg_envelope_t* msg, const s
 				msgbus_msg_envelope_put(msg, a_sPubTimeField.c_str(), ptUsec);
 			}
 		}
-		ret = msgbus_publisher_publish(msgbus_ctx.m_pContext, (publisher_ctx_t*)pub_ctx, msg);
+
+        ret = msgbus_publisher_publish(msgbus_ctx.m_pContext, (publisher_ctx_t*)pub_ctx, msg);
 	}
 
 	if(ret != MSG_SUCCESS)
@@ -432,6 +452,7 @@ bool zmq_handler::publishJson(std::string &a_sUsec, msg_envelope_t* msg, const s
 		DO_LOG_ERROR(" Failed to publish message errno: " + std::to_string(ret));
 		return false;
 	}
+	DO_LOG_INFO("msgbus publish is successfull");
 	return true;
 }
 

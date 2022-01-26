@@ -326,7 +326,7 @@ bool CSCADAHandler::publishSparkplugMsg(org_eclipse_tahu_protobuf_Payload& a_pay
 		mqtt::message_ptr pubmsg = mqtt::make_message(a_topic, (void*)binary_buffer, message_length, m_QOS, false);
 
 		// SCADA master expects messages to be in order. Publish messages in order. Hence, Wait for completion.
-		m_MQTTClient.publishMsg(pubmsg, true);
+                m_MQTTClient.publishMsg(pubmsg, true);
 		payload_sequence = next_payload_sequence;
 
 		// Free the memory

@@ -97,5 +97,5 @@ Global:
               qos: 0
         - SparkPlug_Operation:
             group_id: "UWC nodes"
-            edge_node_id: "RBOX510"
+            edge_node_id: "ADITI"
     default_scale_factor: 1.0

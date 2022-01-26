@@ -93,10 +93,13 @@ bool CQueueHandler::pushMsg(CMessageObject msg)
 {
 	try
 	{
+		fprintf(stderr, "GREEN.........4\n\n\n");
 		std::lock_guard<std::mutex> lock(m_queueMutex);
+		fprintf(stderr, "GREEN.........5\n\n\n");
 		m_msgQ.push(msg);
-
+        fprintf(stderr, "GREEN.........6\n\n\n");
 		sem_post(&m_semaphore);
+		fprintf(stderr, "GREEN.........7\n\n\n");
 	}
 	catch(std::exception &ex)
 	{

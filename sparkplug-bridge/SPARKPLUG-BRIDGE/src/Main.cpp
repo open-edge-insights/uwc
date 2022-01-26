@@ -28,7 +28,7 @@
 #include "SCADAHandler.hpp"
 #include "InternalMQTTSubscriber.hpp"
 #include "SparkPlugDevMgr.hpp"
-
+#include "ZmqHandler.hpp"
 #ifdef UNIT_TEST
 #include <gtest/gtest.h>
 #endif
@@ -145,9 +145,8 @@ int main(int argc, char *argv[])
 {
 	try
 	{
-		
-		CLogger::initLogger(std::getenv("Log4cppPropsFile"));
 
+		CLogger::initLogger(std::getenv("Log4cppPropsFile"));
 		DO_LOG_DEBUG("Starting SparkPlug-Bridge ...");
 		DO_LOG_INFO("SparkPlug-Bridge container app version is set to :: "+  std::string(APP_VERSION));
 		if(!CCommon::getInstance().loadYMLConfig())
@@ -191,7 +190,7 @@ int main(int argc, char *argv[])
 #endif
 		g_vThreads.push_back(std::thread(processInternalMqttMsgs, std::ref(QMgr::getDatapointsQ())));
 		g_vThreads.push_back(std::thread(processExternalMqttMsgs, std::ref(QMgr::getScadaSubQ())));
-
+	
 		for (auto &th : g_vThreads)
 		{
 			if (th.joinable())

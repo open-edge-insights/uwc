@@ -31,7 +31,7 @@
 #include "Logger.hpp"
 #include "QueueMgr.hpp"
 #include "SparkPlugDevMgr.hpp"
-
+#include "ZmqHandler.hpp"
 /** enumerator specifying mqtt connection status*/
 enum eIntMQTTConStatus
 {
@@ -67,6 +67,8 @@ class CIntMqttHandler : public CMQTTBaseHandler
 
 	void handleConnMonitoringThread();
 	void handleConnSuccessThread();
+	//void sub_data_from_eii();
+    //void sub_data_from_eii(std::string eachTopic);
 
 	/**function to set last connection status*/
 	void setLastConStatus(eIntMQTTConStatus a_ConsStatus)
@@ -105,6 +107,7 @@ public:
 						metricMapIf_t& a_mapChangedMetrics);
 	bool prepareWriteMsg(std::reference_wrapper<CSparkPlugDev>& a_refSparkPlugDev,
 							metricMapIf_t& a_mapChangedMetrics);
+        bool publish_msg_to_eii(string strPubMsg,string strMsgTopic);
 };
 
 #endif

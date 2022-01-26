@@ -37,6 +37,8 @@ apply_config_changes()
 	else
 		echo "${RED}Failed to stop running containers.${NC}"
 	fi
+        docker-compose up -d ia_configmgr_agent
+        sleep 10	
 	docker-compose up -d
 	if [ "$?" -eq "0" ];then
 		echo "${GREEN}Successfully started all running containers with updated changes.${NC}"
