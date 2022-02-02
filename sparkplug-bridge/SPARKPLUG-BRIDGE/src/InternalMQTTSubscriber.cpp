@@ -33,6 +33,7 @@
 
 extern std::atomic<bool> g_shouldStop;
 
+std::atomic<bool> *loop;
 /**
  * Constructor Initializes MQTT publisher
  * @param strPlBusUrl :[in] MQTT broker URL
@@ -179,6 +180,7 @@ void CIntMqttHandler::msgRcvd(mqtt::const_message_ptr a_pMsg)
 	}
 }
 
+
 /**
  * This is a singleton class. Used to handle communication with SCADA master
  * through external MQTT.
@@ -210,11 +212,12 @@ bool CIntMqttHandler::init()
 		DO_LOG_FATAL("Could not create unnamed semaphore for monitorig connection timeout " + std::to_string(errno) + " " + strerror(errno));
 		return false;
 	}
-	std::thread{ std::bind(&CIntMqttHandler::handleConnMonitoringThread,
-			std::ref(*this)) }.detach();
 
+    std::thread{ std::bind(&CIntMqttHandler::handleConnMonitoringThread,
+		std::ref(*this)) }.detach();
 	std::thread{ std::bind(&CIntMqttHandler::handleConnSuccessThread,
-			std::ref(*this)) }.detach();
+		std::ref(*this)) }.detach();		
+	
 
 	return true;
 }
@@ -301,7 +304,9 @@ void CIntMqttHandler::handleConnSuccessThread()
 {
 	while(false == g_shouldStop.load())
 	{
-		try
+
+			
+	try
 		{
 			do
 			{
@@ -320,14 +325,15 @@ void CIntMqttHandler::handleConnSuccessThread()
 					// Client is connected. So wait for connection-lost
 					// Semaphore got signalled means connection is successful
 					// As a process first subscribe to topics
-					subscribeTopics();
-
+					if(zmq_handler::enable_EMB()==false){
+						subscribeTopics();
+					}
 					// If disconnect state is monitoring connection timeout, then signal that
 					if(true == getConTimeoutState())
 					{
 						sem_post(&m_semConnSuccessToTimeOut);
 					}
-
+				}
 					//Send dbirth
 					CSCADAHandler::instance().signalIntMQTTConnEstablishThread();
 
@@ -339,7 +345,7 @@ void CIntMqttHandler::handleConnSuccessThread()
 						DO_LOG_INFO("START_BIRTH_PROCESS message is published");
 						m_bIsFirstConnectDone = false;
 					}
-				}
+				
 			} while(0);
 
 		}
@@ -392,13 +398,14 @@ bool CIntMqttHandler::publish_msg_to_eii(string strPubMsg,string strMsgTopic)
                         DO_LOG_ERROR("Context creation failed for pub topic ");
 			return false;
                 }
-        }
+        }	
     msg_envelope_t* g_msg = msgbus_msg_envelope_new(CT_JSON);
     msg_envelope_elem_body_t* topic;
     topic = msgbus_msg_envelope_new_string(strMsgTopic.c_str());
     msgbus_msg_envelope_put(g_msg, strPubMsg.c_str() , topic);
     std::string strTsReceived{""};
-    if (true != zmq_handler::publishJson(strTsReceived, g_msg, zmq_handler::getTopics()[0].c_str(),""))
+    // TO be improved
+    if (true != zmq_handler::publishJson(strTsReceived, g_msg, "MQTT_Export_WrReq",""))
     {
         DO_LOG_INFO("Message Published on EII message bus");
 	return false;
@@ -448,7 +455,7 @@ bool CIntMqttHandler::prepareWriteMsg(std::reference_wrapper<CSparkPlugDev>& a_r
 				if((root != NULL) && (! strMsgTopic.empty()))
 				{
 					string strPubMsg = cJSON_Print(root);
-            		                if(zmq_handler::eii_enable()==true){
+            		                if(zmq_handler::enable_EMB()==true){
 						DO_LOG_INFO("Publishing on EII msg bus");
 						bool publish_status = CIntMqttHandler::publish_msg_to_eii(strPubMsg, strMsgTopic);
 						if( publish_status != true ){
@@ -534,17 +541,16 @@ bool CIntMqttHandler::prepareCMDMsg(std::reference_wrapper<CSparkPlugDev>& a_ref
 			DO_LOG_DEBUG("Publishing message on internal MQTT for CMD:");
 			DO_LOG_DEBUG("Topic : " + strMsgTopic);
 			DO_LOG_DEBUG("Payload : " + strPubMsg);
-                        if(zmq_handler::eii_enable()==true){
+                        if(zmq_handler::enable_EMB()==true){
 				DO_LOG_INFO("Publishing on EII msg bus");
 				fprintf(stderr, "\nPublishing on EII msg bus\n");
 				bool publish_status = CIntMqttHandler::publish_msg_to_eii(strPubMsg, strMsgTopic);
 				if( publish_status != true ){
 					DO_LOG_ERROR("Failed to publish msg on EII");
-                                 }
+                    }
 
 			}else{
    		    	DO_LOG_INFO("Publishing on MQTT");
-				fprintf(stderr, "\nPublishing on MQTT\n");
 				publishMsg(strPubMsg, strMsgTopic);
 			}
 		}

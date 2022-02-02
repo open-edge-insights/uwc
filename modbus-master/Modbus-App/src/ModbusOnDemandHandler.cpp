@@ -1196,6 +1196,26 @@ bool onDemandHandler::processMsg(msg_envelope_t *msg,
 		const long a_lPriority,
 		const bool a_bIsWriteReq)
 {	
+	// msg_envelope_serialized_part_t *parts = NULL;
+	// int num_parts = msgbus_msg_envelope_serialize(msg, &parts);
+	// if (num_parts <= 0)
+	// {
+	//  	DO_LOG_ERROR("Failed to serialize message");
+	// }
+	// while(true){
+	// 	fprintf(stderr, "\nrrrrrrrrrrrrrrrr\n");
+        
+	// 	std::string sMsgBody(parts[0].bytes);
+    //     fprintf(stderr, "msg is");
+    //     fprintf(stderr, sMsgBody.c_str());		
+	// 	fprintf(stderr, stTopic.c_str());
+	// 	fprintf(stderr, "\n\n\n\n\n\n\n\n\n\n\n\n\n");
+	// 	fprintf(stderr, "__________________________ADITI______________________");
+ 	// 	fprintf(stderr, stTopic.c_str());
+ 	// 	fprintf(stderr, "__________________________ADITI______________________");
+
+	// }	
+
 	MbusAPI_t stMbusApiPram = {};
 	timespec_get(&stMbusApiPram.m_stOnDemandReqData.m_obtReqRcvdTS, TIME_UTC);
 	bool bRet = false;
@@ -1245,7 +1265,7 @@ bool onDemandHandler::processMsg(msg_envelope_t *msg,
 	stMbusApiPram.m_lPriority = a_lPriority;
 	
 	onDemandInfoHandler(&stMbusApiPram, stTopic, vpCallback, a_bIsWriteReq);
-
+     
 	if(msg != NULL)
 	{
 		msgbus_msg_envelope_destroy(msg);

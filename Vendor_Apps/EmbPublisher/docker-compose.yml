@@ -1,0 +1,38 @@
+version: '3.6'
+
+services:
+
+  emb_publisher:
+    depends_on:
+      - ia_eiibase
+      - ia_common
+      - ia_zmq_broker
+    build:
+      context: $PWD/../uwc/Vendor_Apps/EmbPublisher
+      dockerfile: $PWD/../uwc/Vendor_Apps/EmbPublisher/Dockerfile
+      args:
+        EII_VERSION: ${EII_VERSION}
+        EII_UID: ${EII_UID}
+        EII_USER_NAME: ${EII_USER_NAME}
+        DOCKER_REGISTRY: ${DOCKER_REGISTRY}
+        UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
+        CMAKE_INSTALL_PREFIX: ${EII_INSTALL_PATH}
+    image: ${DOCKER_REGISTRY}emb_publisher:${EII_VERSION}
+    container_name: emb_publisher
+    restart: unless-stopped
+    hostname: emb_publisher
+    user: root 
+    environment:
+      AppName: "EmbPublisher"
+      DEV_MODE: ${DEV_MODE}
+      no_proxy: ${ETCD_HOST}
+      ETCD_HOST: ${ETCD_HOST}
+      ETCD_CLIENT_PORT: ${ETCD_CLIENT_PORT}
+      ETCD_PREFIX: ${ETCD_PREFIX}
+    networks:
+      - eii
+    volumes:
+      - "vol_eii_socket:${SOCKET_DIR}"
+      - ./Certificates/EmbPublisher:/run/secrets/EmbPublisher
+      - ./Certificates/rootca:/run/secrets/rootca
+      - /home/eii-game2/repos/IEdgeInsights/uwc/Vendor_Apps/EmbPublisher/datafiles/UWC_Sample_DB_Publisher_config.json:/datafile/UWC_Sample_DB_Publisher_config.json

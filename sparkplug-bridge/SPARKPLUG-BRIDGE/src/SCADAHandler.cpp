@@ -553,6 +553,7 @@ void CSCADAHandler::subscribeTopics()
 {
 	try
 	{
+
 		m_MQTTClient.subscribe(CCommon::getInstance().getNCmdTopic());
 		m_MQTTClient.subscribe(CCommon::getInstance().getDCmdTopic() + "/+");
 
@@ -649,7 +650,6 @@ bool CSCADAHandler::publishMsgDDATA(const stRefForSparkPlugAction& a_stRefAction
 		}
 
 		string strMsgTopic = CCommon::getInstance().getDDataTopic() + "/" + strDeviceName;
-
 		if(true == a_stRefAction.m_refSparkPlugDev.get().prepareDdataMsg(sparkplug_payload, a_stRefAction.m_mapChangedMetrics))
 		{
 			//publish sparkplug message

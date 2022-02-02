@@ -1,28 +1,49 @@
 {
     "config": {
-    "enable_eii": true,
+    "enable_EMB": true,
 	"cert_type": ["zmq"]
     },
     "interfaces": {
-        "Publishers": [
+        "Subscribers": [
             {
-                "AllowedClients": [
-                    "*"
-                ],
-                "BrokerAppName": "ZmqBroker",
                 "EndPoint": {
                     "SocketDir": "/EII/sockets",
-                    "SocketFile": "frontend-socket"
+                    "SocketFile": "backend-socket"
                 },
-                "Name": "sparkplug_pub",
+                "Name": "BIRTH",
+                "PublisherAppName": "ZmqBroker",
                 "Topics": [
-                    "SP_ExportData"
+                    "BIRTH/"
                 ],
                 "Type": "zmq_ipc",
-                "brokered": true
-            }
-        ],
-        "Subscribers": [
+                "zmq_recv_hwm": 1000
+             },  
+             {
+                "EndPoint": {
+                    "SocketDir": "/EII/sockets",
+                    "SocketFile": "backend-socket"
+                },
+                "Name": "DATA",
+                "PublisherAppName": "ZmqBroker",
+                "Topics": [
+                    "DATA/"
+                ],
+                "Type": "zmq_ipc",
+                "zmq_recv_hwm": 1000
+             },    
+             {
+                "EndPoint": {
+                    "SocketDir": "/EII/sockets",
+                    "SocketFile": "backend-socket"
+                },
+                "Name": "DEATH",
+                "PublisherAppName": "ZmqBroker",
+                "Topics": [
+                    "DEATH/"
+                ],
+                "Type": "zmq_ipc",
+                "zmq_recv_hwm": 1000
+             },                                  
             {
                 "EndPoint": {
                     "SocketDir": "/EII/sockets",
@@ -179,6 +200,73 @@
                 "Type": "zmq_ipc",
                 "zmq_recv_hwm": 1000
             }
-        ]
+        
+        ],
+        "Publishers": [
+            {
+                "AllowedClients": [
+                    "*"
+                ],
+                "EndPoint": {
+                    "SocketDir": "/EII/sockets",
+                    "SocketFile": "frontend-socket"
+                },
+                "Name": "MQTT_Export_RdReq",
+                "Topics": [
+                    "MQTT_Export_RdReq"
+                ],
+                "Type": "zmq_ipc",
+                "BrokerAppName":"ZmqBroker",
+                "brokered":true
+            },
+            {
+                "AllowedClients": [
+                    "*"
+                ],
+                "EndPoint": {
+                    "SocketDir": "/EII/sockets",
+                    "SocketFile": "frontend-socket"
+                },
+                "Name": "MQTT_Export_WrReq",
+                "Topics": [
+                    "MQTT_Export_WrReq"
+                ],
+                "Type": "zmq_ipc",
+                "BrokerAppName":"ZmqBroker",
+                "brokered":true
+            },
+            {
+                "AllowedClients": [
+                    "*"
+                ],
+                "EndPoint": {
+                    "SocketDir": "/EII/sockets",
+                    "SocketFile": "frontend-socket"
+                },
+                "Name": "RT_MQTT_Export_RdReq_RT",
+                "Topics": [
+                    "RT_MQTT_Export_RdReq_RT"
+                ],
+                "Type": "zmq_ipc",
+                "BrokerAppName":"ZmqBroker",
+                "brokered":true
+            },
+            {
+                "AllowedClients": [
+                    "*"
+                ],
+                "EndPoint": {
+                    "SocketDir": "/EII/sockets",
+                    "SocketFile": "frontend-socket"
+                },
+                "Name": "RT_MQTT_Export_WrReq_RT",
+                "Topics": [
+                    "RT_MQTT_Export_WrReq_RT"
+                ],
+                "Type": "zmq_ipc",
+                "BrokerAppName":"ZmqBroker",
+                "brokered":true
+            }
+        ]    
     }
 }

@@ -1,0 +1,29 @@
+{
+  "config": {
+    "cert_type": ["zmq"],
+    "pub_name": "TestPub",
+    "msg_file": "UWC_Sample_DB_Publisher_config.json",
+    "data": "2.0.0.1",
+    "interval": "5ms"
+  },
+  "interfaces": {
+    "Publishers": [
+      {
+        "AllowedClients": [
+           "*"
+        ],
+       "EndPoint": {
+          "SocketDir": "/EII/sockets",
+          "SocketFile": "frontend-socket"
+        },
+       "Name": "TestPub",
+       "Topics": [
+          "BIRTH/UWC_1/COM26"
+        ],
+       "Type": "zmq_ipc",
+       "BrokerAppName": "ZmqBroker",
+       "brokered": true
+      }
+    ]
+  }
+}

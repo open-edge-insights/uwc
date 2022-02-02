@@ -9,4 +9,4 @@ AppContexts:
 - uwc/modbus-master/modbus_RTU
 - uwc/sparkplug-bridge
 - uwc/kpi-tactic
- 
+- Samples/subscriber/cpp/ubuntu 
