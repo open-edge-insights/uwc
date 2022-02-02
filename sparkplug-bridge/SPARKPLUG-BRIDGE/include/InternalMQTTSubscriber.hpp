@@ -67,6 +67,8 @@ class CIntMqttHandler : public CMQTTBaseHandler
 
 	void handleConnMonitoringThread();
 	void handleConnSuccessThread();
+	//void sub_data_from_eii();
+    //void sub_data_from_eii(std::string eachTopic);
 
 	/**function to set last connection status*/
 	void setLastConStatus(eIntMQTTConStatus a_ConsStatus)

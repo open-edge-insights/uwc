@@ -49,7 +49,7 @@ namespace
 	std::map<std::string, stZmqSubContext> g_mapSubContextMap;
 	std::map<std::string, stZmqPubContext> g_mapPubContextMap;
 	std::vector<std::string> topics;
-	bool enable_eii;
+	bool enable_EMB;
 }
 
 // lamda function to return true if given key matches the given pattern
@@ -247,13 +247,13 @@ bool zmq_handler::prepareCommonContext(std::string topicType)
 	return true;
 }
 
-bool zmq_handler::eii_enable(){
+bool zmq_handler::enable_EMB(){
 	ConfigMgr* pub_ch = new ConfigMgr();
 	AppCfg* cfg = pub_ch->getAppConfig();
-    config_value_t* app_config = cfg->getConfigValue("enable_eii");
-	bool enable_eii = app_config->body.boolean;
+    config_value_t* app_config = cfg->getConfigValue("enable_EMB");
+	bool enable_EMB = app_config->body.boolean;
     
-	if(enable_eii==true){
+	if(enable_EMB==true){
 	 	fprintf(stderr, "\n Publishing on EII \n");
 		return true;
 	}else{

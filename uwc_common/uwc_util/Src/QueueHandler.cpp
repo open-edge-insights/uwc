@@ -95,7 +95,6 @@ bool CQueueHandler::pushMsg(CMessageObject msg)
 	{
 		std::lock_guard<std::mutex> lock(m_queueMutex);
 		m_msgQ.push(msg);
-
 		sem_post(&m_semaphore);
 	}
 	catch(std::exception &ex)

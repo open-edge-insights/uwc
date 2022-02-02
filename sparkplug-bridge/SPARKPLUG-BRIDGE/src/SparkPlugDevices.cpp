@@ -996,7 +996,6 @@ bool CSparkPlugDev::processRealDeviceUpdateMsg(const std::string a_sPayLoad, std
 		// At this point, all required fields are retrieved to make decisions
 		// metric-name, status, error-code (if any), value, usec, lastGoodUsec (if present)
 		// Now validate these fields values
-
 		bool bIsGood = true, bDeathErrorCode = false;
 		bRet = validateRealDeviceUpdateData(sValue, sStatus, error_code, bIsGood, bDeathErrorCode);
 		if(false == bRet)

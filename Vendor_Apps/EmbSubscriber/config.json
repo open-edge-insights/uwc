@@ -1,0 +1,21 @@
+{
+  "config": {
+          "cert_type": ["zmq"]
+  },
+  "interfaces": {
+    "Subscribers": [
+      {
+        "Name": "TestSub",
+        "PublisherAppName": "ZmqBroker",
+        "Type": "zmq_ipc",
+        "EndPoint": {
+          "SocketDir": "/EII/sockets",
+          "SocketFile": "backend-socket"
+        },
+        "Topics": [
+          "MQTT_Export_WrReq"
+        ]
+      }
+    ]
+  }
+}

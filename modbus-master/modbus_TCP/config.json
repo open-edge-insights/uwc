@@ -82,7 +82,7 @@
                 "Type": "zmq_ipc",
                 "zmq_recv_hwm": 1000
             }
-        ],
+        ],        
         "Publishers": [
             {
                 "AllowedClients": [

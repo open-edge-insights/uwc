@@ -24,17 +24,24 @@
 #include "ConfigManager.hpp"
 #include <iterator>
 #include <vector>
-
+#include <bits/stdc++.h>
 #include "SCADAHandler.hpp"
 #include "InternalMQTTSubscriber.hpp"
 #include "SparkPlugDevMgr.hpp"
 #include "ZmqHandler.hpp"
+//#include <boost/lexical_cast.hpp>
+#include <iostream>
 #ifdef UNIT_TEST
 #include <gtest/gtest.h>
 #endif
-
+#define POLLING			 		"_PolledData"
+#define POLLING_RT 				"_PolledData_RT"
+#define READ_RESPONSE 			"_RdResp"
+#define READ_RESPONSE_RT		"_RdResp_RT"
+#define WRITE_RESPONSE 			"_WrResp"
+#define WRITE_RESPONSE_RT		"_WrResp_RT"
 vector<std::thread> g_vThreads;
-
+std::atomic<bool> sp_shouldStop(false);
 std::atomic<bool> g_shouldStop(false);
 
 #define APP_VERSION "0.0.6.6"
@@ -75,7 +82,6 @@ void processExternalMqttMsgs(CQueueHandler& a_qMgr)
 void processInternalMqttMsgs(CQueueHandler& a_qMgr)
 {
 	string eiiTopic = "";
-
 	try
 	{
 		while (false == g_shouldStop.load())
@@ -134,86 +140,126 @@ bool initDataPoints()
 	}
 	return true;
 }
-/**
- * Subscribe messages from EII message bus
- * @return true/false based on success/failure
- */
-bool sub_data_from_eii(std::atomic<bool> *loop)
-{
-   ConfigMgr* sub_ch = NULL;
-   recv_ctx_t* g_sub_ctx = NULL;
-   void* g_msgbus_ctx = NULL;
-   msg_envelope_t* msg = NULL;
-   DO_LOG_INFO("subscriber");
-   int num_of_subscriber = zmq_handler::getNumPubOrSub("sub");
-   if (num_of_subscriber >= 1)
-    {
-		if (true != zmq_handler::prepareCommonContext("sub"))
-		{
-			DO_LOG_ERROR("Context creation failed for pub topic ");
+
+bool processMsg(msg_envelope_t *msg,std::string eachTopic){
+
+	msg_envelope_elem_body_t* data;
+	msg_envelope_serialized_part_t* parts = NULL;
+	if ((eachTopic != "BIRTH/") && (eachTopic != "DATA/")){
+		msgbus_ret_t msgRet = msgbus_msg_envelope_get(msg, "data_topic", &data);
+		if(msgRet != MSG_SUCCESS)
+		{ 
+	    		DO_LOG_ERROR("topic key not present in zmq message");
 			return false;
-		}
+    		} 
 	}
-	msgbus_ret_t ret;
-	zmq_handler::stZmqContext& context = zmq_handler::getCTX("TCP_PolledData");
-	zmq_handler::stZmqSubContext& subContext = zmq_handler::getSubCTX("TCP_PolledData");
-        void *msgbus_ctx = context.m_pContext;
-	recv_ctx_t *sub_ctx = subContext.sub_ctx;
-        if((msgbus_ctx==NULL) || (sub_ctx==NULL))
-        {
-        	DO_LOG_ERROR("MSG Bus or Subscriber context is Null");
-		return false;
-        }
-	while (loop->load()) {  
-	    ret = msgbus_recv_wait(msgbus_ctx, sub_ctx, &msg);
-	    if (ret != MSG_SUCCESS)
-	    {
-       	// Interrupt is an acceptable error
-		    if (ret == MSG_ERR_EINTR)
-		    {
-	    	    	DO_LOG_ERROR("received MSG_ERR_EINT");
-		    }
-		    DO_LOG_ERROR("Failed to receive message errno: " + std::to_string(ret));
-	
-	    }  
-	    msg_envelope_elem_body_t* data;
-	    msgbus_ret_t msgRet = msgbus_msg_envelope_get(msg, "data_topic", &data);
-	    if(msgRet != MSG_SUCCESS)
-	    { 
-	    	DO_LOG_ERROR("topic key not present in zmq message");
-		return false;
-	    }   
-	    std::string sRcvdTopic{data->body.string}; 
-	    msg_envelope_serialized_part_t *parts = NULL;
-	    int num_parts = msgbus_msg_envelope_serialize(msg, &parts);
-	    if (num_parts <= 0)
-	    {
-	    	DO_LOG_ERROR("Failed to serialize message");
-	    }
-	    else if(NULL != parts)
-	    {
-	    	if(NULL != parts[0].bytes)
-		{
-			std::string sMsgBody(parts[0].bytes);
-                        fprintf(stderr, "msg is");
-            	        fprintf(stderr, sMsgBody.c_str());
-            	        fprintf(stderr, "topic is");
-			fprintf(stderr, sRcvdTopic.c_str());
-		}
-	   }else
-	   {
-           	DO_LOG_ERROR("NULL pointer received");
-	   }
-	   if(NULL != parts)
-	   {
-	   	msgbus_msg_envelope_serialize_destroy(parts, num_parts);
-		parts = NULL;
-	   }   
-
-	}  
-    return true;
-
+	std::string sRcvdTopic{data->body.string}; 
+	std::string sub;
+    int num_parts = msgbus_msg_envelope_serialize(msg, &parts);
+    // TO be improved 
+    if(NULL != parts[0].bytes)
+	{
+		std::string sMsgBody(parts[0].bytes);
+		if ((eachTopic == "BIRTH/") || (eachTopic == "DATA/")){
+			int len = sMsgBody.size();
+			int size = sMsgBody.find(",");
+			sub = sMsgBody.substr(0,size);
+			sMsgBody = sMsgBody.substr(size,len);
+			len = sub.size();
+			size = sub.find(":");
+			sRcvdTopic = sub.substr(size,len);
+			sRcvdTopic.erase(0,2);
+			size = sRcvdTopic.find("\"");
+			sRcvdTopic = sRcvdTopic.substr(0,size);
+			sMsgBody.replace(0,1,"{");
+			}		
+		fprintf(stderr, "msg is \n");
+		fprintf(stderr,sMsgBody.c_str());
+		fprintf(stderr, "topic is \n");
+		fprintf(stderr, sRcvdTopic.c_str());
+		CMessageObject oMsg{sRcvdTopic,sMsgBody};
+		QMgr::getDatapointsQ().pushMsg(oMsg);
+	}
+	return true;
 }
+void sub_data_from_eii(std::string eachTopic,zmq_handler::stZmqContext context, zmq_handler::stZmqSubContext subContext,globalConfig::COperation operation){
+	globalConfig::set_thread_sched_param(operation);
+	globalConfig::display_thread_sched_attr(eachTopic + " listenOnEII");
+	int qos = operation.getQos();	
+  	ConfigMgr* sub_ch = NULL;
+    recv_ctx_t* g_sub_ctx = NULL;
+    void* g_msgbus_ctx = NULL;
+    msg_envelope_t* msg = NULL;
+	msgbus_ret_t ret;
+    void *msgbus_ctx = context.m_pContext;
+	recv_ctx_t *sub_ctx = subContext.sub_ctx;
+    if((msgbus_ctx==NULL) || (sub_ctx==NULL))
+    {
+       	DO_LOG_ERROR("MSG Bus or Subscriber context is Null");
+    }
+    while ((false == sp_shouldStop.load()) && (msgbus_ctx != NULL) && (sub_ctx != NULL)) {  
+		try
+		{	
+			ret = msgbus_recv_wait(msgbus_ctx, sub_ctx, &msg);
+			if (ret != MSG_SUCCESS)
+			{
+				if (ret == MSG_ERR_EINTR)
+				{
+	    			DO_LOG_ERROR("received MSG_ERR_EINT");
+				}
+			DO_LOG_ERROR("Failed to receive message errno: " + std::to_string(ret));
+
+    		}
+		processMsg(msg,eachTopic);
+		}
+		catch (std::exception &ex)
+		{
+			DO_LOG_FATAL((std::string)ex.what()+" for topic : "+eachTopic);
+		}		
+
+	}    
+}
+
+void getOperation(std::string topic, globalConfig::COperation& operation)
+{
+	if(std::string::npos != topic.find(POLLING_RT,
+			topic.length() - std::string(POLLING_RT).length(),
+			std::string(POLLING_RT).length()))
+	{
+		operation = globalConfig::CGlobalConfig::getInstance().getOpPollingOpConfig().getRTConfig();
+	}
+	else if(std::string::npos != topic.find(POLLING,
+			topic.length() - std::string(POLLING).length(),
+			std::string(POLLING).length()))
+	{
+		operation = globalConfig::CGlobalConfig::getInstance().getOpPollingOpConfig().getNonRTConfig();
+	}
+	else if(std::string::npos != topic.find(READ_RESPONSE_RT,
+			topic.length() - std::string(READ_RESPONSE_RT).length(),
+			std::string(READ_RESPONSE_RT).length()))
+	{
+		operation = globalConfig::CGlobalConfig::getInstance().getOpOnDemandReadConfig().getRTConfig();
+	}
+	else if(std::string::npos != topic.find(WRITE_RESPONSE_RT,
+			topic.length() - std::string(WRITE_RESPONSE_RT).length(),
+			std::string(WRITE_RESPONSE_RT).length()))
+	{
+		operation = globalConfig::CGlobalConfig::getInstance().getOpOnDemandWriteConfig().getRTConfig();
+	}
+	else if(std::string::npos != topic.find(READ_RESPONSE,
+			topic.length() - std::string(READ_RESPONSE).length(),
+			std::string(READ_RESPONSE).length()))
+	{
+		operation = globalConfig::CGlobalConfig::getInstance().getOpOnDemandReadConfig().getNonRTConfig();
+	}
+	else if(std::string::npos != topic.find(WRITE_RESPONSE,
+			topic.length() - std::string(WRITE_RESPONSE).length(),
+			std::string(WRITE_RESPONSE).length()))
+	{
+		operation = globalConfig::CGlobalConfig::getInstance().getOpOnDemandWriteConfig().getNonRTConfig();
+	}
+}
+
 
 /**
  * Main function of application
@@ -268,20 +314,40 @@ int main(int argc, char *argv[])
 	::testing::InitGoogleTest(&argc, argv);
 	return RUN_ALL_TESTS();
 #endif
+
+    if(zmq_handler::enable_EMB()==true){
+
+		std::vector<std::string> vecTopics;
+		int num_of_subscribers = zmq_handler::getNumPubOrSub("sub");
+		if(num_of_subscribers >= 1)
+		{
+			if (true != zmq_handler::prepareCommonContext("sub"))
+			{
+				DO_LOG_ERROR("Context creation failed for sub topic");
+					
+			}
+		}
+		else
+		{
+			DO_LOG_ERROR("could not find any subscribers in subscriber Configuration");
+		}	
+
+        bool tempRet = zmq_handler::returnAllTopics("sub", vecTopics);
+		for(std::string eachTopic : vecTopics) {			
+
+			zmq_handler::stZmqContext& context = zmq_handler::getCTX(eachTopic);
+			zmq_handler::stZmqSubContext& subContext = zmq_handler::getSubCTX(eachTopic);
+			globalConfig::COperation objOperation;
+		    getOperation(eachTopic, objOperation);
+			g_vThreads.push_back(std::thread(sub_data_from_eii,eachTopic,context,subContext,objOperation));	
+		}
+
+
+
+	}
 		g_vThreads.push_back(std::thread(processInternalMqttMsgs, std::ref(QMgr::getDatapointsQ())));
 		g_vThreads.push_back(std::thread(processExternalMqttMsgs, std::ref(QMgr::getScadaSubQ())));
-                if(zmq_handler::eii_enable() == true){
-			DO_LOG_INFO("Subscribing from EII msg bus");
-		    	fprintf(stderr, "\nSubscribing from EII msg bus\n");
-			std::atomic<bool> *loop;
-		        loop = new std::atomic<bool>;
-		        *loop = true;
-                    	bool subscribe_status = sub_data_from_eii(loop);
-			if( subscribe_status != true ){
-				DO_LOG_ERROR("Failed to publish msg on EII");
-			}
-			delete loop;
-		}		
+	
 		for (auto &th : g_vThreads)
 		{
 			if (th.joinable())
