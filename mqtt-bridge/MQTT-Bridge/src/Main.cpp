@@ -228,7 +228,7 @@ void listenOnEII(std::string topicPrefix, zmq_handler::stZmqContext context, zmq
 		}
 		catch (std::exception &ex)
 		{
-			DO_LOG_FATAL((std::string)ex.what()+" for topic : "+topic);
+			DO_LOG_FATAL((std::string)ex.what()+" for topic : "+topicPrefix);
 		}
 	}//while ends
 
@@ -376,7 +376,8 @@ bool publishEIIMsg(CMessageObject &a_oRcvdMsg, const std::string &embTopic)
 std::string mapMqttToEMBTopic(std::string mqttTopic, bool isRealTime) {
 
 	// delimeter
-	char delim = '/';
+	const char* delim = "/";
+	std::string delim_Str(delim);
 
 	// To store the index of last
 	// character found
@@ -387,15 +388,15 @@ std::string mapMqttToEMBTopic(std::string mqttTopic, bool isRealTime) {
 
 	// If topic doesn't have
 	// character delim present in it
-	if (index == string::npos) {
-		throw "Delimeter " + delim + " is not present in the topic" + mqttTopic + "received from MQTT client";
+	if (index == std::string::npos) {
+		throw "Delimeter " + delim_Str + " is not present in the topic" + mqttTopic + "received from MQTT client";
 	}
 	
 	std::string dataPointAbsPath = mqttTopic.substr(0,index); // ABsolute path of the data point : example: /flowmeter/PL0/D13 
 	index +=1; // update index to teh char immediately after last "/"
-	std::string operation = str.substr(index);
+	std::string operation = mqttTopic.substr(index);
 	std::string rtOrNrt = (isRealTime == true)?"RT":"NRT";
-	std::string embTopic = rtOrNrt + "/" + operation + "/" + dataPointAbsPath; // RT/read//flowmeter/PL0/D13 or NRT/read/flowmeter/PL0/D13
+	std::string embTopic = rtOrNrt + "/" + operation + dataPointAbsPath; // RT/read//flowmeter/PL0/D13 or NRT/read/flowmeter/PL0/D13
 	return embTopic;
 }
 
@@ -427,7 +428,7 @@ void processMsgToSendOnEII(CMessageObject &recvdMsg, const bool isRealtime)
 		std::string embTopic = mapMqttToEMBTopic(rcvdTopic, isRealtime);
 
 		//Get the context for this EMB PUB topic
-		zmq_handler::prepareContext(true, zmq_handler::m_pub_msgbus_ctx, embTopic, zmq_handler::m_pub_config);
+		zmq_handler::prepareContext(true, (zmq_handler::getPubCtxCfg()).m_pub_msgbus_ctx, embTopic, (zmq_handler::getPubCtxCfg()).m_pub_config);
 
 		if (embTopic.empty())
 		{
