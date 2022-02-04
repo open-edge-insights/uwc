@@ -348,7 +348,6 @@ void globalConfig::COperation::build(const YAML::Node& a_baseNode,
 		}
 	}
 
-	DO_LOG_INFO("ngk-BEFORE- RETRIES");
 	// validate retries
 	if (validateParam(a_baseNode[ops], "retries", DT_INTEGER) != 0)
 	{
@@ -370,7 +369,6 @@ void globalConfig::COperation::build(const YAML::Node& a_baseNode,
 		}
 	}
 
-	DO_LOG_INFO("ngk-BEFORE- QOS");
 	// validate qos
 	if (validateParam(a_baseNode[ops], "qos", DT_INTEGER) != 0)
 	{
@@ -412,7 +410,6 @@ void globalConfig::COperationInfo::buildOperationInfo(const YAML::Node& a_baseNo
 {
 	/// fill out operationType and default real-time
 	a_refOpInfo.m_opType = a_eOpType;
-	DO_LOG_INFO("NGK- BEFORE DEFAULT-REALTIME");
 	if (validateParam(a_baseNode, "default_realtime", DT_BOOL) != 0)
 	{
 		a_refOpInfo.m_defaultIsRT = DEFAULT_REALTIME;
@@ -449,7 +446,7 @@ void globalConfig::CSparkplugData::buildSparkPlugInfo(const YAML::Node& a_baseNo
 	{
 		a_refOpration.m_sGroupId = a_baseNode["group_id"].as<std::string>();
 	}
-	DO_LOG_INFO("NGK-BEFORE EDGE NODE ID");
+	
 	if (validateParam(a_baseNode, "edge_node_id", DT_STRING) != 0)
 	{
 		a_refOpration.m_stNodeName = DEFAULT_NODE_NAME;

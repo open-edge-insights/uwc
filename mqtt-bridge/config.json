@@ -12,7 +12,7 @@
                 "Name": "Mqtt-bridge-Subscriber",
                 "PublisherAppName": "ZmqBroker",
                 "Topics": [
-                    "/TCP/RT/writeResponse","/TCP/RT/readResponse","/TCP/RT/update","/TCP/NRT/writeResponse","/TCP/NRT/readResponse","/TCP/NRT/update","/RTU/RT/writeResponse","/RTU/RT/readResponse","/RTU/RT/update","/RTU/NRT/writeResponse","/RTU/NRT/readResponse","/RTU/NRT/update"
+                    "TCP/RT/writeResponse","TCP/RT/readResponse","TCP/RT/update","TCP/NRT/writeResponse","TCP/NRT/readResponse","TCP/NRT/update","RTU/RT/writeResponse","RTU/RT/readResponse","RTU/RT/update","RTU/NRT/writeResponse","RTU/NRT/readResponse","RTU/NRT/update"
                 ],
                 "Type": "zmq_ipc",
                 "zmq_recv_hwm": 1000

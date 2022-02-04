@@ -41,6 +41,8 @@ std::mutex fileMutex;
 std::mutex __ctxMapLock;
 std::mutex __SubctxMapLock;
 std::mutex __PubctxMapLock;
+std::mutex __mtxUniqueTracker;
+std::mutex __mtxMakePubThSafe;
 
 // Unnamed namespace to define globals
 namespace
@@ -48,6 +50,8 @@ namespace
 	std::map<std::string, stZmqContext> g_mapContextMap;
 	std::map<std::string, stZmqSubContext> g_mapSubContextMap;
 	std::map<std::string, stZmqPubContext> g_mapPubContextMap;
+	std::map<std::string,int> g_mapUniqueTopicTracker;
+	stPubCtxCfg g_pubCtxCfg;
 }
 
 // lamda function to return true if given key matches the given pattern
@@ -78,11 +82,20 @@ bool zmq_handler::prepareContext(bool a_bIsPub,
 		std::string a_sTopic,
 		config_t *config)
 {
+	if(a_bIsPub && isPubTopicPresentInMap(a_sTopic)) { // if pub topic
+		DO_LOG_DEBUG("This Pub topic" + a_sTopic + "is already present in the map, hence no need of getting the context again for this, so just exit the prepareContext");
+		return false; // If this PUB topic "a_sTopic" is already present in the MAP then no need of getting the context again for this, so just exit the prepareContext().
+	}
+	if(!a_bIsPub && isSubTopicPresentInMap(a_sTopic)) { // if sub topic
+		DO_LOG_DEBUG("This SUB topic " + a_sTopic + "is already present in the map, hence no need of getting the context again for this, so just exit the prepareContext");
+		return false; // If this SUB topic "a_sTopic" is already present in the MAP then no need of getting the context again for this, so just exit the prepareContext().
+	}
+
 	bool bRetVal = false;
 	msgbus_ret_t retVal = MSG_SUCCESS;
 	publisher_ctx_t* pub_ctx = NULL;
 	recv_ctx_t* sub_ctx = NULL;
-
+	bool tempIsPub = false;
 	if(NULL == msgbus_ctx || NULL == config || a_sTopic.empty())
 	{
 		DO_LOG_ERROR("NULL pointers received while creating context for topic ::" + a_sTopic);
@@ -90,20 +103,34 @@ bool zmq_handler::prepareContext(bool a_bIsPub,
 		goto err;
 	}
 
-	if(a_bIsPub) 
+	if(a_bIsPub) // if pub
 	{
-		retVal = msgbus_publisher_new(msgbus_ctx, a_sTopic.c_str(), &pub_ctx);
+		if(!isPubTopicPresentInMap(a_sTopic)) {			
+			if(isTopicUnique(a_sTopic)) {
+				std::unique_lock<std::mutex> pubLock(__mtxMakePubThSafe);
+				retVal = msgbus_publisher_new(msgbus_ctx, a_sTopic.c_str(), &pub_ctx);
+				pubLock.unlock();
+				tempIsPub = true;
+			}
+		}
 	}
 	else // else if sub
 	{
-		retVal = msgbus_subscriber_new(msgbus_ctx, a_sTopic.c_str(), NULL, &sub_ctx);
+		if(!isSubTopicPresentInMap(a_sTopic)) {
+			retVal = msgbus_subscriber_new(msgbus_ctx, a_sTopic.c_str(), NULL, &sub_ctx);
+			tempIsPub = false;
+		}
 	}
 
 	if(retVal != MSG_SUCCESS)
 	{
 		/// cleanup
-		DO_LOG_ERROR("Failed to create publisher or subscriber for topic "+a_sTopic + " with error code:: "+std::to_string(retVal));
-		//< Failed to create publisher or subscriber topic's message bus context so remove context, destroy message bus context created.
+		if(tempIsPub) {
+			DO_LOG_ERROR("Failed to create publisher for topic "+a_sTopic + " with error code:: "+std::to_string(retVal));
+		} else {
+			DO_LOG_ERROR("Failed to create  subscriber for topic "+a_sTopic + " with error code:: "+std::to_string(retVal));
+
+		}
 		goto err;
 	}
 	else
@@ -125,7 +152,6 @@ bool zmq_handler::prepareContext(bool a_bIsPub,
 			zmq_handler::insertSubCTX(a_sTopic, objTempSubCtx);
 		}
 	}
-
 	return bRetVal;
 
 err:
@@ -194,53 +220,43 @@ bool zmq_handler::prepareCommonContext(std::string topicType)
         			DO_LOG_ERROR("Failed to get message bus config");
         			return false;
     			}
-				m_pub_config = pub_config;
+				g_pubCtxCfg.m_pub_config = pub_config;
+				char* pub_config_char = configt_to_char(pub_config);
+				std::string pub_config_str = std::string(pub_config_char);
+
 				g_msgbus_ctx = msgbus_initialize(pub_config);
     			if (g_msgbus_ctx == NULL) {
         			DO_LOG_ERROR("Failed to initialize message bus");
         			return false;
     			}
-				m_pub_msgbus_ctx = g_msgbus_ctx;
-
-				// std::vector<std::string> topics = pub_ctx->getTopics();
-				// if(topics.empty()){
-        		// 	DO_LOG_ERROR("Failed to get topics");
-        		// 	return false;
-    			// }
-
-				// for (auto topic_it = 0; topic_it < topics.size(); topic_it++) {
-     			// 	std::string ind_topic = topics.at(topic_it);
-				// 	 DO_LOG_INFO("Topic for ZMQ Publish is :: " + ind_topic);
-				// 	prepareContext(true, g_msgbus_ctx, ind_topic, pub_config);
-					
-    			// }
+				g_pubCtxCfg.m_pub_msgbus_ctx = g_msgbus_ctx;
 			}
 		} 
 		else {  // else if its sub
 				int numSubscribers = CfgManager::Instance().getEiiCfgMgr()->getNumSubscribers();
 				for(auto it =0; it<numSubscribers; ++it) {
-				sub_ctx = CfgManager::Instance().getEiiCfgMgr()->getSubscriberByIndex(it);
-				sub_config = sub_ctx->getMsgBusConfig();
-    			if (sub_config == NULL) {
-        			DO_LOG_ERROR("Failed to get message bus config");
-        			return false;
-    			}
-				g_msgbus_ctx = msgbus_initialize(sub_config);
-    			if (g_msgbus_ctx == NULL) {
-        			LOG_ERROR_0("Failed to initialize message bus");
-        			return false;
-    			}
-				std::vector<std::string> topics = sub_ctx->getTopics();
-				if(topics.empty()){
-        			DO_LOG_ERROR("Failed to get topics");
-        			return false;
-    			}
-				for (auto topic_it = 0; topic_it < topics.size(); topic_it++) {
-     				std::string ind_topic = topics.at(topic_it);
-					prepareContext(false, g_msgbus_ctx, ind_topic, sub_config);
-    			}
-			}
-	//	}	// end of sub part else
+					sub_ctx = CfgManager::Instance().getEiiCfgMgr()->getSubscriberByIndex(it);
+					sub_config = sub_ctx->getMsgBusConfig();
+    				if (sub_config == NULL) {
+        				DO_LOG_ERROR("Failed to get message bus config");
+        				return false;
+    				}
+					g_msgbus_ctx = msgbus_initialize(sub_config);
+    				if (g_msgbus_ctx == NULL) {
+        				LOG_ERROR_0("Failed to initialize message bus");
+        				return false;
+    				}
+					std::vector<std::string> topics = sub_ctx->getTopics();
+					if(topics.empty()){
+        				DO_LOG_ERROR("Failed to get topics");
+        				return false;
+    				}
+					for (auto topic_it = 0; topic_it < topics.size(); topic_it++) {
+     					std::string ind_topic = topics.at(topic_it);
+						prepareContext(false, g_msgbus_ctx, ind_topic, sub_config);
+    				}
+				}
+		}	// end of sub part else
 	} // end of if eii configmgr created if() 
 	else
 	{
@@ -429,6 +445,9 @@ bool zmq_handler::publishJson(std::string &a_sUsec, msg_envelope_t* msg, const s
 			}
 		}
 		ret = msgbus_publisher_publish(msgbus_ctx.m_pContext, (publisher_ctx_t*)pub_ctx, msg);
+		if(ret == MSG_SUCCESS) {
+			DO_LOG_DEBUG("Successfully published the message on the topic " + a_sTopic);
+		}
 	}
 
 	if(ret != MSG_SUCCESS)
@@ -477,4 +496,47 @@ size_t zmq_handler::getNumPubOrSub(std::string topicType) {
 		count = CfgManager::Instance().getEiiCfgMgr()->getNumSubscribers();
 	}
 	return count;
+}
+stPubCtxCfg& zmq_handler::getPubCtxCfg() {
+	return g_pubCtxCfg;	
+}
+
+bool zmq_handler::isPubTopicPresentInMap(std::string pubTopic) {
+	if( g_mapPubContextMap.find(pubTopic) == g_mapPubContextMap.end() ) {
+		return false; // pub topic not found in map
+	} else {
+		return true; // pub topic found in map
+	}
+}
+
+bool zmq_handler::isSubTopicPresentInMap(std::string subTopic) {
+	if( g_mapSubContextMap.find(subTopic) == g_mapSubContextMap.end() ) {
+		return false; // sub topic not found in map
+	} else {
+		return true; // sub topic found in map
+	}
+}
+
+bool zmq_handler::isTopicUnique(std::string a_sTopic)
+{
+	DO_LOG_DEBUG("Start: ");
+	bool bRet = true;
+	try
+	{
+		std::unique_lock<std::mutex> lck(__mtxUniqueTracker);
+
+		/// insert the data
+		g_mapUniqueTopicTracker.insert(std::pair <std::string, int> (a_sTopic, 1));
+		bRet=true; // yes the topic is unique
+		DO_LOG_DEBUG("The topic" + a_sTopic + " is NOT inserted in hashmap yet, so inserting now");
+	}
+	catch (std::exception &e)
+	{
+		DO_LOG_FATAL(e.what());
+		DO_LOG_DEBUG("The topic" + a_sTopic + " is already inserted in hashmap");
+		bRet = false; // topic is not unique
+	}
+	DO_LOG_DEBUG("End: ");
+
+	return bRet;
 }

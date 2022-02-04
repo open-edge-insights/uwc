@@ -358,18 +358,18 @@ int main(int argc, char* argv[])
 				// exit the application if the context creation fails
 				return -1; 
 			}
-			else
-			{
-				std::vector<std::string> vecTopics;
-				bool tempRet = zmq_handler::returnAllTopics("pub", vecTopics);
-				if(tempRet == false) {
-					return -1;
-				} 
+			// else
+			// {
+			// 	std::vector<std::string> vecTopics;
+			// 	bool tempRet = zmq_handler::returnAllTopics("pub", vecTopics);
+			// 	if(tempRet == false) {
+			// 		return -1;
+			// 	} 
 
-				for(auto eachTopic : vecTopics) {
-					PublishJsonHandler::instance().setTopicForOperation(eachTopic);
-				} 
-			}
+			// 	for(auto eachTopic : vecTopics) {
+			// 		PublishJsonHandler::instance().setTopicForOperation(eachTopic);
+			// 	} 
+			// }
 		}
 		else
 		{

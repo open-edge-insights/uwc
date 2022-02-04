@@ -48,8 +48,12 @@ extern std::function<bool(std::string, std::string)> regExFun;
 /** zmq_handler is a namespace holding context regarding information and functions for zmq communication*/
 namespace zmq_handler
 {
-	void* m_pub_msgbus_ctx = NULL;
-	config_t* m_pub_config;
+	struct stPubCtxCfg
+	{
+		void* m_pub_msgbus_ctx;
+		config_t* m_pub_config;
+	};
+
 	/** structure maintain context related information*/
 	struct stZmqContext
 	{
@@ -139,6 +143,29 @@ namespace zmq_handler
 	 *  @return size_t       : [out] count of publishers or subscribers
 	 **/
 	 size_t getNumPubOrSub(std::string topicType);
+	
+	/**
+	 *  function to return number of PUBLISHER config & CONTEXT
+	 *  @param topicType     : [in] pub or sub
+	 *  @return size_t       : [out] count of publishers or subscribers
+	 **/
+	stPubCtxCfg& getPubCtxCfg();
+
+	bool isTopicUnique(std::string a_sTopic);
+
+	/**
+	 *  function to return if a key is present in the PUB Context map g_mapPubContextMap or not
+	 *  @param topic     : [in] Pub topic
+	 *  @return bool       : [out] true - if the "topic" is present in the map. False - if the "topic" is not present in the map.
+	 **/
+	bool isPubTopicPresentInMap(std::string pubTopic);
+	
+	/**
+	 *  function to return if a key is present in the SUB Context map g_mapSubContextMap or not
+	 *  @param topic     : [in] Sub topic
+	 *  @return bool       : [out] true - if the "topic" is present in the map. False - if the "topic" is not present in the map.
+	 **/
+	bool isSubTopicPresentInMap(std::string subTopic);
 }
 
 #endif /* INCLUDE_INC_ZMQHANDLDER_HPP_ */
