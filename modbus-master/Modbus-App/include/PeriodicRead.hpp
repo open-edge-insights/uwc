@@ -88,7 +88,7 @@ private:
 	bool checkForRetry(struct stStackResponse &a_stStackResNode, eMbusCallbackType operationCallbackType);
 	void getCallbackForRetry(void** callbackFunc, eMbusCallbackType operationCallbackType);
 
-	bool prepareResponseJson(msg_envelope_t** a_pmsg, std::string &a_sValue, const CRefDataForPolling* a_objReqData, stStackResponse a_stResp, struct timespec *a_pstTsPolling);
+	bool prepareResponseJson(std::string &a_rtOrNrt, std::string &a_responseMqttTopic, msg_envelope_t** a_pmsg, std::string &a_sValue, const CRefDataForPolling* a_objReqData, stStackResponse a_stResp, struct timespec *a_pstTsPolling);
 	bool postResponseJSON(stStackResponse& a_stResp, const CRefDataForPolling* a_objReqData, struct timespec *a_pstTsPolling);
 	bool postResponseJSON(stStackResponse& a_stResp);
 
@@ -99,6 +99,7 @@ private:
 	CPeriodicReponseProcessor();
 	CPeriodicReponseProcessor(CPeriodicReponseProcessor const&);             /// copy constructor is private
 	CPeriodicReponseProcessor& operator=(CPeriodicReponseProcessor const&);  /// assignment operator is private
+	std::string mapMqttToEMBRespTopic(std::string mqttRespTopic, bool isRealTime, std::string tcpOrRtu);	
 
 public:
 	static CPeriodicReponseProcessor& Instance();

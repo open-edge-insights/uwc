@@ -98,7 +98,7 @@ static unsigned long get_micros(struct timespec ts) {
  * @return 	true : on success,
  * 			false : on error
  */
-bool CPeriodicReponseProcessor::prepareResponseJson(msg_envelope_t** a_pMsg, std::string &a_sValue, const CRefDataForPolling* a_objReqData, stStackResponse a_stResp, struct timespec *a_pstTsPolling = NULL)
+bool CPeriodicReponseProcessor::prepareResponseJson(std::string &a_rtOrNrt, std::string &a_responseMqttTopic, msg_envelope_t** a_pMsg, std::string &a_sValue, const CRefDataForPolling* a_objReqData, stStackResponse a_stResp, struct timespec *a_pstTsPolling = NULL)
 {
 	if((MBUS_CALLBACK_POLLING == a_stResp.m_operationType || MBUS_CALLBACK_POLLING_RT == a_stResp.m_operationType) &&
 			NULL == a_objReqData)
@@ -113,6 +113,8 @@ bool CPeriodicReponseProcessor::prepareResponseJson(msg_envelope_t** a_pMsg, std
 	std::string aDataType;
 	double aScaleFactor;
 	int aWidth;
+	std::string response_topic_mqtt;
+	std::string rtOrNrt;
 
 	try
 	{
@@ -131,10 +133,11 @@ bool CPeriodicReponseProcessor::prepareResponseJson(msg_envelope_t** a_pMsg, std
 
 			string sTopic = a_objReqData->getDataPoint().getID() + SEPARATOR_CHAR + PERIODIC_GENERIC_TOPIC;
 			ptTopic = msgbus_msg_envelope_new_string(sTopic.c_str());
+			response_topic_mqtt = sTopic; // assign the response mqtt topic for polling like /flowmeter/PL0/DP13/update.
 			ptWellhead = msgbus_msg_envelope_new_string(a_objReqData->getDataPoint().getWellSite().getID().c_str());
 			ptMetric = msgbus_msg_envelope_new_string(a_objReqData->getDataPoint().getDataPoint().getID().c_str());
 			ptRealTime =  msgbus_msg_envelope_new_string(std::to_string(a_objReqData->getDataPoint().getDataPoint().getPollingConfig().m_bIsRealTime).c_str());
-
+			rtOrNrt = std::to_string(a_objReqData->getDataPoint().getDataPoint().getPollingConfig().m_bIsRealTime);
 			// Polling time is explicitly given, use that
 			if(NULL != a_pstTsPolling)
 			{
@@ -193,12 +196,14 @@ bool CPeriodicReponseProcessor::prepareResponseJson(msg_envelope_t** a_pMsg, std
 			msg_envelope_elem_body_t* ptAppSeq = msgbus_msg_envelope_new_string(stMbusApiPram.m_stOnDemandReqData.m_strAppSeq.c_str());
 			/// topic
 			ptTopic = msgbus_msg_envelope_new_string(stMbusApiPram.m_stOnDemandReqData.m_strTopic.append("Response").c_str());
+			response_topic_mqtt = stMbusApiPram.m_stOnDemandReqData.m_strTopic.append("Response"); // frame the response topic for mqtt like /flowmeter/PL0/DP13/writeResponse or /flowmeter/PL0/DP13/readResponse
 			/// wellhead
 			ptWellhead = msgbus_msg_envelope_new_string(stMbusApiPram.m_stOnDemandReqData.m_strWellhead.c_str());
 			/// metric
 			ptMetric = msgbus_msg_envelope_new_string(stMbusApiPram.m_stOnDemandReqData.m_strMetric.c_str());
 			/// RealTime
 			ptRealTime =  msgbus_msg_envelope_new_string(std::to_string(stMbusApiPram.m_stOnDemandReqData.m_isRT).c_str());
+			rtOrNrt = std::to_string(stMbusApiPram.m_stOnDemandReqData.m_isRT);
 			/// add timestamps for req recvd by app
 			msg_envelope_elem_body_t* ptAppTSReqRcvd = msgbus_msg_envelope_new_string( (std::to_string(get_micros(stMbusApiPram.m_stOnDemandReqData.m_obtReqRcvdTS))).c_str() );
 			/// message received from MQTT Time
@@ -237,7 +242,8 @@ bool CPeriodicReponseProcessor::prepareResponseJson(msg_envelope_t** a_pMsg, std
 			}
 			
 		}
-
+		a_responseMqttTopic = response_topic_mqtt; // assign the mqtt response topic back to argument.
+		a_rtOrNrt = rtOrNrt; // assign the RT or NRT back to argument.
 		msg_envelope_elem_body_t* ptVersion = msgbus_msg_envelope_new_string("2.0");
 
 		// add timestamps from stack
@@ -386,6 +392,33 @@ bool CPeriodicReponseProcessor::prepareResponseJson(msg_envelope_t** a_pMsg, std
 	return bRetValue;
 }
 
+std::string CPeriodicReponseProcessor::mapMqttToEMBRespTopic(std::string mqttRespTopic, bool isRealTime, std::string tcpOrRtu) {
+	// delimeter
+	const char* delim = "/";
+	std::string delim_Str(delim);
+
+	// To store the index of last
+	// character found
+	size_t index;
+
+	// Function to find the last delimeter "/"
+	index = mqttRespTopic.find_last_of(delim);
+
+	// If topic doesn't have
+	// character delim present in it
+	if (index == string::npos) {
+		throw "Delimeter " + delim_Str + " is not present in the topic" + mqttRespTopic + "received from MQTT client";
+	}
+	
+	std::string dataPointAbsPath = mqttRespTopic.substr(0,index); // ABsolute path of the data point : example: /flowmeter/PL0/D13 
+	index +=1; // update index to teh char immediately after last "/"
+	std::string operationResponse = mqttRespTopic.substr(index); // readResponse or writeResponse or update base don the operation for which this response is happenning.
+	std::string rtOrNrt = (isRealTime == true)?"RT":"NRT";
+	std::string embTopic = tcpOrRtu + "/" + rtOrNrt + "/" + operationResponse + dataPointAbsPath; // TCP/RT/readResponse/flowmeter/PL0/D13 or RTU/NRT/writeResponse/flowmeter/PL0/D13 or RTU/NRT/update/flowmeter/PL0/D13
+	return embTopic;
+
+}
+
 /**
  * Prepare and post response json to ZMQ
  * @param a_stResp		:[in] response data
@@ -406,13 +439,23 @@ bool CPeriodicReponseProcessor::postResponseJSON(stStackResponse& a_stResp, cons
 	try
 	{
 		std::string sValue{""};
-		if(FALSE == prepareResponseJson(&g_msg, sValue, a_objReqData, a_stResp, a_pstTsPolling))
+		std::string rtOrNrt;
+		std::string responseMqttTopic;
+		std::string embTopic;
+		std::string appName = PublishJsonHandler::instance().getAppName(); // gets the appName as TCP (Modbus TCP) or RTU (modbus RTU).
+		if(FALSE == prepareResponseJson(rtOrNrt, responseMqttTopic, &g_msg, sValue, a_objReqData, a_stResp, a_pstTsPolling))
 		{
 			DO_LOG_INFO( " Error in preparing response");
 			return FALSE;
 		}
 		else
 		{
+			// map the mqtt topic to emb topic format to publish to EMB bus.
+			bool isRT = (rtOrNrt.compare("1")==0)?true:false;
+			embTopic = mapMqttToEMBRespTopic(responseMqttTopic, isRT, appName); // TCP/RT/readResponse/flowmeter/PL0/D13 or RTU/NRT/writeResponse/flowmeter/PL0/D13 or RTU/NRT/update/flowmeter/PL0/D13
+			//Get the context for this EMB Response PUB topic
+
+			zmq_handler::prepareContext(true, (zmq_handler::getPubCtxCfg()).m_pub_msgbus_ctx, embTopic, (zmq_handler::getPubCtxCfg()).m_pub_config);
 			if(MBUS_CALLBACK_POLLING == a_stResp.m_operationType || MBUS_CALLBACK_POLLING_RT == a_stResp.m_operationType)
 			{
 			}
@@ -421,7 +464,7 @@ bool CPeriodicReponseProcessor::postResponseJSON(stStackResponse& a_stResp, cons
 				common_Handler::removeReqData(a_stResp.u16TransacID);	/// removing request structure from map
 			}
 			std::string sUsec{""};
-			if(true == zmq_handler::publishJson(sUsec, g_msg, a_stResp.m_strResponseTopic, "usec"))
+			if(true == zmq_handler::publishJson(sUsec, g_msg, embTopic, "usec"))
 			{
 				// Message is successfully published
 				// For polling operation having value field, store it as last known value and usec

@@ -892,7 +892,7 @@ eMbusAppErrorCode onDemandHandler::jsonParserForOnDemandRequest(MbusAPI_t& a_stM
 /**
  * Function will get the realtime parameters per operation required for on-demand operation
  * These parameters will be used for individual threads for on-demand operations
- * @param topic			:[in] topic for which to retrieve operation info
+ * @param topicPrefix	:[in] topicPrefix for which to retrieve operation info
  * @param operation		:[out] operation info
  * @param vpCallback	:[out] set the stack callback as per the operation
  * @param a_iRetry		:[out] set the retry value to be used for application retry mechanism
@@ -901,7 +901,7 @@ eMbusAppErrorCode onDemandHandler::jsonParserForOnDemandRequest(MbusAPI_t& a_stM
  * @param a_bIsRT		:[out] flag used to distinguish RT/NON-RT request for further processing
  * @return true/false based on success/error
  */
-bool onDemandHandler::getOperation(string topic, globalConfig::COperation& operation,
+bool onDemandHandler::getOperation(string topicPrefix, globalConfig::COperation& operation,
 		void **vpCallback,
 		int& a_iRetry,
 		long& a_lPriority,
@@ -909,7 +909,7 @@ bool onDemandHandler::getOperation(string topic, globalConfig::COperation& opera
 		bool& a_bIsRT)
 {
 	bool bRet = true;
-	if(regExFun(topic, READ_REQ))
+	if(regExFun(topicPrefix, READ_REQ))
 	{
 		operation = globalConfig::CGlobalConfig::getInstance().
 				getOpOnDemandReadConfig().getNonRTConfig();
@@ -928,7 +928,7 @@ bool onDemandHandler::getOperation(string topic, globalConfig::COperation& opera
 		a_bIsWriteReq = false;
 		a_bIsRT = false;
 	}
-	else if(regExFun(topic, READ_REQ_RT))
+	else if(regExFun(topicPrefix, READ_REQ_RT))
 	{
 		operation = globalConfig::CGlobalConfig::getInstance().
 				getOpOnDemandReadConfig().getRTConfig();
@@ -949,7 +949,7 @@ bool onDemandHandler::getOperation(string topic, globalConfig::COperation& opera
 		// set realtime to true
 		a_bIsRT = true;
 	}
-	else if(regExFun(topic, WRITE_REQ))
+	else if(regExFun(topicPrefix, WRITE_REQ))
 	{
 		operation = globalConfig::CGlobalConfig::getInstance().
 				getOpOnDemandWriteConfig().getNonRTConfig();
@@ -969,7 +969,7 @@ bool onDemandHandler::getOperation(string topic, globalConfig::COperation& opera
 
 		a_bIsRT = false;
 	}
-	else if(regExFun(topic, WRITE_REQ_RT))
+	else if(regExFun(topicPrefix, WRITE_REQ_RT))
 	{
 		operation = globalConfig::CGlobalConfig::getInstance().
 				getOpOnDemandWriteConfig().getRTConfig();
@@ -992,7 +992,7 @@ bool onDemandHandler::getOperation(string topic, globalConfig::COperation& opera
 	}
 	else
 	{
-		DO_LOG_ERROR("Invalid topic name in SubTopics");
+		DO_LOG_ERROR("Invalid topicPrefix name in config.json");
 		bRet = false;
 		a_iRetry = 0;
 	}
@@ -1032,7 +1032,7 @@ void onDemandHandler::createOnDemandListener()
 			continue;
 		}
 	 
-		// create separate thread per topic mentioned in SubTopics section in docker-compose.yml file
+		// create separate thread per topic prefix mentioned in subscriber config section of config.json
 		std::thread(&onDemandHandler::subscribeDeviceListener, this, *it, ops,
 				bIsRT, vpCallback, iRetry,
 				a_lPriority,
