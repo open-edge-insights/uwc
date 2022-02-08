@@ -173,10 +173,31 @@ network_setup()
       length=$((length-1))
   done
 }
+#------------------------------------------------------------------
+# modify_env
+#
+# Description:
+#        Updating build/.env file with password as specified in ${working_dir}/../eii_configs/envs.csv
+# Return:
+#        None
+# 
+#------------------------------------------------------------------
+modify_env(){
+	file="${working_dir}/../eii_configs/envs.csv"
+	eCollection=( $(cut -d ',' -f2 $file ) )
+	sed -i 's/'ETCDROOT_PASSWORD=\'\''/'${eCollection[0]}'/g' ${working_dir}/../../build/.env
+	sed -i 's/'INFLUXDB_USERNAME=\'\''/'${eCollection[1]}'/g' ${working_dir}/../../build/.env
+	sed -i 's/'INFLUXDB_PASSWORD=\'\''/'${eCollection[2]}'/g' ${working_dir}/../../build/.env
+
+	
+}
+
 echo "${GREEN}============================= Script START ============================================${NC}"
+
 
 create_docker_volume_dir
 add_UWC_containers_In_EII
 modify_config
 clone_modconn
 network_setup
+modify_env
