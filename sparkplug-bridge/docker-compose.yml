@@ -74,6 +74,7 @@ services:
      - ./Certificates/rootca:/run/secrets/rootca      
      - ./Certificates/mymqttcerts:/run/secrets/mymqttcerts
      - ./Certificates/scada_ext_certs:/run/secrets/scada_ext_certs
+     - "${EII_INSTALL_PATH}/sockets:${SOCKET_DIR}"
     security_opt:
       - no-new-privileges
     healthcheck:

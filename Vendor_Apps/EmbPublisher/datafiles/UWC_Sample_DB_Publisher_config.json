@@ -1,0 +1,11 @@
+{
+  "metrics": [
+  {
+  "name": "Properties/Version",
+  "dataType": "Int32",
+  "value": 15,
+  "timestamp": 1486144502122
+  }
+  ]
+  }
+

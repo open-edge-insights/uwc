@@ -25,16 +25,15 @@
 #include "ConfigManager.hpp"
 #include "SparkPlugDevices.hpp"
 #include "SCADAHandler.hpp"
-
 #include <chrono>
 #include <ctime>
 #include <errno.h>
-
 #define SUBSCRIBER_ID "SCADA_INT_MQTT_SUBSCRIBER"
 #define RECONN_TIMEOUT_SEC (60)
 
 extern std::atomic<bool> g_shouldStop;
 
+std::atomic<bool> *loop;
 /**
  * Constructor Initializes MQTT publisher
  * @param strPlBusUrl :[in] MQTT broker URL
@@ -212,11 +211,12 @@ bool CIntMqttHandler::init()
 		DO_LOG_FATAL("Could not create unnamed semaphore for monitorig connection timeout " + std::to_string(errno) + " " + strerror(errno));
 		return false;
 	}
-	std::thread{ std::bind(&CIntMqttHandler::handleConnMonitoringThread,
-			std::ref(*this)) }.detach();
 
+    std::thread{ std::bind(&CIntMqttHandler::handleConnMonitoringThread,
+		std::ref(*this)) }.detach();
 	std::thread{ std::bind(&CIntMqttHandler::handleConnSuccessThread,
-			std::ref(*this)) }.detach();
+		std::ref(*this)) }.detach();		
+	
 
 	return true;
 }
@@ -303,7 +303,9 @@ void CIntMqttHandler::handleConnSuccessThread()
 {
 	while(false == g_shouldStop.load())
 	{
-		try
+
+			
+	try
 		{
 			do
 			{
@@ -321,15 +323,16 @@ void CIntMqttHandler::handleConnSuccessThread()
 				{
 					// Client is connected. So wait for connection-lost
 					// Semaphore got signalled means connection is successful
-					// As a process first subscribe to topics
-					subscribeTopics();
-
+					// Subscriber for MQTT topics
+					if(zmq_handler::enable_EMB()==false){
+						subscribeTopics();
+					}
 					// If disconnect state is monitoring connection timeout, then signal that
 					if(true == getConTimeoutState())
 					{
 						sem_post(&m_semConnSuccessToTimeOut);
 					}
-
+				}
 					//Send dbirth
 					CSCADAHandler::instance().signalIntMQTTConnEstablishThread();
 
@@ -341,7 +344,7 @@ void CIntMqttHandler::handleConnSuccessThread()
 						DO_LOG_INFO("START_BIRTH_PROCESS message is published");
 						m_bIsFirstConnectDone = false;
 					}
-				}
+				
 			} while(0);
 
 		}
@@ -375,6 +378,242 @@ int CIntMqttHandler::getAppSeqNo()
 	}
 
 	return m_appSeqNo;
+}
+/**
+* Get current time in nano seconds
+* @param ts :[in] timestamp to get microsecond value
+* @return time in micro seconds
+*/
+unsigned long CIntMqttHandler::get_micros(struct timespec ts)
+{
+    return (unsigned long)ts.tv_sec * 1000000L + ts.tv_nsec/1000;
+}
+/**
+* map MQTT topic to EMB topic
+* @param mqttTopic :[in] Mqtt topic
+* @return embtopic
+*/
+std::string CIntMqttHandler::mapMqttToEMBRespTopic(std::string mqttTopic){
+
+	std::string delimeter = "/write";
+	int size = mqttTopic.find(delimeter);
+	std::string embTopic = mqttTopic.substr(0,size);
+	std::string check_value = zmq_handler::get_RT_NRT(embTopic);
+	if( check_value == "0"){
+		check_value = "NRT";
+	}else if (check_value == "1"){
+		check_value = "RT";
+	}else if (check_value.empty()){
+		check_value = zmq_handler::get_RT_NRT("default");
+		check_value = (check_value == "1")?"RT":"NRT";
+	}
+	embTopic = check_value+"/write"+ embTopic;
+	return embTopic;
+}
+/**
+* To publish msg on EMB for both VA and Real Device
+* @param eiiMsg :[in] Msg payload
+* @param mqttTopic: MQTT topic 
+* @return true/false based on success/failure
+*/
+// /flowmeter/PL0/D13/read to RT|NRT/read/flowmeter/PL0/D13
+bool CIntMqttHandler::publish_msg_to_eii(std::string eiiMsg,std::string mqttTopic)
+{
+	bool retVal = false;
+	std::string delimeter = "/";
+	int size = mqttTopic.find(delimeter);
+	// To check if topic is of VA or Real Device
+	std::string VA_check = mqttTopic.substr(0,size);
+	std::string embTopic;	
+	msg_envelope_elem_body_t* obj;
+	msg_envelope_t *msg = NULL;
+	cJSON *root = NULL;
+	// In case of Vendor App
+	if(VA_check == "CMD"){
+		embTopic = mqttTopic;
+		// removing additional square braces from payload
+		delimeter = "]";
+		int length = eiiMsg.size();
+		size = eiiMsg.find(delimeter);
+		eiiMsg = eiiMsg.substr(0,size);
+		eiiMsg.replace(0,1,""); 
+		obj = msgbus_msg_envelope_new_object();
+	}else{// In case of Real Device
+		embTopic = CIntMqttHandler::mapMqttToEMBRespTopic(mqttTopic);
+	}
+	DO_LOG_DEBUG("Topic for publishing is"+ embTopic);
+	zmq_handler::prepareContext(true, (zmq_handler::getPubCtxCfg()).m_pub_msgbus_ctx, embTopic, (zmq_handler::getPubCtxCfg()).m_pub_config);
+	try
+	{
+		msg = msgbus_msg_envelope_new(CT_JSON);
+		if(msg == NULL)
+		{
+			DO_LOG_ERROR("could not create new msg envelope");
+			return retVal;
+		}
+		root = cJSON_Parse(eiiMsg.c_str());
+		if (NULL == root)
+		{
+			DO_LOG_ERROR("Could not parse value received from MQTT");
+
+			if(msg != NULL)
+			{
+				msgbus_msg_envelope_destroy(msg);
+			}
+
+			return retVal;
+		}
+		// In case of Real Device
+		auto addField = [&msg](const std::string &a_sFieldName, const std::string &a_sValue) {
+			DO_LOG_DEBUG(a_sFieldName + " : " + a_sValue);
+			msg_envelope_elem_body_t *value = msgbus_msg_envelope_new_string(a_sValue.c_str());
+			if((NULL != value) && (NULL != msg))
+			{
+				msgbus_msg_envelope_put(msg, a_sFieldName.c_str(), value);
+			}
+		};
+		// In case of Vendor App
+		auto addField_VA = [&msg](const std::string &a_sFieldName, const std::string &a_sValue,std::string VA_check,msg_envelope_elem_body_t* obj) {
+			DO_LOG_DEBUG(a_sFieldName + " : " + a_sValue);
+			msg_envelope_elem_body_t *value = msgbus_msg_envelope_new_string(a_sValue.c_str());
+			if((NULL != value) && (NULL != msg))
+			{
+				msgbus_msg_envelope_elem_object_put(obj, a_sFieldName.c_str() , value);	
+			}
+		};		
+		
+		cJSON *device = root->child;
+		while (device)
+		{
+			if(cJSON_IsString(device))
+			{        
+				
+				if(VA_check=="CMD"){
+					// In case of Vendor App
+					addField_VA(device->string, device->valuestring,VA_check,obj);
+
+				}else{
+					// In case of Real Device
+					addField(device->string, device->valuestring);
+				}
+			}
+			else if (cJSON_IsBool(device))
+			{
+				bool val = false;
+				// Add bool in msg envelope
+				if (cJSON_IsTrue(device))
+				{
+					val = true;
+				}
+				msg_envelope_elem_body_t *value = msgbus_msg_envelope_new_bool(val);
+				if (NULL != msg && NULL != value)
+				{
+					
+					if(VA_check=="CMD"){
+						// In case of Vendor App
+						msgbus_msg_envelope_elem_object_put(obj, device->string , value);
+
+					}else{
+						// In case of Real Device
+						msgbus_msg_envelope_put(msg, device->string, value);
+					}					
+				}
+			}
+			else if (cJSON_IsNumber(device))
+			{
+				// Add number in msg envelope
+				msg_envelope_elem_body_t *value = msgbus_msg_envelope_new_floating(device->valuedouble);
+				if (NULL != msg && NULL != value)
+				{
+					
+					if(VA_check=="CMD"){
+						// In case of Vendor App
+						msgbus_msg_envelope_elem_object_put(obj, device->string , value);
+
+					}else{
+						// In case of Real Device
+						msgbus_msg_envelope_put(msg, device->string, value);
+					}					
+				}
+			}
+			else
+			{
+				throw std::string("Invalid JSON");
+			}
+			// get and print key
+			device = device->next;
+		}
+
+		if (root)
+		{
+			cJSON_Delete(root);
+		}
+		root = NULL;
+		struct timespec tsMsgReceived;
+		timespec_get(&tsMsgReceived, TIME_UTC);	
+		std::string time_stamp_value = std::to_string(CIntMqttHandler::get_micros(tsMsgReceived));
+		if(VA_check=="CMD"){
+			// In case of Vendor App
+			addField_VA("tsMsgRcvdFromExtMQTT", time_stamp_value.c_str(),VA_check,obj);
+			addField_VA("sourcetopic", mqttTopic,VA_check,obj);
+		}else{
+			// In case of Real Device
+			addField("tsMsgRcvdFromExtMQTT", time_stamp_value.c_str());
+			addField("sourcetopic", mqttTopic);
+
+		}
+		std::string strTsReceived{""};
+		bool bRet = true;
+		// In case of Real Device
+		if(VA_check=="CMD"){
+			auto p1 = std::chrono::system_clock::now();
+			unsigned long uTime = (unsigned long)(std::chrono::duration_cast<std::chrono::microseconds>(p1.time_since_epoch()).count());
+			std::string a_sUsec = std::to_string(uTime);
+			msg_envelope_elem_body_t* ptUsec = msgbus_msg_envelope_new_string(a_sUsec.c_str());
+			msgbus_msg_envelope_elem_object_put(obj, "tsMsgPublishSPtoEII" , ptUsec);
+			msgbus_msg_envelope_put(msg, "metrics", obj);
+			if(true == zmq_handler::publishJson(strTsReceived, msg, embTopic, ""))
+			{
+				bRet = true;
+			}
+			else
+			{
+				DO_LOG_ERROR("Failed to publish write msg on EII: " + eiiMsg);
+				bRet = false;
+			}
+
+		}else{
+		// In case of Real Device
+		if(true == zmq_handler::publishJson(strTsReceived, msg, embTopic, "tsMsgPublishSPtoEII"))
+		{
+			bRet = true;
+		}
+		else
+		{
+			DO_LOG_ERROR("Failed to publish write msg on EII: " + eiiMsg);
+			bRet = false;
+		}
+		}
+		msgbus_msg_envelope_destroy(msg);
+		msg = NULL;
+
+		return bRet;
+	}
+	catch(std::exception &ex)
+	{
+		DO_LOG_ERROR(ex.what());
+	}
+
+	if(msg != NULL)
+	{
+		msgbus_msg_envelope_destroy(msg);
+	}
+	if (root)
+	{
+		cJSON_Delete(root);
+	}
+
+	return false;
 }
 
 /**
@@ -415,7 +654,18 @@ bool CIntMqttHandler::prepareWriteMsg(std::reference_wrapper<CSparkPlugDev>& a_r
 				if((root != NULL) && (! strMsgTopic.empty()))
 				{
 					string strPubMsg = cJSON_Print(root);
-					publishMsg(strPubMsg, strMsgTopic);
+					//Publisher for EMB 
+            				if(zmq_handler::enable_EMB()==true){
+						DO_LOG_INFO("Publishing on EII msg bus");
+						bool publish_status = CIntMqttHandler::publish_msg_to_eii(strPubMsg, strMsgTopic);
+						if( publish_status != true ){
+							DO_LOG_ERROR("Failed to publish msg on EII");
+						}
+					}else{
+   		    			        DO_LOG_INFO("Publishing on MQTT");
+						publishMsg(strPubMsg, strMsgTopic); //Publisher for MQTT 
+					}					
+					
 				}
 			}
 			if (root != NULL)
@@ -457,7 +707,7 @@ bool CIntMqttHandler::prepareCMDMsg(std::reference_wrapper<CSparkPlugDev>& a_ref
 {
 	cJSON *root = NULL, *metricArray = NULL;
 	string strMsgTopic = "";
-
+	string strPubMsg;
 	try
 	{
 		root = cJSON_CreateObject();
@@ -478,22 +728,36 @@ bool CIntMqttHandler::prepareCMDMsg(std::reference_wrapper<CSparkPlugDev>& a_ref
 			}
 			return false;
 		}
-
 		if (false == a_refSparkPlugDev.get().getCMDMsg(strMsgTopic, a_mapChangedMetrics, metricArray))
 		{
 			DO_LOG_ERROR("Failed to prepare CJSON message for internal MQTT");
 		}
 		else
 		{
-			cJSON_AddItemToObject(root, "metrics", metricArray);
-
-			string strPubMsg = cJSON_Print(root);
-
+			// Adding metrics to payload in case of MQTT 
+			if(zmq_handler::enable_EMB()==false){
+				cJSON_AddItemToObject(root, "metrics", metricArray);
+				strPubMsg = cJSON_Print(root);
+			}else{
+				strPubMsg = cJSON_Print(metricArray);
+			}
 			DO_LOG_DEBUG("Publishing message on internal MQTT for CMD:");
 			DO_LOG_DEBUG("Topic : " + strMsgTopic);
 			DO_LOG_DEBUG("Payload : " + strPubMsg);
-
-			publishMsg(strPubMsg, strMsgTopic);
+			// Publisher for EMB 
+           		if(zmq_handler::enable_EMB()==true){
+				DO_LOG_INFO("Publishing on EII msg bus");
+				fprintf(stderr, "\nPublishing on EII msg bus\n");
+				bool publish_status = CIntMqttHandler::publish_msg_to_eii(strPubMsg, strMsgTopic);
+				if( publish_status != true ){
+					DO_LOG_ERROR("Failed to publish msg on EII");
+                   		 }
+			}else{
+				// Publisher for MQTT
+	   		    	DO_LOG_INFO("Publishing on MQTT");
+				fprintf(stderr, "\nPublishing on MQTT\n");
+				publishMsg(strPubMsg, strMsgTopic);
+			}
 		}
 
 		if (root != NULL)
@@ -532,23 +796,19 @@ bool CIntMqttHandler::prepareCJSONMsg(std::vector<stRefForSparkPlugAction>& a_st
 			//get this device name to add in topic
 			string strDeviceName = "";
 			strDeviceName.append(itr.m_refSparkPlugDev.get().getSparkPlugName());
-
 			if (strDeviceName.size() == 0)
 			{
 				DO_LOG_ERROR("Device name is blank");
 				return false;
 			}
-
 			//parse the site name from the topic
 			vector<string> vParsedTopic = { };
 			CSparkPlugDevManager::getInstance().getTopicParts(strDeviceName, vParsedTopic, "-");
-
 			if (vParsedTopic.size() != 2)
 			{
 				DO_LOG_ERROR("Invalid device name found while preparing request for internal MQTT");
 				return false;
 			}
-
 			//list of changed metrics for which to send CMD or write-on-demand CJSON request
 			if(itr.m_refSparkPlugDev.get().isVendorApp())
 			{

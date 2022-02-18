@@ -25,9 +25,11 @@
 #include "InternalMQTTSubscriber.hpp"
 #include "SparkPlugUDTMgr.hpp"
 #include <errno.h>
-
+#include "ZmqHandler.hpp"
 extern std::atomic<bool> g_shouldStop;
-
+std::string real_time;
+std::string device_name;
+std::map<std::string,std::string> RT_NRT;
 // Declarations used for MQTT
 #define SCADASUBSCRIBERID								"SCADA_SUBSCRIBER_"
 
@@ -326,7 +328,7 @@ bool CSCADAHandler::publishSparkplugMsg(org_eclipse_tahu_protobuf_Payload& a_pay
 		mqtt::message_ptr pubmsg = mqtt::make_message(a_topic, (void*)binary_buffer, message_length, m_QOS, false);
 
 		// SCADA master expects messages to be in order. Publish messages in order. Hence, Wait for completion.
-		m_MQTTClient.publishMsg(pubmsg, true);
+                m_MQTTClient.publishMsg(pubmsg, true);
 		payload_sequence = next_payload_sequence;
 
 		// Free the memory
@@ -412,6 +414,7 @@ void CSCADAHandler::publishAllDevBirths(bool a_bIsNBIRTHProcess)
 		auto vDevList = CSparkPlugDevManager::getInstance().getDeviceList();
 		for(auto &itrDevice : vDevList)
 		{
+			device_name = itrDevice;
 			DO_LOG_DEBUG("Device : " + itrDevice);
 			publish_device_birth(itrDevice, a_bIsNBIRTHProcess);
 		}
@@ -434,13 +437,11 @@ void CSCADAHandler::publish_device_birth(string a_deviceName, bool a_bIsNBIRTHPr
 	org_eclipse_tahu_protobuf_Payload dbirth_payload;
 	//get_next_payload(&dbirth_payload);
 	defaultPayload(dbirth_payload);
-
 	try
 	{
 		if(true == CSparkPlugDevManager::getInstance().prepareDBirthMessage(dbirth_payload, a_deviceName, a_bIsNBIRTHProcess))
 		{
-			string strDBirthTopic = CCommon::getInstance().getDBirthTopic() + "/" + a_deviceName;
-
+			string strDBirthTopic = CCommon::getInstance().getDBirthTopic() + "/" + a_deviceName;	
 			publishSparkplugMsg(dbirth_payload, strDBirthTopic);
 			CSparkPlugDevManager::getInstance().setMsgPublishedStatus(enDEVSTATUS_UP, a_deviceName);
 		}
@@ -655,6 +656,7 @@ bool CSCADAHandler::publishMsgDDATA(const stRefForSparkPlugAction& a_stRefAction
 			//publish sparkplug message
 			publishSparkplugMsg(sparkplug_payload, strMsgTopic);
 			a_stRefAction.m_refSparkPlugDev.get().setPublishedStatus(enDEVSTATUS_UP);
+			
 		}
 	}
 	catch(std::exception &ex)
@@ -765,7 +767,7 @@ bool CSCADAHandler::prepareSparkPlugMsg(std::vector<stRefForSparkPlugAction>& a_
 			switch (itr.m_enAction)
 			{
 			case enMSG_BIRTH:
-				publish_device_birth(itr.m_refSparkPlugDev.get().getSparkPlugName(), false);
+  				publish_device_birth(itr.m_refSparkPlugDev.get().getSparkPlugName(), false);
 				break;
 			case enMSG_DEATH:
 				publishMsgDDEATH(itr);
@@ -839,7 +841,6 @@ bool CSCADAHandler::processDCMDMsg(CMessageObject a_msg, std::vector<stRefForSpa
 	try
 	{
 		int msgLen = a_msg.getMqttMsg()->get_payload().length();
-
 		if(decode_payload(&dcmd_payload, (uint8_t* )a_msg.getMqttMsg()->get_payload().data(), msgLen) >= 0)
 		{
 			bRet = CSparkPlugDevManager::getInstance().processExternalMQTTMsg(a_msg.getTopic(),
@@ -968,6 +969,9 @@ bool CSCADAHandler::addModbusMetric(org_eclipse_tahu_protobuf_Payload_Metric &a_
         a_rMetric = org_eclipse_tahu_protobuf_Payload_Metric_init_default;
         uint32_t datatype = a_oValObj.getDataType();
         var_t objVal = a_oValObj.getValue();
+		// To save information about device , data_point and Real time
+		real_time = device_name + "-" + a_sName+"-"+std::to_string(a_bIsRealTime);
+		zmq_handler::set_RT_NRT(real_time);
         int ret = 0;
 
         switch(datatype)

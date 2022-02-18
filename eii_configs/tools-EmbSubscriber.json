@@ -1,0 +1,21 @@
+{
+  "config": {
+          "cert_type": ["zmq"]
+  },
+  "interfaces": {
+    "Subscribers": [
+      {
+        "Name": "VA_Sample_Subscriber",
+        "PublisherAppName": "ZmqBroker",
+        "Type": "zmq_ipc",
+        "EndPoint": {
+          "SocketDir": "/EII/sockets",
+          "SocketFile": "backend-socket"
+        },
+        "Topics": [
+          "RT/write","NRT/write","CMD/"
+        ]
+      }
+    ]
+  }
+}

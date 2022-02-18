@@ -417,7 +417,10 @@ void globalConfig::COperationInfo::buildOperationInfo(const YAML::Node& a_baseNo
 	else
 	{
 		a_refOpInfo.m_defaultIsRT = a_baseNode["default_realtime"].as<bool>();
+
 	}
+	std::string default_RT = "default-" + std::to_string(a_refOpInfo.m_defaultIsRT);
+	zmq_handler::set_RT_NRT(default_RT);
 	DO_LOG_INFO(" default RT :: " + std::to_string(a_refOpInfo.m_defaultIsRT));
 
 	COperation Obj;
@@ -446,7 +449,6 @@ void globalConfig::CSparkplugData::buildSparkPlugInfo(const YAML::Node& a_baseNo
 	{
 		a_refOpration.m_sGroupId = a_baseNode["group_id"].as<std::string>();
 	}
-	
 	if (validateParam(a_baseNode, "edge_node_id", DT_STRING) != 0)
 	{
 		a_refOpration.m_stNodeName = DEFAULT_NODE_NAME;

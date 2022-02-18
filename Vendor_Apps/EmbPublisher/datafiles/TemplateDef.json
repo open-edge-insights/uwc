@@ -1,0 +1,28 @@
+{
+  "udt_name": "custom_udt",
+  "version": "1.0",
+  "metrics": [
+    {
+      "name": "M1",
+      "dataType": "String",
+       "value": ""
+    },
+    {
+      "name": "RTU_Time",
+      "dataType": "Int32",
+       "value": 30
+    }
+  ],
+  "parameters": [
+    {
+      "name": "P1",
+      "dataType": "String",
+       "value": ""
+    },
+    {
+      "name": "P2",
+      "dataType": "Int32",
+       "value": 0
+    }
+  ]
+}
