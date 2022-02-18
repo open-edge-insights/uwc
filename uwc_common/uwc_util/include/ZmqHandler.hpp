@@ -125,7 +125,10 @@ namespace zmq_handler
 
 	/** function to remove entry from the map*/
 	void removePubCTX(std::string);
-
+	/** function to get enable_EMB value set in config.json*/
+        bool enable_EMB();
+	/** function to get topic set in config.json*/
+        std::vector<std::string> getTopics();
 	/** function to publish json data on ZMQ*/
 	bool publishJson(std::string &a_sUsec, msg_envelope_t* msg, const std::string &a_sTopic, std::string a_sPubTimeField);
 
@@ -166,6 +169,18 @@ namespace zmq_handler
 	 *  @return bool       : [out] true - if the "topic" is present in the map. False - if the "topic" is not present in the map.
 	 **/
 	bool isSubTopicPresentInMap(std::string subTopic);
+	/**
+	 *  function to return if a data point of a device is Realtime or not
+	 *  @param topic     : [in] topic
+	 *  @return bool       : [out] 1 -"Realtime" device. 0 - Non Realtime device.
+	 **/	
+	std::string get_RT_NRT(std::string topic);
+	/**
+	 *  function to set if a data point of a device is Realtime or not
+	 *  @param topic     : [in] String consisting Device, data point and 1 if Realtime/ 0 if Non Realtime seprated by - 
+	 *  @return None
+	 **/	
+	void set_RT_NRT(std::string RT_NRT_check);
 }
 
 #endif /* INCLUDE_INC_ZMQHANDLDER_HPP_ */
