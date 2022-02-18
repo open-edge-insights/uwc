@@ -39,8 +39,7 @@ services:
       AppName: "uwc-common"
 networks:
   eii:
-    external:
-      name: eii
+    driver: bridge
 
 volumes:
   vol_eii_socket:

@@ -35,7 +35,7 @@
 #include "eii/config_manager/config_mgr.hpp"
 #include <yaml-cpp/yaml.h>
 #include "CommonDataShare.hpp"
-
+#include "ZmqHandler.hpp"
 #define DIR_PATH "/config"
 #define GLOBAL_CONFIG_FILE_PATH "/opt/intel/eii/uwc_data/common_config/Global_Config.yml"
 #define handle_error_en(en, msg) do { errno = en; perror(msg); } while (0)

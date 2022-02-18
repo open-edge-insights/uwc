@@ -95,7 +95,6 @@ bool CSparkPlugDevManager::processExternalMQTTMsg(std::string a_sTopic,
 		//device-site
 		string strDevName = vSplitTopic[4];
 		getTopicParts(strDevName, mDevName, "-");
-
 		bool bIsFound = false;
 		auto itr = [&] () mutable -> devSparkplugMap_t::iterator
 		{

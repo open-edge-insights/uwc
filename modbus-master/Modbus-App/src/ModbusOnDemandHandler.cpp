@@ -1238,6 +1238,14 @@ bool onDemandHandler::processMsg(msg_envelope_t *msg,
 	stMbusApiPram.m_stOnDemandReqData.m_sUsec = getMsgElement(msg, "usec");
 	stMbusApiPram.m_stOnDemandReqData.m_strMqttTime = getMsgElement(msg, "tsMsgRcvdFromMQTT");
 	stMbusApiPram.m_stOnDemandReqData.m_strEiiTime = getMsgElement(msg, "tsMsgPublishOnEII");
+
+	if( stMbusApiPram.m_stOnDemandReqData.m_strMqttTime.empty()){
+		stMbusApiPram.m_stOnDemandReqData.m_strMqttTime = getMsgElement(msg, "tsMsgRcvdFromExtMQTT");
+	}
+
+	if( stMbusApiPram.m_stOnDemandReqData.m_strEiiTime.empty()){
+		stMbusApiPram.m_stOnDemandReqData.m_strEiiTime = getMsgElement(msg, "tsMsgPublishSPtoEII");
+	}
 	stMbusApiPram.m_stOnDemandReqData.m_isRT = a_bIsRT;
 
 	// fill retry and priority used for further processing

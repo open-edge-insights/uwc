@@ -1,6 +1,41 @@
 {
     "config": {
-        "cert_type": ["zmq"]      
+    "enable_EMB": false,
+	"cert_type": ["zmq"]
     },
-    "interfaces": {}
+    "interfaces": {
+        "Subscribers": [
+            {
+                "EndPoint": {
+                    "SocketDir": "/EII/sockets",
+                    "SocketFile": "backend-socket"
+                },
+                "Name": "Sparkplug-Subscriber",
+                "PublisherAppName": "ZmqBroker",
+                "Topics": [
+		    "TCP/RT/update","TCP/NRT/update","RTU/NRT/update","RTU/RT/update","BIRTH/","DATA/","DEATH/","TemplateDef"
+                ],
+                "Type": "zmq_ipc",
+                "zmq_recv_hwm": 1000
+            }
+        ],
+        "Publishers": [
+            {
+                "AllowedClients": [
+                    "*"
+                ],
+                "EndPoint": {
+                    "SocketDir": "/EII/sockets",
+                    "SocketFile": "frontend-socket"
+                },
+                "Name": "Sparkplug-Publisher",
+                "Topics": [
+                    "*"
+                ],
+                "Type": "zmq_ipc",
+                "BrokerAppName":"ZmqBroker",
+                "brokered":true
+            }
+        ]
+    }
 }

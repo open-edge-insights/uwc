@@ -1,13 +1,14 @@
 {
   "config": {
+    "cert_type": ["zmq"],
     "pub_name": "TestPub",
     "msg_file": "UWC_Sample_DB_Publisher_config.json",
-    "iteration": 10000,
+    "data_change": "1",
     "interval": "5ms"
   },
   "interfaces": {
     "Publishers": [
-            {
+      {
         "AllowedClients": [
            "*"
         ],
@@ -17,7 +18,7 @@
         },
        "Name": "TestPub",
        "Topics": [
-         "Testing_Data_persist"
+          "BIRTH/UWC_1/COM14"
         ],
        "Type": "zmq_ipc",
        "BrokerAppName": "ZmqBroker",

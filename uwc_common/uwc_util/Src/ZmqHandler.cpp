@@ -52,7 +52,11 @@ namespace
 	std::map<std::string, stZmqPubContext> g_mapPubContextMap;
 	std::map<std::string,int> g_mapUniqueTopicTracker;
 	stPubCtxCfg g_pubCtxCfg;
-}
+	// Check if EMB or Mqtt is specified in config
+	bool enable_EMB;
+	// Storing topic and corresponding RT/NRT check
+	std::map<std::string,std::string> RT_NRT;
+	}
 
 // lamda function to return true if given key matches the given pattern
 std::function<bool(std::string, std::string)> regExFun = [](std::string a_sTopic, std::string a_sKeyToFind) ->bool {
@@ -67,7 +71,55 @@ std::function<bool(std::string, std::string)> regExFun = [](std::string a_sTopic
 		return false;
 	}
 };
+/**
+ * function to form the topic in /flowmeter/PL0/D1 format and corresponding RT/NRT value
+ * @param RT_NRT_check :[in] information about device ,wellhead, data_point and Real time seprated by -
+ * @return None,
+ */
 
+void zmq_handler::set_RT_NRT(std::string RT_NRT_check)
+{
+	std::string delimiter = "-";
+	size_t last = 0;
+	size_t next = 0;
+	std::string value;
+	std::string key;
+	int size = RT_NRT_check.size();
+	// Checking if topic is default then storing the default value in map
+	if((RT_NRT_check.find("default-"))!= std::string::npos){
+		next = RT_NRT_check.find("-");
+		value = RT_NRT_check.substr(next+1,size);
+		RT_NRT.insert({"default",value});
+	}else{
+		// extracting topic and corresponding RT/NRT value
+		std::vector<std::string> a_vsrt_nrt_values;
+
+		while ((next = RT_NRT_check.find(delimiter, last)) != std::string::npos)
+		{
+			a_vsrt_nrt_values.push_back(RT_NRT_check.substr(last, next - last));
+			last = next + 1;
+		}
+		a_vsrt_nrt_values.push_back(RT_NRT_check.substr(last));
+		size = a_vsrt_nrt_values.size();
+		key = "/" + a_vsrt_nrt_values[0] + "/" + a_vsrt_nrt_values[1] + "/" +a_vsrt_nrt_values[2];
+		value = a_vsrt_nrt_values[3];
+		if(size==4){
+			RT_NRT.insert({key,value});
+		}
+	}
+	
+}
+/**
+ * To get the corresponding RT/NRT value for the topic
+ * @param topic              :[in] Mqtt topic 
+ * @return  RT/NRT value for the topic,
+ */
+std::string zmq_handler::get_RT_NRT(std::string topic)
+{
+   auto RT_NRT_pointer = RT_NRT.find(topic);
+   std::string RT_NRT_value = RT_NRT_pointer->second;
+   return RT_NRT_value;   
+}
 /**
  * Prepare pub or sub context for ZMQ communication
  * @param a_bIsPub		:[in] flag to check for Pub or Sub
@@ -129,7 +181,6 @@ bool zmq_handler::prepareContext(bool a_bIsPub,
 			DO_LOG_ERROR("Failed to create publisher for topic "+a_sTopic + " with error code:: "+std::to_string(retVal));
 		} else {
 			DO_LOG_ERROR("Failed to create  subscriber for topic "+a_sTopic + " with error code:: "+std::to_string(retVal));
-
 		}
 		goto err;
 	}
@@ -264,6 +315,28 @@ bool zmq_handler::prepareCommonContext(std::string topicType)
 	}
 	DO_LOG_DEBUG("End: ");
 	return true;
+}
+/**
+ * function to check if EMB or Mqtt is specified in config
+ * @param None
+ * @return None,
+ */
+bool zmq_handler::enable_EMB(){
+	ConfigMgr* pub_ch = new ConfigMgr();
+	AppCfg* cfg = pub_ch->getAppConfig();
+        config_value_t* app_config = cfg->getConfigValue("enable_EMB");
+	bool enable_EMB = app_config->body.boolean;
+    
+	if(enable_EMB==true){
+	 	fprintf(stderr, "\n Publishing on EII \n");
+		DO_LOG_INFO("Publishing on EII");
+		return true;
+	}else{
+		fprintf(stderr, "\n Publishing on MQTT \n");
+		DO_LOG_INFO("Publishing on MQTT");
+		return false;
+	}
+
 }
 
 /**
@@ -418,9 +491,8 @@ bool zmq_handler::publishJson(std::string &a_sUsec, msg_envelope_t* msg, const s
 		DO_LOG_ERROR(": Failed to publish message - Input message is NULL");
 		return false;
 	}
-
+	
 	DO_LOG_DEBUG("msg to publish :: Topic :: " + a_sTopic);
-
 	zmq_handler::stZmqContext& msgbus_ctx = zmq_handler::getCTX(a_sTopic);
 	void* pub_ctx = zmq_handler::getPubCTX(a_sTopic).m_pContext;
 	if((NULL == msgbus_ctx.m_pContext) || (NULL == pub_ctx))
@@ -428,7 +500,6 @@ bool zmq_handler::publishJson(std::string &a_sUsec, msg_envelope_t* msg, const s
 		DO_LOG_ERROR(": Failed to publish message - context is NULL: " + a_sTopic);
 		return false;
 	}
-
 	msgbus_ret_t ret;
 
 	{
@@ -455,6 +526,7 @@ bool zmq_handler::publishJson(std::string &a_sUsec, msg_envelope_t* msg, const s
 		DO_LOG_ERROR(" Failed to publish message errno: " + std::to_string(ret));
 		return false;
 	}
+	DO_LOG_INFO("msgbus publish is successfull");
 	return true;
 }
 
