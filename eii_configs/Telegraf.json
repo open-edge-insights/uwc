@@ -7,7 +7,20 @@
             "dbname": "datain"
         },
         "default": {
-            "topics_info": [],
+            "topics_info": [
+                "TCP/RT/writeResponse:TCP_RT_writeResponse",
+                "TCP/RT/readResponse:TCP_RT_readResponse",
+                "TCP/RT/update:TCP_RT_update",
+                "TCP/NRT/writeResponse:TCP_NRT_writeResponse",
+                "TCP/NRT/readResponse:TCP_NRT_readResponse",
+                "TCP/NRT/update:TCP_NRT_update",
+                "RTU/RT/writeResponse:RTU_RT_writeResponse",
+                "RTU/RT/readResponse:RTU_RT_readResponse",
+                "RTU/RT/update:RTU_RT_update",
+                "RTU/NRT/writeResponse:RTU_NRT_writeResponse",
+                "RTU/NRT/readResponse:RTU_NRT_readResponse",
+                "RTU/NRT/update:RTU_NRT_update"
+            ],
             "queue_len": 10,
             "num_worker": 2,
             "profiling": "false"
