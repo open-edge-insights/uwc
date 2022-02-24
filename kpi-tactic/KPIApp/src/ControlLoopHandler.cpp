@@ -101,7 +101,7 @@ void CControlLoopOp::threadPollMonitoring()
 		{
 			CMessageObject recvdMsg{};
 			if(true == m_q.isMsgArrived(recvdMsg))
-			{
+			{								
 				struct timespec ts;
 				int rc = clock_gettime(CLOCK_MONOTONIC, &ts);
 				// Message is received
@@ -112,7 +112,7 @@ void CControlLoopOp::threadPollMonitoring()
 					postDummyAnalysisMsg(sLastWrSeqVal, "WrRespNotRcvd");
 				}
 				sLastWrSeqVal.clear();
-				
+
 				// Get driver sequence number for sending a write request
 				std::string sWrSeqVal{commonUtilKPI::getValueofKeyFromJSONMsg(recvdMsg.getStrMsg(), "driver_seq")};
 				if(true == sWrSeqVal.empty())

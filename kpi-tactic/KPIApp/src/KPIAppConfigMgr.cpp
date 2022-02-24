@@ -35,7 +35,7 @@ bool CKPIAppConfig::parseYMLFile(const std::string &a_sFileName)
 	try
 	{
 		YAML::Node node = CommonUtils::loadYamlFile(a_sFileName);
-		
+
 		if(0 != globalConfig::validateParam(node, "timeToRun_Minutes", globalConfig::DT_UNSIGNED_INT))
 		{
 			m_uiExecTimeMin = 0; // default value. Allow infinite execution

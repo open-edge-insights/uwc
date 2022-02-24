@@ -47,7 +47,7 @@ public:
     bool initEIIContext();
     void configEIIListerners(bool a_bIsPollingRT, bool a_bIsWrOpRT);
     void stopEIIListeners();
-    bool publishWriteMsg(const std::string &a_sMsg);    
+    bool publishEIIMsg(std::string a_sEiiMsg, std::string &a_sEiiTopic);
 };
 
 #endif

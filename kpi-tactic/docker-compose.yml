@@ -53,13 +53,11 @@ services:
         ETCD_CLIENT_PORT: ${ETCD_CLIENT_PORT}
         ETCD_PREFIX: ${ETCD_PREFIX}
         Log4cppPropsFile: "/opt/intel/config/log4cpp.properties"
-        MQTT_URL: "${MQTT_PROTOCOL}://127.0.0.1:11883"
+        MQTT_URL: "${MQTT_PROTOCOL}://mqtt_container:11883"
         KPIAPPConfigFile: "ControlLoopConfig.yml"
         # Clients: "TCP,RTU"
         BUILD_NUMBER: ${BUILD_NUMBER}
         PROFILING_MODE: ${PROFILING_MODE}
-        WriteRequest_RT: "RT_KPIAPP_WrReq_RT"
-        WriteRequest: "KPIAPP_WrReq"
       logging:
           driver: "json-file"
           options:

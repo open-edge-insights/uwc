@@ -152,7 +152,7 @@ void initializeCommonData(std::string strDevMode, std::string strAppName)
  */
 void setEnvData()
 {
-	std::vector<std::string> vecEnv{"AppName", "MQTT_URL", "DEV_MODE", "WriteRequest_RT", "WriteRequest", "KPIAPPConfigFile"};
+	std::vector<std::string> vecEnv{"AppName", "MQTT_URL", "DEV_MODE", "KPIAPPConfigFile"};
 
 	if(false == EnvironmentInfo::getInstance().readCommonEnvVariables(vecEnv))
 	{
