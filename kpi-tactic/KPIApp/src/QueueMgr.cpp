@@ -106,7 +106,23 @@ bool publishWriteReqOnMQTT(const std::string &a_sPubTopic, const std::string &a_
 	
 	return false;
 }
+/**
+* map MQTT topic to EMB topic
+* @param mqttTopic :[in] Mqtt topic
+* @param isRealTime:[in] RT/NRT value
+* @return embtopic
+*/
 
+std::string mapMqttToEMBRespTopic(std::string mqttTopic,std::string isRealTime)
+{
+	std::string delimeter = "/write";
+	int size = mqttTopic.find(delimeter);
+	mqttTopic = mqttTopic.substr(0,size);
+	std::string embtopic;
+	isRealTime = (isRealTime == "1")?"RT":"NRT";
+	embtopic = isRealTime+delimeter+mqttTopic;
+	return embtopic;
+}
 /**
  * Forms and publishes write request
  * @param a_rCtrlLoop	[in]: Control loop for which write needs to be published
@@ -125,6 +141,7 @@ bool PlBusMgr::publishWriteReq(const CControlLoopOp& a_rCtrlLoop,
 		}
 		std::string sPubTopic{a_rCtrlLoop.getWritePoint()+"/write"};
 		std::string sMsg{""};
+		
 		if(false == commonUtilKPI::createWriteRequest(sMsg, a_sWrSeq, 
 			a_rCtrlLoop.getWellHeadNameForWrReq(), 
 			a_rCtrlLoop.getPointNameForWrReq(), a_rCtrlLoop.getValue(), sWrRT,
@@ -140,7 +157,8 @@ bool PlBusMgr::publishWriteReq(const CControlLoopOp& a_rCtrlLoop,
 		}
 		else
 		{
-			return getEIIPlBusHandler().publishWriteMsg(sMsg);
+			sPubTopic = mapMqttToEMBRespTopic(sPubTopic,sWrRT);
+			return getEIIPlBusHandler().publishEIIMsg(sMsg,sPubTopic);
 		}
 	}
 	catch(const std::exception& e)
