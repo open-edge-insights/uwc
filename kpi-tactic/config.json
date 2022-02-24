@@ -1,6 +1,6 @@
 {
     "config": {
-        "cert_type": ["zmq"]
+        "cert_type": ["zmq"]  
     },
     "interfaces": {
         "Subscribers": [
@@ -9,101 +9,10 @@
                     "SocketDir": "/EII/sockets",
                     "SocketFile": "backend-socket"
                 },
-                "Name": "TCP_PolledData",
+                "Name": "KPI-APP-Subscriber",
                 "PublisherAppName": "ZmqBroker",
                 "Topics": [
-                    "TCP_PolledData"
-                ],
-                "Type": "zmq_ipc",
-                "zmq_recv_hwm": 1000
-            },
-            {
-                "EndPoint": {
-                    "SocketDir": "/EII/sockets",
-                    "SocketFile": "backend-socket"
-                },
-                "Name": "TCP_WrResp",
-                "PublisherAppName": "ZmqBroker",
-                "Topics": [
-                    "TCP_WrResp"
-                ],
-                "Type": "zmq_ipc",
-                "zmq_recv_hwm": 1000
-            },
-            {
-                "EndPoint": {
-                    "SocketDir": "/EII/sockets",
-                    "SocketFile": "backend-socket"
-                },
-                "Name": "RT_TCP_PolledData_RT",
-                "PublisherAppName": "ZmqBroker",
-                "Topics": [
-                    "RT_TCP_PolledData_RT"
-                ],
-                "Type": "zmq_ipc",
-                "zmq_recv_hwm": 1000
-            },
-            {
-                "EndPoint": {
-                    "SocketDir": "/EII/sockets",
-                    "SocketFile": "backend-socket"
-                },
-                "Name": "RT_TCP_WrResp_RT",
-                "PublisherAppName": "ZmqBroker",
-                "Topics": [
-                    "RT_TCP_WrResp_RT"
-                ],
-                "Type": "zmq_ipc",
-                "zmq_recv_hwm": 1000
-            },
-            {
-                "EndPoint": {
-                    "SocketDir": "/EII/sockets",
-                    "SocketFile": "backend-socket"
-                },
-                "Name": "RTU_PolledData",
-                "PublisherAppName": "ZmqBroker",
-                "Topics": [
-                    "RTU_PolledData"
-                ],
-                "Type": "zmq_ipc",
-                "zmq_recv_hwm": 1000
-            },
-            {
-                "EndPoint": {
-                    "SocketDir": "/EII/sockets",
-                    "SocketFile": "backend-socket"
-                },
-                "Name": "RTU_WrResp",
-                "PublisherAppName": "ZmqBroker",
-                "Topics": [
-                    "RTU_WrResp"
-                ],
-                "Type": "zmq_ipc",
-                "zmq_recv_hwm": 1000
-            },
-            {
-                "EndPoint": {
-                    "SocketDir": "/EII/sockets",
-                    "SocketFile": "backend-socket"
-                },
-                "Name": "RT_RTU_PolledData_RT",
-                "PublisherAppName": "ZmqBroker",
-                "Topics": [
-                    "RT_RTU_PolledData_RT"
-                ],
-                "Type": "zmq_ipc",
-                "zmq_recv_hwm": 1000
-            },
-            {
-                "EndPoint": {
-                    "SocketDir": "/EII/sockets",
-                    "SocketFile": "backend-socket"
-                },
-                "Name": "RT_RTU_WrResp_RT",
-                "PublisherAppName": "ZmqBroker",
-                "Topics": [
-                    "RT_RTU_WrResp_RT"
+                    "TCP/RT/writeResponse","TCP/RT/update","TCP/NRT/writeResponse","TCP/NRT/update","RTU/RT/writeResponse","RTU/RT/update","RTU/NRT/writeResponse","RTU/NRT/update"
                 ],
                 "Type": "zmq_ipc",
                 "zmq_recv_hwm": 1000
@@ -118,25 +27,9 @@
                     "SocketDir": "/EII/sockets",
                     "SocketFile": "frontend-socket"
                 },
-                "Name": "KPIAPP_WrReq",
+                "Name": "KPI-APP-Publisher",
                 "Topics": [
-                    "KPIAPP_WrReq"
-                ],
-                "Type": "zmq_ipc",
-                "BrokerAppName":"ZmqBroker",
-                "brokered":true
-            },
-            {
-                "AllowedClients": [
-                    "*"
-                ],
-                "EndPoint": {
-                    "SocketDir": "/EII/sockets",
-                    "SocketFile": "frontend-socket"
-                },
-                "Name": "RT_KPIAPP_WrReq_RT",
-                "Topics": [
-                    "RT_KPIAPP_WrReq_RT"
+                    "RT/write/*","NRT/write/*"
                 ],
                 "Type": "zmq_ipc",
                 "BrokerAppName":"ZmqBroker",

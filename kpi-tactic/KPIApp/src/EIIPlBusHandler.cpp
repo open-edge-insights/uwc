@@ -28,16 +28,12 @@
 #include "Common.hpp"
 #include "ZmqHandler.hpp"
 
-// patterns to be used to find on-demand topic strings
-// topic syntax -
-// for non-RT topic for polling - <topic_name>__PolledData
-// for RT topic read RT - <topic_name>__RdReq_RT
-#define POLLING			 		"_PolledData"
-#define POLLING_RT 				"_PolledData_RT"
-#define WRITE_RESPONSE 			"_WrResp"
-#define WRITE_RESPONSE_RT		"_WrResp_RT"
-
 extern std::atomic<bool> g_stopThread;
+
+// patterns to be used to find on-demand topic strings
+#define POLLING			 		"update"
+#define WRITE_RESPONSE 			"writeResponse"
+
 
 /**
  * Create EII msg bus context and topic context for publisher and subscriber both
@@ -237,7 +233,7 @@ void CEIIPlBusHandler::listenOnEII(std::string sTopic, zmq_handler::stZmqContext
  * @param a_sEiiTopic :[in] eii topic
  * @return true/false based on success/failure
  */
-bool publishEIIMsg(std::string a_sEiiMsg, std::string &a_sEiiTopic)
+bool CEIIPlBusHandler::publishEIIMsg(std::string a_sEiiMsg, std::string &a_sEiiTopic)
 {
 	// Creating message to be published
 	msg_envelope_t *msg = NULL;
@@ -250,6 +246,8 @@ bool publishEIIMsg(std::string a_sEiiMsg, std::string &a_sEiiTopic)
 		{
 			return false;
 		}
+		//Get the context for this EMB PUB topic
+		zmq_handler::prepareContext(true, (zmq_handler::getPubCtxCfg()).m_pub_msgbus_ctx, a_sEiiTopic, (zmq_handler::getPubCtxCfg()).m_pub_config);		
 		//parse from root element
 		root = cJSON_Parse(a_sEiiMsg.c_str());
 		if (NULL == root)
@@ -327,33 +325,6 @@ bool publishEIIMsg(std::string a_sEiiMsg, std::string &a_sEiiTopic)
 }
 
 /**
- * publish message to EII based on whether write Request is RT or Non-RT
- * @param a_sMsg :[in] message to publish on EII
- * @return true/false based on success/failure
- */
-bool CEIIPlBusHandler::publishWriteMsg(const std::string &a_sMsg)
-{
-	try
-	{
-		std::string eiiTopic = "";
-		if(true == CKPIAppConfig::getInstance().isRTModeForWriteOp())
-		{
-			eiiTopic.assign(EnvironmentInfo::getInstance().getDataFromEnvMap("WriteRequest_RT"));
-		}
-		else
-		{
-			eiiTopic.assign(EnvironmentInfo::getInstance().getDataFromEnvMap("WriteRequest"));
-		}		
-		return publishEIIMsg(a_sMsg, eiiTopic);
-	}
-	catch (std::exception &ex)
-	{
-		DO_LOG_ERROR(ex.what());
-	}
-	return false;
-}
-
-/**
  * Configures EII listeners based on configurations
  * @param a_bIsPollingRT :[in] tells whether RT or Non-RT polling topics to be scanned
  * @param a_bIsWrOpRT :[in] tells whether RT or Non-RT write response topics to be scanned
@@ -369,16 +340,6 @@ void CEIIPlBusHandler::configEIIListerners(bool a_bIsPollingRT, bool a_bIsWrOpRT
 		if(tempRet == false) {
 			throw "returnAllTopics failed";
 		}
-		std::string sPollPattern{POLLING_RT}, sWrOpPattern{WRITE_RESPONSE_RT};
-
-		if(false == a_bIsPollingRT)
-		{
-			sPollPattern.assign(POLLING);
-		}
-		if(false == a_bIsWrOpRT)
-		{
-			sWrOpPattern.assign(WRITE_RESPONSE);
-		}
 
 		for (auto &sTopic : vFullTopics)
 		{
@@ -386,15 +347,14 @@ void CEIIPlBusHandler::configEIIListerners(bool a_bIsPollingRT, bool a_bIsWrOpRT
 			{
 				continue;
 			}
-
 			bool bIsPolling = true;
 			// Pattern matching
-			if(std::string::npos != sTopic.find(sPollPattern))
+			if(std::string::npos != sTopic.find(POLLING))
 			{
 				// This topic is for polling
 				bIsPolling = true;
 			}
-			else if(std::string::npos != sTopic.find(sWrOpPattern))
+			else if(std::string::npos != sTopic.find(WRITE_RESPONSE))
 			{
 				// This topic is for write response processing 
 				bIsPolling = false;
@@ -406,10 +366,9 @@ void CEIIPlBusHandler::configEIIListerners(bool a_bIsPollingRT, bool a_bIsWrOpRT
 				continue;
 			}
 			DO_LOG_INFO(sTopic + ": Topic will be monitored on ZMQ");
-			
+
 			zmq_handler::stZmqContext& context = zmq_handler::getCTX(sTopic);
 			zmq_handler::stZmqSubContext& subContext = zmq_handler::getSubCTX(sTopic);
-
 			m_vThreads.push_back(
 				std::thread(&CEIIPlBusHandler::listenOnEII, this, sTopic, context, subContext, bIsPolling));
 		}
