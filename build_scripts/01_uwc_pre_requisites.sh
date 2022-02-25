@@ -140,7 +140,11 @@ modify_config()
 			   echo "Overridden the Telegraf service specific config files"
 			   break
    			;;
-  
+
+		        "EmbPublisher")
+                           cp $service_search_dir/EmbPublisher/UWC_Sample_DB_Publisher_config.json ${working_dir}/../../tools/EmbPublisher/datafiles/
+			   cp $service_search_dir/EmbPublisher/config.json ${working_dir}/../../tools/EmbPublisher/
+			;;     
 		# More cases can be added for overriding such service specific config files.	   
 		esac  
 	done
