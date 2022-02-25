@@ -21,7 +21,12 @@
 ###############################################################################
 
 import xlsxwriter
-import re
+
+myset = {"tsPollingTime","pollReqRcvdInStack","pollReqSentByStack","pollRespRcvdByStack","pollRespPostedByStack",
+         "pollRespPostedToEII","pollDataRcvdInExport","pollDataPostedToMQTT","pollDataRcvdInApp","wrReqCreation",
+         "wrReqRcvdInExport","wrReqPublishOnEII","wrReqRcvdByModbus","wrReqRcvdInStack","wrReqSentByStack",
+         "wrRespRcvdByStack","wrRespPostedByStack","wrRespPostedToEII","wrRespRcvdInExport","wrRespPostedToMQTT",
+         "wrRespRcvdInApp"}
 
 mydict = {'pollSeq': 0,
           "pollTopic": 0,
@@ -64,6 +69,7 @@ count = 1
 
 
 def calculatetimeonfield(sheet):
+    global mydict
     global currposcol
     global rowpos
     global isadded
@@ -96,6 +102,7 @@ def parsestring(line, sheet):
     global currposcol
     global rowpos
     global isadded
+    global mySet
     global mydict
 
 
@@ -104,18 +111,10 @@ def parsestring(line, sheet):
     if len(list) > 1:
         for st in range(len(list)):
             inrlist = list[st].split(':')
-            temp = inrlist[1].replace('"', '')
-            print(temp)
-            check = re.search("^\d*$",temp)
-            if( check ):
-                print("done")
-                if(len(inrlist[1].replace('"', ''))> 1000):
-                    mydict[inrlist[0].replace('"', '')] = int(temp)/1000
-                else:
-                    mydict[inrlist[0].replace('"', '')] = int(temp)
-            else: 
-                mydict[(inrlist[0].replace('"', '')).replace(' ','')] = temp                               
-
+            if(True == (inrlist[0].replace('"', '') in myset)):
+                mydict[inrlist[0].replace('"', '')] = int(inrlist[1].replace('"', ''))/1000
+            else:
+                mydict[(inrlist[0].replace('"', '')).replace(' ','')] = inrlist[1].replace('"', '')
 
         for x in mydict:
             if (isadded == False):
@@ -125,7 +124,6 @@ def parsestring(line, sheet):
 
         calculatetimeonfield(sheet)
         for x in mydict:
-
             mydict[x] = 0
 
         rowpos += 1
