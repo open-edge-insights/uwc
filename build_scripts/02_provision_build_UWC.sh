@@ -113,7 +113,7 @@ eii_provision()
                 fi                    
             fi  
         fi     
-     
+        docker-compose -f docker-compose-build.yml build ia_configmgr_agent
         docker-compose up -d ia_configmgr_agent
 	sleep 10
         if [ "$?" -eq "0" ];then
