@@ -30,16 +30,15 @@ import (
 	"sync"
 	"time"
 	"os"
-//	"strings"
-//	"io/ioutil"
+	"strings"
 	
+
 )
 
 var wg sync.WaitGroup
-
 func cbFunc(key string, value map[string]interface{}, user_data interface{}) {
 	fmt.Printf("Callback triggered for key %s, value obtained %v with user_data %v\n", key, value, user_data)
-	os.Exit(1)
+	os.Exit(0)
 }
 
 func main() {
@@ -63,45 +62,7 @@ func main() {
 		fmt.Printf("GetMsgbusConfig failed with error:%v", err)
 		return
 	}
-	intval, err := time.ParseDuration(appConfig["interval"].(string))
-	if err != nil {
-		fmt.Printf("-- Error in interval conversion : %v\n", err)
-		return
-	}
 	msg_file := "/datafiles/" + appConfig["msg_file"].(string)
-	//input, err := ioutil.ReadFile(msg_file)
-	msg_value := appConfig["data_change"].(string)
-	//msg_datatype= appConfig["dataType"]
-		//var new_datatype
-	// msg_datatype_type := reflect.TypeOf(msg_datatype).(string)
-	// if msg_datatype_type == "int"{
-	// 	var new_datatype="  \"dataType\":" + "\"" + msg_datatype.(int)+"\","
-	// }else{
-	// 	var new_datatype="  \"dataType\":" + "\"" + msg_datatype.(string)+"\","
-	// }
-	// new_datatype:="  \"dataType\":" + "\"" + msg_datatype+"\","
-	// lines := strings.Split(string(input), "\n")
-	// new_value := "  \"value\":" + "\"" + msg_value	+"\","
-
-
-	// output := ""
-	// for i,line := range lines {
-	// 	if (strings.Contains(line, "value") && !strings.Contains(appConfig["msg_file"].(string),"TemplateDef")) {
-	// 		i = i +10
-	// 		line= new_value
-	// 	}
-	// 	if (strings.Contains(line, "dataType") && !strings.Contains(appConfig["msg_file"].(string),"TemplateDef")) {
-	// 		i = i +10
-	// 		line= new_datatype
-	// 	}
-	// 	output = output + "\n" + line
-	// }
-
-	// err = ioutil.WriteFile(msg_file, []byte(output), 0644)
-	// if err != nil {
-	// 	fmt.Printf("-- Failed to parse config: %v\n",err)
-	// 	return
-	// }
 	msg, err := eiimsgbus.ReadJsonConfig(msg_file)
 	if err != nil {
 		fmt.Printf("-- Failed to parse config: %v\n", err)
@@ -123,32 +84,28 @@ func main() {
 		return
 	}
 
-	topics, err := pubctx.GetTopics()
-	if err != nil {
-		fmt.Printf("Error: %v to GetTopics", err)
-		return
-	}
+	topic:= appConfig["publisher_topic"].(string)
+	wg.Add(1)
+	fmt.Println("yellow...1")
+	fmt.Println("Publishing on topic%s\n",topic)
+	go publisher_function(config, topic, msgData)
+	
 
-	for _, tpName := range topics {
-		wg.Add(1)
-		go publisher_function(config, tpName, msgData, intval,msg_value)
-	}
-
-	var watchUserData interface{} = "watch"
+	var watchPrefixUserData interface{} = ""
 	watchObj, err := configmgr.GetWatchObj()
 	if err != nil {
 		fmt.Println("Failed to fetch watch object")
 	}
 
     // Watch the key "/EmbPublisher" for any changes, cbFunc will be called with updated value
-	watchObj.Watch("/EmbPublisher", cbFunc, watchUserData)
+	watchObj.WatchPrefix("/EmbPublisher", cbFunc, watchPrefixUserData)
 
 
 	wg.Wait()
 }
 
 
-func publisher_function(config map[string]interface{}, topic string, msgData map[string]interface{}, intval time.Duration,msg_value string) {
+func publisher_function(config map[string]interface{}, embtopic string, msgData map[string]interface{}) {
 	defer wg.Done()
 	fmt.Printf("-- Initializing message bus context:%v\n", config)
 	client, err := eiimsgbus.NewMsgbusClient(config)
@@ -158,20 +115,31 @@ func publisher_function(config map[string]interface{}, topic string, msgData map
 	}
 	defer client.Close()
 
-	fmt.Printf("-- Creating publisher for topic %s\n", topic)
-	publisher, err := client.NewPublisher(topic)
+	fmt.Printf("-- Creating publisher for topic %s\n", embtopic)
+	publisher, err := client.NewPublisher(embtopic)
 	if err != nil {
 		fmt.Printf("-- Error initializing publisher : %v\n", err)
 		return
 	}
 	defer publisher.Close()
-    msgData["topic"] = topic
-	fmt.Printf("data is  %s\n", msg_value)
-	fmt.Printf("HEREEE %s\n", msgData["value"])
+	// in case of Sample publisher
+	if((strings.HasPrefix(embtopic, "RT")) || (strings.HasPrefix(embtopic, "NRT"))){
+		// spliting the topic (eg: RT/read/flowmeter/PL0/D13) based on /
+		sub_string := strings.Split(embtopic, "/")
+		mqttTopic := "/" + sub_string[2]+"/"+sub_string[3] +"/" +sub_string[4]+"/" +sub_string[1]
+    	msgData["sourcetopic"] = mqttTopic
+	}else{// in case of VA
+		msgData["data_topic"] = embtopic
+	}
+	fmt.Printf("Data to be published is  %s\n", msgData)
+	time.Sleep(5 * time.Second)
 	err = publisher.Publish(msgData)
 	if err != nil {
 		fmt.Printf("-- Failed to publish message: %v\n", err)
 		return
+	}		
+	for {
+		// Waiting for the messages
+		time.Sleep(1 * time.Second)
 	}
-	time.Sleep(intval)
 }

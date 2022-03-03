@@ -13,7 +13,7 @@
           "SocketFile": "backend-socket"
         },
         "Topics": [
-          "RT/write","NRT/write","CMD/"
+          "TCP/RT/writeResponse","TCP/RT/readResponse","TCP/NRT/writeResponse","TCP/NRT/readResponse","RTU/RT/writeResponse","RTU/RT/readResponse","RTU/NRT/writeResponse","RTU/NRT/readResponse","CMD/"
         ]
       }
     ]

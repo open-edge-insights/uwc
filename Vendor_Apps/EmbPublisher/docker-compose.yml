@@ -35,5 +35,4 @@ services:
       - "vol_eii_socket:${SOCKET_DIR}"
       - ./Certificates/EmbPublisher:/run/secrets/EmbPublisher
       - ./Certificates/rootca:/run/secrets/rootca
-      - ../uwc/Vendor_Apps/EmbPublisher/datafiles/UWC_Sample_DB_Publisher_config.json:/datafiles/UWC_Sample_DB_Publisher_config.json
-      - ../uwc/Vendor_Apps/EmbPublisher/datafiles/TemplateDef.json:/datafiles/TemplateDef.json
+      - ../uwc/Vendor_Apps/EmbPublisher/datafiles/:/datafiles/
