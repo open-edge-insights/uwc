@@ -1,10 +1,10 @@
 {
   "config": {
     "cert_type": ["zmq"],
-    "pub_name": "TestPub",
-    "msg_file": "UWC_Sample_DB_Publisher_config.json",
-    "data_change": "1",
-    "interval": "5ms"
+    "pub_name": "VA_Sample_Publisher",
+    "msg_file": "Publisher_content.json",
+    "publisher_topic": "Dummy_topic",
+    "data_toggle": 1
   },
   "interfaces": {
     "Publishers": [
@@ -16,9 +16,9 @@
           "SocketDir": "/EII/sockets",
           "SocketFile": "frontend-socket"
         },
-       "Name": "TestPub",
+       "Name": "VA_Sample_Publisher",
        "Topics": [
-          "BIRTH/UWC_1/COM14"
+          "*"
         ],
        "Type": "zmq_ipc",
        "BrokerAppName": "ZmqBroker",

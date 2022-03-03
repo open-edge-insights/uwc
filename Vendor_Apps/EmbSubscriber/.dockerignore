@@ -1,0 +1,6 @@
+# READMEs
+*.md
+
+# Docker specific files
+Dockerfile
+*.yml
