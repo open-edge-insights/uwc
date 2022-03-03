@@ -44,7 +44,7 @@ create_docker_volume_dir()
 		fi
 	
 		rm -rf /opt/intel/eii/uwc_data/sparkplug-bridge
-    	mkdir -p /opt/intel/eii/uwc_data/sparkplug-bridge
+    	        mkdir -p /opt/intel/eii/uwc_data/sparkplug-bridge
 		if [ "$?" -eq "0" ]; then
 			echo "${GREEN}/opt/intel/eii/uwc_data/sparkplug-bridge is sucessfully created. ${NC}"
 		else
@@ -110,22 +110,12 @@ modify_config()
 	search_dir="${working_dir}/../eii_configs/"
 	for file_path in "$search_dir"/*
     do
-	 re="-"
-	 echo "${file_path}"
-	 destination_path=""
-	 dir=$(basename "$file_path" .json)
-	 # Checking if file path has - in it
-	 if [[ "$dir" =~ .*"$re".* ]];then
-		temp=$(echo $dir | sed -r 's/(.*)\-(.*)/\1\/\2/')
-		destination_path="${working_dir}/../../${temp}"
+     dir=$(basename "$file_path" .json)
+	 if [ -d "${working_dir}/../../${dir}" ]; then
+	     cp ${file_path} ${working_dir}/../../${dir}/config.json
+		 echo "${GREEN}Done copying from ${file_path} to ${working_dir}/../../${dir}${NC}"
 	 else
-		destination_path="${working_dir}/../../${dir}"
-	 fi
-   	 if [ -d "${destination_path}" ]; then
-	         cp ${file_path} ${destination_path}/config.json
-		 echo "${GREEN}Done copying from ${file_path} to ${destination_path}${NC}"
-	 else
-	     echo "${RED}${destination_path} doesn't exists, Please check ${working_dir}/../eii_configs for valid config files${NC}"	 
+	     echo "${RED}${working_dir}/../../${dir} doesn't exists, Please check ${working_dir}/../eii_configs for valid config files${NC}"	 
 	 fi	
     done
 
@@ -140,11 +130,10 @@ modify_config()
 			   echo "Overridden the Telegraf service specific config files"
 			   break
    			;;
-
 		        "EmbPublisher")
                            cp $service_search_dir/EmbPublisher/UWC_Sample_DB_Publisher_config.json ${working_dir}/../../tools/EmbPublisher/datafiles/
 			   cp $service_search_dir/EmbPublisher/config.json ${working_dir}/../../tools/EmbPublisher/
-			;;     
+			;;   
 		# More cases can be added for overriding such service specific config files.	   
 		esac  
 	done

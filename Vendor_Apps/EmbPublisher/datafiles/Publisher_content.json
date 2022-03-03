@@ -1,0 +1,14 @@
+{
+    "app_seq":"1234",
+    "command":"D3",
+    "wellhead":"PL0",
+    "value":"0xA1B2",
+    "tsMsgRcvdFromMQTT":"1646297507789868",
+    "usec":"123445",
+    "timestamp":"2020-01-14 13:34:56",
+    "version":"2.0",
+    "realtime":"1",
+    "tsMsgPublishOnEII":"1646297508040408"
+}
+
+    

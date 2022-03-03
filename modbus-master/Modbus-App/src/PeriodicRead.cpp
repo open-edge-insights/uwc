@@ -195,8 +195,8 @@ bool CPeriodicReponseProcessor::prepareResponseJson(std::string &a_rtOrNrt, std:
 			/// application sequence
 			msg_envelope_elem_body_t* ptAppSeq = msgbus_msg_envelope_new_string(stMbusApiPram.m_stOnDemandReqData.m_strAppSeq.c_str());
 			/// topic
-			ptTopic = msgbus_msg_envelope_new_string(stMbusApiPram.m_stOnDemandReqData.m_strTopic.append("Response").c_str());
 			response_topic_mqtt = stMbusApiPram.m_stOnDemandReqData.m_strTopic.append("Response"); // frame the response topic for mqtt like /flowmeter/PL0/DP13/writeResponse or /flowmeter/PL0/DP13/readResponse
+			ptTopic = msgbus_msg_envelope_new_string(response_topic_mqtt.c_str());
 			/// wellhead
 			ptWellhead = msgbus_msg_envelope_new_string(stMbusApiPram.m_stOnDemandReqData.m_strWellhead.c_str());
 			/// metric
@@ -411,6 +411,7 @@ std::string CPeriodicReponseProcessor::mapMqttToEMBRespTopic(std::string mqttRes
 	}
 	
 	std::string dataPointAbsPath = mqttRespTopic.substr(0,index); // ABsolute path of the data point : example: /flowmeter/PL0/D13 
+
 	index +=1; // update index to teh char immediately after last "/"
 	std::string operationResponse = mqttRespTopic.substr(index); // readResponse or writeResponse or update base don the operation for which this response is happenning.
 	std::string rtOrNrt = (isRealTime == true)?"RT":"NRT";
@@ -464,6 +465,7 @@ bool CPeriodicReponseProcessor::postResponseJSON(stStackResponse& a_stResp, cons
 				common_Handler::removeReqData(a_stResp.u16TransacID);	/// removing request structure from map
 			}
 			std::string sUsec{""};
+
 			if(true == zmq_handler::publishJson(sUsec, g_msg, embTopic, "usec"))
 			{
 				// Message is successfully published
