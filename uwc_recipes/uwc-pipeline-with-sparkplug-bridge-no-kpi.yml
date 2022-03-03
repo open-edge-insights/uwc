@@ -9,5 +9,4 @@ AppContexts:
 - uwc/modbus-master/modbus_RTU
 - uwc/sparkplug-bridge
 - uwc/Vendor_Apps/EmbPublisher
-- tools/EmbSubscriber
-
+- uwc/Vendor_Apps/EmbSubscriber
