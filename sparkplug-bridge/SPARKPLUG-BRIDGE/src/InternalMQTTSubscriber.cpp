@@ -379,15 +379,7 @@ int CIntMqttHandler::getAppSeqNo()
 
 	return m_appSeqNo;
 }
-/**
-* Get current time in nano seconds
-* @param ts :[in] timestamp to get microsecond value
-* @return time in micro seconds
-*/
-unsigned long CIntMqttHandler::get_micros(struct timespec ts)
-{
-    return (unsigned long)ts.tv_sec * 1000000L + ts.tv_nsec/1000;
-}
+
 /**
 * map MQTT topic to EMB topic
 * @param mqttTopic :[in] Mqtt topic
@@ -412,12 +404,12 @@ std::string CIntMqttHandler::mapMqttToEMBRespTopic(std::string mqttTopic){
 }
 /**
 * To publish msg on EMB for both VA and Real Device
-* @param eiiMsg :[in] Msg payload
+* @param embMsg :[in] Msg payload
 * @param mqttTopic: MQTT topic 
 * @return true/false based on success/failure
 */
 // /flowmeter/PL0/D13/read to RT|NRT/read/flowmeter/PL0/D13
-bool CIntMqttHandler::publish_msg_to_eii(std::string eiiMsg,std::string mqttTopic)
+bool CIntMqttHandler::publish_msg_to_emb(std::string embMsg,std::string mqttTopic)
 {
 	bool retVal = false;
 	std::string delimeter = "/";
@@ -433,10 +425,10 @@ bool CIntMqttHandler::publish_msg_to_eii(std::string eiiMsg,std::string mqttTopi
 		embTopic = mqttTopic;
 		// removing additional square braces from payload
 		delimeter = "]";
-		int length = eiiMsg.size();
-		size = eiiMsg.find(delimeter);
-		eiiMsg = eiiMsg.substr(0,size);
-		eiiMsg.replace(0,1,""); 
+		int length = embMsg.size();
+		size = embMsg.find(delimeter);
+		embMsg = embMsg.substr(0,size);
+		embMsg.replace(0,1,""); 
 		obj = msgbus_msg_envelope_new_object();
 	}else{// In case of Real Device
 		embTopic = CIntMqttHandler::mapMqttToEMBRespTopic(mqttTopic);
@@ -451,7 +443,7 @@ bool CIntMqttHandler::publish_msg_to_eii(std::string eiiMsg,std::string mqttTopi
 			DO_LOG_ERROR("could not create new msg envelope");
 			return retVal;
 		}
-		root = cJSON_Parse(eiiMsg.c_str());
+		root = cJSON_Parse(embMsg.c_str());
 		if (NULL == root)
 		{
 			DO_LOG_ERROR("Could not parse value received from MQTT");
@@ -478,6 +470,7 @@ bool CIntMqttHandler::publish_msg_to_eii(std::string eiiMsg,std::string mqttTopi
 			msg_envelope_elem_body_t *value = msgbus_msg_envelope_new_string(a_sValue.c_str());
 			if((NULL != value) && (NULL != msg))
 			{
+
 				msgbus_msg_envelope_elem_object_put(obj, a_sFieldName.c_str() , value);	
 			}
 		};		
@@ -508,7 +501,6 @@ bool CIntMqttHandler::publish_msg_to_eii(std::string eiiMsg,std::string mqttTopi
 				msg_envelope_elem_body_t *value = msgbus_msg_envelope_new_bool(val);
 				if (NULL != msg && NULL != value)
 				{
-					
 					if(VA_check=="CMD"){
 						// In case of Vendor App
 						msgbus_msg_envelope_elem_object_put(obj, device->string , value);
@@ -549,9 +541,7 @@ bool CIntMqttHandler::publish_msg_to_eii(std::string eiiMsg,std::string mqttTopi
 			cJSON_Delete(root);
 		}
 		root = NULL;
-		struct timespec tsMsgReceived;
-		timespec_get(&tsMsgReceived, TIME_UTC);	
-		std::string time_stamp_value = std::to_string(CIntMqttHandler::get_micros(tsMsgReceived));
+		std::string time_stamp_value = CCommon::getInstance().get_timestamp();
 		if(VA_check=="CMD"){
 			// In case of Vendor App
 			addField_VA("tsMsgRcvdFromExtMQTT", time_stamp_value.c_str(),VA_check,obj);
@@ -570,27 +560,29 @@ bool CIntMqttHandler::publish_msg_to_eii(std::string eiiMsg,std::string mqttTopi
 			unsigned long uTime = (unsigned long)(std::chrono::duration_cast<std::chrono::microseconds>(p1.time_since_epoch()).count());
 			std::string a_sUsec = std::to_string(uTime);
 			msg_envelope_elem_body_t* ptUsec = msgbus_msg_envelope_new_string(a_sUsec.c_str());
-			msgbus_msg_envelope_elem_object_put(obj, "tsMsgPublishSPtoEII" , ptUsec);
+			msgbus_msg_envelope_elem_object_put(obj, "tsMsgPublishSPtoEMB" , ptUsec);
 			msgbus_msg_envelope_put(msg, "metrics", obj);
+			
+			
 			if(true == zmq_handler::publishJson(strTsReceived, msg, embTopic, ""))
 			{
 				bRet = true;
 			}
 			else
 			{
-				DO_LOG_ERROR("Failed to publish write msg on EII: " + eiiMsg);
+				DO_LOG_ERROR("Failed to publish write msg on EMB: " + embMsg);
 				bRet = false;
 			}
 
 		}else{
 		// In case of Real Device
-		if(true == zmq_handler::publishJson(strTsReceived, msg, embTopic, "tsMsgPublishSPtoEII"))
+		if(true == zmq_handler::publishJson(strTsReceived, msg, embTopic, "tsMsgPublishSPtoEMB"))
 		{
 			bRet = true;
 		}
 		else
 		{
-			DO_LOG_ERROR("Failed to publish write msg on EII: " + eiiMsg);
+			DO_LOG_ERROR("Failed to publish write msg on EMB: " + embMsg);
 			bRet = false;
 		}
 		}
@@ -656,10 +648,10 @@ bool CIntMqttHandler::prepareWriteMsg(std::reference_wrapper<CSparkPlugDev>& a_r
 					string strPubMsg = cJSON_Print(root);
 					//Publisher for EMB 
             				if(zmq_handler::enable_EMB()==true){
-						DO_LOG_INFO("Publishing on EII msg bus");
-						bool publish_status = CIntMqttHandler::publish_msg_to_eii(strPubMsg, strMsgTopic);
+						DO_LOG_INFO("Publishing on EMB msg bus");
+						bool publish_status = CIntMqttHandler::publish_msg_to_emb(strPubMsg, strMsgTopic);
 						if( publish_status != true ){
-							DO_LOG_ERROR("Failed to publish msg on EII");
+							DO_LOG_ERROR("Failed to publish msg on EMB");
 						}
 					}else{
    		    			        DO_LOG_INFO("Publishing on MQTT");
@@ -746,11 +738,11 @@ bool CIntMqttHandler::prepareCMDMsg(std::reference_wrapper<CSparkPlugDev>& a_ref
 			DO_LOG_DEBUG("Payload : " + strPubMsg);
 			// Publisher for EMB 
            		if(zmq_handler::enable_EMB()==true){
-				DO_LOG_INFO("Publishing on EII msg bus");
-				fprintf(stderr, "\nPublishing on EII msg bus\n");
-				bool publish_status = CIntMqttHandler::publish_msg_to_eii(strPubMsg, strMsgTopic);
+				DO_LOG_INFO("Publishing on EMB msg bus");
+				fprintf(stderr, "\nPublishing on EMB msg bus\n");
+				bool publish_status = CIntMqttHandler::publish_msg_to_emb(strPubMsg, strMsgTopic);
 				if( publish_status != true ){
-					DO_LOG_ERROR("Failed to publish msg on EII");
+					DO_LOG_ERROR("Failed to publish msg on EMB");
                    		 }
 			}else{
 				// Publisher for MQTT

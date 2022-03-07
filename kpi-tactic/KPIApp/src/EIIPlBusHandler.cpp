@@ -228,12 +228,12 @@ void CEIIPlBusHandler::listenOnEII(std::string sTopic, zmq_handler::stZmqContext
 }
 
 /**
- * publish message to EII
- * @param a_sEiiMsg :[in] message to publish on EII
- * @param a_sEiiTopic :[in] eii topic
+ * publish message to EMB
+ * @param a_sEMBMsg :[in] message to publish on EMB
+ * @param a_sEMBTopic :[in] emb topic
  * @return true/false based on success/failure
  */
-bool CEIIPlBusHandler::publishEIIMsg(std::string a_sEiiMsg, std::string &a_sEiiTopic)
+bool CEIIPlBusHandler::publishEMBMsg(std::string a_sEMBMsg, std::string &a_sEMBTopic)
 {
 	// Creating message to be published
 	msg_envelope_t *msg = NULL;
@@ -247,9 +247,9 @@ bool CEIIPlBusHandler::publishEIIMsg(std::string a_sEiiMsg, std::string &a_sEiiT
 			return false;
 		}
 		//Get the context for this EMB PUB topic
-		zmq_handler::prepareContext(true, (zmq_handler::getPubCtxCfg()).m_pub_msgbus_ctx, a_sEiiTopic, (zmq_handler::getPubCtxCfg()).m_pub_config);		
+		zmq_handler::prepareContext(true, (zmq_handler::getPubCtxCfg()).m_pub_msgbus_ctx, a_sEMBTopic, (zmq_handler::getPubCtxCfg()).m_pub_config);		
 		//parse from root element
-		root = cJSON_Parse(a_sEiiMsg.c_str());
+		root = cJSON_Parse(a_sEMBMsg.c_str());
 		if (NULL == root)
 		{
 			if(msg != NULL)
@@ -287,13 +287,13 @@ bool CEIIPlBusHandler::publishEIIMsg(std::string a_sEiiMsg, std::string &a_sEiiT
 		//add time stamp before publishing msg on EII
 		std::string strTsReceived{""};
 		bool bRet = true;
-		if(true == zmq_handler::publishJson(strTsReceived, msg, a_sEiiTopic, "tsMsgPublishOnEII"))
+		if(true == zmq_handler::publishJson(strTsReceived, msg, a_sEMBTopic, "tsMsgPublishOnEII"))
 		{
 			bRet = true;
 		}
 		else
 		{
-			DO_LOG_ERROR("Failed to publish write msg on EII: " + a_sEiiMsg);
+			DO_LOG_ERROR("Failed to publish write msg on EII: " + a_sEMBMsg);
 			bRet = false;
 		}
 
@@ -305,11 +305,11 @@ bool CEIIPlBusHandler::publishEIIMsg(std::string a_sEiiMsg, std::string &a_sEiiT
 	}
 	catch(std::string& strException)
 	{
-		DO_LOG_ERROR("publishEIIMsg error1::" + strException);
+		DO_LOG_ERROR("publishEMBMsg error1::" + strException);
 	}
 	catch(std::exception &ex)
 	{
-		DO_LOG_ERROR("publishEIIMsg error2::" + std::string(ex.what()));
+		DO_LOG_ERROR("publishEMBMsg error2::" + std::string(ex.what()));
 	}
 
 	if(msg != NULL)
