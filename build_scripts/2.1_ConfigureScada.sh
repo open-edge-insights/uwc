@@ -193,7 +193,7 @@ get_user_inputs()
 
 	while :
 	do 
-		echo "Enter the QOS for scada (between 0 to 2):"
+		echo "Enter the QOS for sparkplug (between 0 to 2):"
 		read QOS
 		if [ -z $QOS ];then
 			echo "${RED}Empty value entered for qos.${NC}"
@@ -280,7 +280,7 @@ parse_command_line_args()
 
     if [ -z "${QOS}" ];then
 		echo "${RED}Empty value entered for qos.${NC}"
-		echo "Enter the QOS for scada (between 0 to 2):"
+		echo "Enter the QOS for sparkplug (between 0 to 2):"
 		read QOS
 		if [ -z "$QOS" ]; then 
 			echo "${RED}Error:: Empty value entered..${NC}"; 

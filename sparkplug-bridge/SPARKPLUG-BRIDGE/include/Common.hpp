@@ -32,7 +32,6 @@
 #include "Logger.hpp"
 #include "ConfigManager.hpp"
 #include "EnvironmentVarHandler.hpp"
-
 using namespace globalConfig;
 
 #define SPARKPLUG_BRIDGE_CONFIG_FILE_PATH "/opt/intel/eii/uwc_data/sparkplug-bridge/sparkplug-bridge_config.yml"
@@ -44,6 +43,8 @@ class CCommon
 private:
 	/** vector of env variables*/
 	std::vector<std::string> m_vecEnv{"AppName", "INTERNAL_MQTT_URL", "DEV_MODE", "NETWORK_TYPE", "DEVICES_GROUP_LIST_FILE_NAME"};
+	// a variable to store the timestamp values of msgs coming from SCADA
+	std::string TS_SCADAtoMQTT;
 	// Private constructor so that no objects can be created.
 	CCommon();
 	CCommon(const CCommon & obj) = delete;
@@ -254,6 +255,8 @@ public:
 	}
 
 	bool getTopicParts(std::string a_sTopic, std::vector<std::string> &a_vsTopicParts, const std::string& a_delimeter);
-
+	std::string get_timestamp();
+	void set_timestamp();
+	unsigned long get_micros(struct timespec ts);
 };
 #endif

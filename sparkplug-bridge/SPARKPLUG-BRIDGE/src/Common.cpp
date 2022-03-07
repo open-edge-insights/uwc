@@ -25,7 +25,6 @@
 #include <iostream>
 #include <fstream>
 #include <bits/stdc++.h>
-
 /**
  * Constructor initializes CCommon instance and retrieves common environment variables
  * @param None
@@ -210,4 +209,32 @@ bool CCommon::getTopicParts(std::string a_sTopic,
 		return false;
 	}
 	return true;
+}
+/**
+* Get current time in nano seconds
+* @param ts :[in] timestamp to get microsecond value
+* @return time in micro seconds
+*/
+unsigned long CCommon::get_micros(struct timespec ts)
+{
+    return (unsigned long)ts.tv_sec * 1000000L + ts.tv_nsec/1000;
+}
+/**
+ * To set the time stamp of the msg recived from SCADA 
+ * @param :[in] None
+ * @return none
+ */
+void CCommon::set_timestamp()
+{
+	struct timespec tsSPMsgReceived;
+	timespec_get(&tsSPMsgReceived, TIME_UTC);	
+	TS_SCADAtoMQTT = std::to_string(CCommon::get_micros(tsSPMsgReceived)); 
+}
+/**
+ * To get the time stamp of the msg recived from SCADA 
+ * @param :[in] None 
+ * @return timestamp value 
+ */
+std::string CCommon::get_timestamp(){
+	return TS_SCADAtoMQTT;
 }

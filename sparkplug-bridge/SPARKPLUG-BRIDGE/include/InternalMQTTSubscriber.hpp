@@ -107,8 +107,7 @@ public:
 						metricMapIf_t& a_mapChangedMetrics);
 	bool prepareWriteMsg(std::reference_wrapper<CSparkPlugDev>& a_refSparkPlugDev,
 							metricMapIf_t& a_mapChangedMetrics);
-        bool publish_msg_to_eii(string strPubMsg,string strMsgTopic);
-	bool publish_RD_to_eii(string strPubMsg,string strMsgTopic);
+        bool publish_msg_to_emb(string strPubMsg,string strMsgTopic);
 	std::string mapMqttToEMBRespTopic(std::string mqttTopic);
 	unsigned long get_micros(struct timespec ts);
 };

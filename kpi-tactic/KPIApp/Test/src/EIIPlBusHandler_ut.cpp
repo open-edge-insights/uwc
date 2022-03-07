@@ -22,7 +22,7 @@
 
 #include "../include/EIIPlBusHandler_ut.hpp"
 
-extern bool publishEIIMsg(std::string a_sEiiMsg, std::string &a_sEiiTopic);
+extern bool publishEMBMsg(std::string a_sEiiMsg, std::string &a_sEiiTopic);
 
 extern std::vector<std::thread> g_vThreads;
 
@@ -123,7 +123,7 @@ TEST_F(EIIPlBusHandler_ut, EIIMsg_ctx_Map_Empty)
 	try
 	{
 		std::string sMsg{""};
-	    bool RetVal = publishEIIMsg(strMsg, eiiTopic);
+	    bool RetVal = publishEMBMsg(strMsg, eiiTopic);
 		EXPECT_EQ(false, RetVal);
 
 	}
