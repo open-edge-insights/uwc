@@ -67,16 +67,16 @@ modifying_env()
 }
 
 #------------------------------------------------------------------
-# eii_provision
+# uwc_services_build
 #
 # Description:
-#        Performs prvovisioning as per docker-compose.yml file.
+#        Build images as per docker-compose.yml file and preBuild value.
 # Return:
 #        None
 # Usage:
-#       eii_provision
+#       uwc_services_build
 #------------------------------------------------------------------
-eii_provision()
+uwc_services_build()
 {
     docker stop $(docker ps -a -q)
     cd "${eii_build_dir}"
@@ -278,7 +278,7 @@ configure_usecase()
                 break
                 ;;
             *)
-                echo "Proper use-case option not selected. PLease select the right option as per help menu & re-provision UWC micro-services: ${yn}"
+                echo "Proper use-case option not selected. PLease select the right option as per help menu & re-build by executing 02_provision_build_UWC.sh script: ${yn}"
                 usage
                 exit 1
             esac
@@ -613,7 +613,9 @@ if [ -z "$1" ]; then
     set_mode
     configure_usecase 
     preBuild_images
-    eii_provision
+    BUILD_STARTTIME=$(date +%s)    
+    uwc_services_build
+    BUILD_ENDTIME=$(date +%s)    
     cd  ${Current_Dir}
     if [ "${IS_SCADA}" -eq "1" ]; then
         if [ "$deployMode" == "dev" ]; then
@@ -630,7 +632,9 @@ else
     set_mode  "$deployMode"
     configure_usecase   "$recipe"
     preBuild_images  "$preBuild"
-    eii_provision
+    BUILD_STARTTIME=$(date +%s)    
+    uwc_services_build
+    BUILD_ENDTIME=$(date +%s)    
     cd  ${Current_Dir}
     if [[ "${IS_SCADA}" -eq "1" ]]; then
            ./2.1_ConfigureScada.sh "$@"
@@ -647,3 +651,6 @@ if [[ "${IS_SCADA}" -eq "1" ]]; then
         echo "${GREEN}ConfigureScada successfully.${NC}"
     fi   
 fi
+echo "${INFO}Build Completed${NC}"
+BUILD_ELAPSEDTIME=$(( ${BUILD_ENDTIME} - ${BUILD_STARTTIME} ))
+echo "${GREEN}Total Elapsed time for building is : $(( ${BUILD_ELAPSEDTIME} / 60 )) minutes ${NC}"
