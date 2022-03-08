@@ -220,7 +220,7 @@ unsigned long CCommon::get_micros(struct timespec ts)
     return (unsigned long)ts.tv_sec * 1000000L + ts.tv_nsec/1000;
 }
 /**
- * To set the time stamp of the msg recived from SCADA 
+ * To set the time stamp of the msg received from external MQTT
  * @param :[in] None
  * @return none
  */
@@ -228,13 +228,13 @@ void CCommon::set_timestamp()
 {
 	struct timespec tsSPMsgReceived;
 	timespec_get(&tsSPMsgReceived, TIME_UTC);	
-	TS_SCADAtoMQTT = std::to_string(CCommon::get_micros(tsSPMsgReceived)); 
+	TS_ExtMqttTOSp = std::to_string(CCommon::get_micros(tsSPMsgReceived)); 
 }
 /**
- * To get the time stamp of the msg recived from SCADA 
+ * To get the time stamp of the msg received from external MQTT 
  * @param :[in] None 
  * @return timestamp value 
  */
 std::string CCommon::get_timestamp(){
-	return TS_SCADAtoMQTT;
+	return TS_ExtMqttTOSp;
 }

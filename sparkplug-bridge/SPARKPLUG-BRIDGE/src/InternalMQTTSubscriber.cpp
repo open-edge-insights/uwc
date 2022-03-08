@@ -544,11 +544,11 @@ bool CIntMqttHandler::publish_msg_to_emb(std::string embMsg,std::string mqttTopi
 		std::string time_stamp_value = CCommon::getInstance().get_timestamp();
 		if(VA_check=="CMD"){
 			// In case of Vendor App
-			addField_VA("tsMsgRcvdFromExtMQTT", time_stamp_value.c_str(),VA_check,obj);
+			addField_VA("tsMsgRcvdFromExtMQTTToSP", time_stamp_value.c_str(),VA_check,obj);
 			addField_VA("sourcetopic", mqttTopic,VA_check,obj);
 		}else{
 			// In case of Real Device
-			addField("tsMsgRcvdFromExtMQTT", time_stamp_value.c_str());
+			addField("tsMsgRcvdFromExtMQTTToSP", time_stamp_value.c_str());
 			addField("sourcetopic", mqttTopic);
 
 		}

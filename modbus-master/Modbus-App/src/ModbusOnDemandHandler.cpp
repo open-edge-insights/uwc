@@ -1240,7 +1240,7 @@ bool onDemandHandler::processMsg(msg_envelope_t *msg,
 	stMbusApiPram.m_stOnDemandReqData.m_strEiiTime = getMsgElement(msg, "tsMsgPublishOnEII");
 	//In case when sparkplug is connected with EMB. 
 	if( stMbusApiPram.m_stOnDemandReqData.m_strMqttTime.empty()){
-		stMbusApiPram.m_stOnDemandReqData.m_strMqttTime = getMsgElement(msg, "tsMsgRcvdFromExtMQTT");
+		stMbusApiPram.m_stOnDemandReqData.m_strMqttTime = getMsgElement(msg, "tsMsgRcvdFromExtMQTTToSP");
 	}
 	//In case when sparkplug is connected with EMB.
 	if( stMbusApiPram.m_stOnDemandReqData.m_strEiiTime.empty()){

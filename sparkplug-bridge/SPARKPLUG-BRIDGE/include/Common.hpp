@@ -43,8 +43,8 @@ class CCommon
 private:
 	/** vector of env variables*/
 	std::vector<std::string> m_vecEnv{"AppName", "INTERNAL_MQTT_URL", "DEV_MODE", "NETWORK_TYPE", "DEVICES_GROUP_LIST_FILE_NAME"};
-	// a variable to store the timestamp values of msgs coming from SCADA
-	std::string TS_SCADAtoMQTT;
+	// a variable to store the timestamp values of msgs coming from external MQTT.
+	std::string TS_ExtMqttTOSp;
 	// Private constructor so that no objects can be created.
 	CCommon();
 	CCommon(const CCommon & obj) = delete;
