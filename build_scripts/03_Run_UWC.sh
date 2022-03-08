@@ -78,18 +78,18 @@ function harden()
 function main()
 {
     echo "${INFO}Deployment started${NC}"
-    STARTTIME=$(date +%s)
     check_root_user
     check_internet_connection
     docker_verify
     docker_compose_verify
+    RUN_STARTTIME=$(date +%s)
     build_run_UWC
+    RUN_ENDTIME=$(date +%s)
     verify_container
     harden
     echo "${INFO}Deployment Completed${NC}"
-    ENDTIME=$(date +%s)
-    ELAPSEDTIME=$(( ${ENDTIME} - ${STARTTIME} ))
-    echo "${GREEN}Total Elapsed time is : $(( ${ELAPSEDTIME} / 60 )) minutes ${NC}"
+    RUN_ELAPSEDTIME=$(( ${RUN_ENDTIME} - ${RUN_STARTTIME} ))
+    echo "${GREEN}Total Elapsed time for run is : $(( ${RUN_ELAPSEDTIME} / 60 )) minutes ${NC}"
 }
 
 export DOCKER_CONTENT_TRUST=1
@@ -98,3 +98,4 @@ main
 
 cd "${Current_Dir}"
 exit 0
+

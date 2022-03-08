@@ -51,6 +51,16 @@ del_file()
     fi 
 }
 
+del_dir()
+{
+    if [[ -d $1 ]]; then
+        rm -rf $1
+        if [[ $? -ne 0 ]]; then
+            clean_exit
+        fi
+    fi
+}
+
 function uninstall_docker_compose()
 {
     	# UNINSTALLING DOCKER-COMPOSE
@@ -86,9 +96,9 @@ function removeUWCConfig
 {
     #Delete UWC config
     echo -e "${INFO}---------------------------------------Removing UWC config-----------------------${NC}"
-    del_file /opt/intel/eii/uwc_data
-    del_file /opt/intel/eii/uwc_data/common_config
-    del_file /opt/intel/eii/container_logs
+    del_dir /opt/intel/eii/uwc_data
+    del_dir /opt/intel/eii/uwc_data/common_config
+    del_dir /opt/intel/eii/container_logs
     echo -e "${SUCCESS}-------------------------------Removed all UWC config------------------------------------${NC}"
     
     #RESET THE PROXY SETTING 
@@ -103,9 +113,9 @@ function removeUWCConfig
 
 uninstall_containers()
 {
-    echo "${INFO}Bringing down all running containers from this machine${NC}"
+    echo -e "${INFO}Bringing down all running containers from this machine${NC}"
     docker-compose down
-    echo "${INFO}Removing all containers from this machine${NC}"
+    echo -e "${INFO}Removing all containers from this machine${NC}"
 	docker rm -f $(docker ps -a -q)
 	docker system prune -af --volumes
     
@@ -129,6 +139,7 @@ check_root_user
 uninstall_containers
 uninstall_docker
 uninstall_docker_compose
+removeUWCConfig
 delete_file
 
 echo ""
