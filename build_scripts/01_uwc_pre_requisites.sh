@@ -32,26 +32,29 @@ INFO=$(tput setaf 3)   # YELLOW (used for informative messages)
 # ----------------------------
 create_docker_volume_dir()
 {
-    if [ ! -d /opt/intel/eii/uwc_data ]; then
-    	echo "${GREEN}uwc_data directory is not present in /opt/intel/eii/ directory.${NC}"
-    	echo "${GREEN}Creating /opt/intel/eii/uwc_data directory.${NC}"
-    	mkdir -p /opt/intel/eii/uwc_data
-		if [ "$?" -eq "0" ]; then
-			echo "${GREEN}/opt/intel/eii/uwc_data is sucessfully created. ${NC}"
-		else
-        	echo "${RED}Failed to create docker volume directory${NC}"
-			exit 1;
-		fi
-	
-		rm -rf /opt/intel/eii/uwc_data/sparkplug-bridge
-    	mkdir -p /opt/intel/eii/uwc_data/sparkplug-bridge
-		if [ "$?" -eq "0" ]; then
-			echo "${GREEN}/opt/intel/eii/uwc_data/sparkplug-bridge is sucessfully created. ${NC}"
-		else
-        	echo "${RED}Failed to create docker volume directory${NC}"
-			exit 1;
-		fi
-    fi
+        if [ ! -d /opt/intel/eii/uwc_data ]; then
+                echo "${GREEN}uwc_data directory is not present in /opt/intel/eii/ directory.${NC}"
+                echo "${GREEN}Creating /opt/intel/eii/uwc_data directory.${NC}"
+                mkdir -p /opt/intel/eii/uwc_data
+                if [ "$?" -eq "0" ]; then
+                        echo "${GREEN}/opt/intel/eii/uwc_data is sucessfully created. ${NC}"
+                else
+                        echo "${RED}Failed to create docker volume directory${NC}"
+                        exit 1;
+                fi
+        fi
+        if [  -d /opt/intel/eii/uwc_data/sparkplug-bridge ]; then
+
+                rm -rf /opt/intel/eii/uwc_data/sparkplug-bridge
+        fi
+        mkdir -p /opt/intel/eii/uwc_data/sparkplug-bridge
+        if [ "$?" -eq "0" ]; then
+                echo "${GREEN}/opt/intel/eii/uwc_data/sparkplug-bridge is sucessfully created. ${NC}"
+        else
+                echo "${RED}Failed to create docker volume directory${NC}"
+                exit 1;
+        fi
+
 	echo "${GREEN}Deleting old /opt/intel/eii/container_logs directory.${NC}"
 	rm -rf  /opt/intel/eii/container_logs
 	echo "${GREEN}Done..${NC}"
