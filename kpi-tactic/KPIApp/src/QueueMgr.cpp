@@ -158,7 +158,7 @@ bool PlBusMgr::publishWriteReq(const CControlLoopOp& a_rCtrlLoop,
 		else
 		{
 			sPubTopic = mapMqttToEMBRespTopic(sPubTopic,sWrRT);
-			return getEIIPlBusHandler().publishEIIMsg(sMsg,sPubTopic);
+			return getEIIPlBusHandler().publishEMBMsg(sMsg,sPubTopic);
 		}
 	}
 	catch(const std::exception& e)
