@@ -53,6 +53,8 @@ void processExternalMqttMsgs(CQueueHandler& a_qMgr)
 		if(true == a_qMgr.isMsgArrived(recvdMsg))
 		{	
 			std::vector<stRefForSparkPlugAction> stRefActionVec;
+			std::string ext_topic = recvdMsg.getTopic();
+			CCommon::getInstance().set_timestamp();
 			CSCADAHandler::instance().processExtMsg(recvdMsg, stRefActionVec);
 
 			//prepare a sparkplug message only if there are values in map
@@ -73,7 +75,7 @@ void processExternalMqttMsgs(CQueueHandler& a_qMgr)
  */
 void processInternalMqttMsgs(CQueueHandler& a_qMgr)
 {
-	string eiiTopic = "";
+	string embTopic = "";
 	try
 	{
 		while (false == g_shouldStop.load())
@@ -143,36 +145,19 @@ bool processMsg(msg_envelope_t *msg,std::string eachTopic){
 	msg_envelope_serialized_part_t* parts = NULL;
 	std::string sRcvdTopic;
 	std::string check_topic;
-	// In case of VA
-	if ((eachTopic != "BIRTH/") && (eachTopic != "DATA/") && (eachTopic != "DEATH/") && (eachTopic !="TemplateDef")){
-		msgbus_ret_t msgRet = msgbus_msg_envelope_get(msg, "data_topic", &data);
-		if(msgRet != MSG_SUCCESS)
-		{ 
-	    		DO_LOG_ERROR("topic key not present in zmq message");
-			return false;
-    		} 
-		sRcvdTopic=data->body.string; 
-	}
-
-	std::string sub;
-    int num_parts = msgbus_msg_envelope_serialize(msg, &parts);
-    // TO be improved 
+	msgbus_ret_t msgRet = msgbus_msg_envelope_get(msg, "data_topic", &data);
+	if(msgRet != MSG_SUCCESS)
+	{ 
+		DO_LOG_ERROR("topic key not present in zmq message");
+		return false;
+    } 
+	sRcvdTopic=data->body.string; 
+	int num_parts = msgbus_msg_envelope_serialize(msg, &parts);
     if(NULL != parts[0].bytes)
 	{
 		std::string sMsgBody(parts[0].bytes);
-		if ((eachTopic == "BIRTH/") || (eachTopic == "DATA/") || (eachTopic == "DEATH/")|| (eachTopic =="TemplateDef")){
-			int len = sMsgBody.size();
-			int size = sMsgBody.find(",");
-			sub = sMsgBody.substr(0,size);
-			sMsgBody = sMsgBody.substr(size,len);
-			len = sub.size();
-			size = sub.find(":");
-			sRcvdTopic = sub.substr(size,len);
-			sRcvdTopic.erase(0,2);
-			size = sRcvdTopic.find("\"");
-			sRcvdTopic = sRcvdTopic.substr(0,size);
-			sMsgBody.replace(0,1,"{");
-		}	
+		DO_LOG_DEBUG("Topic recived is"+ sRcvdTopic);
+		DO_LOG_DEBUG("Payload recived is"+sMsgBody);
 		CMessageObject oMsg{sRcvdTopic,sMsgBody};
 		QMgr::getDatapointsQ().pushMsg(oMsg);
 	}
@@ -186,7 +171,7 @@ bool processMsg(msg_envelope_t *msg,std::string eachTopic){
   * @param operation : [in] operation info
  * @return true/false depending on success/failure
  */
-void sub_data_from_eii(std::string eachTopic,zmq_handler::stZmqContext context, zmq_handler::stZmqSubContext subContext){
+void sub_data_from_emb(std::string eachTopic,zmq_handler::stZmqContext context, zmq_handler::stZmqSubContext subContext){
     DO_LOG_DEBUG("Subscribing on Topic:"+eachTopic);
     ConfigMgr* sub_ch = NULL;
     recv_ctx_t* g_sub_ctx = NULL;
@@ -301,7 +286,7 @@ int main(int argc, char *argv[])
 
 				zmq_handler::stZmqContext& context = zmq_handler::getCTX(eachTopic);
 				zmq_handler::stZmqSubContext& subContext = zmq_handler::getSubCTX(eachTopic);
-				g_vThreads.push_back(std::thread(sub_data_from_eii,eachTopic,context,subContext));	
+				g_vThreads.push_back(std::thread(sub_data_from_emb,eachTopic,context,subContext));	
 			}
 		}
 		g_vThreads.push_back(std::thread(processInternalMqttMsgs, std::ref(QMgr::getDatapointsQ())));
