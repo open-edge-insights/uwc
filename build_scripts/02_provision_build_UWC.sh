@@ -40,7 +40,6 @@ brokerAddr=""
 brokerPort=""
 qos=""
 ret=""
-
 #------------------------------------------------------------------
 # modifying_env
 #
@@ -113,7 +112,10 @@ uwc_services_build()
                 fi                    
             fi  
         fi     
-        docker-compose -f docker-compose-build.yml build ia_configmgr_agent
+        docker-compose -f docker-compose-build.yml build ia_configmgr_agent ia_etcd_ui 
+	if [[ "${IS_SCADA}" -eq "1" ]]; then
+		docker-compose -f docker-compose-build.yml build ia_emb_subscriber emb_publisher	
+	fi
         docker-compose up -d ia_configmgr_agent
 	sleep 10
         if [ "$?" -eq "0" ];then
