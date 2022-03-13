@@ -21,7 +21,12 @@ services:
     container_name: emb_publisher
     restart: unless-stopped
     hostname: emb_publisher
-    user: root 
+    user: root
+    healthcheck:
+      test: ["CMD-SHELL", "exit", "0"]
+      interval: 5m
+    security_opt:
+      - no-new-privileges      
     environment:
       AppName: "EmbPublisher"
       DEV_MODE: ${DEV_MODE}

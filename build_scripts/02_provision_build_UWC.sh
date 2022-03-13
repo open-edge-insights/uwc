@@ -91,7 +91,7 @@ uwc_services_build()
 	# Checking if emb_publisher is part of the recipe use case selected
             is_emb_publisher_present=`grep "emb_publisher" "docker-compose-build.yml"`
             if [ ! -z "$is_emb_publisher_present" ]; then
-                docker-compose -f docker-compose-build.yml build ia_eiibase ia_common ia_telegraf emb_publisher 
+                docker-compose -f docker-compose-build.yml build ia_eiibase ia_common ia_telegraf emb_publisher ia_influxdbconnector
                 if [ "$?" -eq "0" ];then
 	            echo "*****************************************************************"
                     echo "${GREEN}UWC containers built successfully.${NC}"
@@ -101,7 +101,7 @@ uwc_services_build()
                     exit 1
                 fi
             else 
-                docker-compose -f docker-compose-build.yml build ia_eiibase ia_common ia_telegraf 
+                docker-compose -f docker-compose-build.yml build ia_eiibase ia_common ia_telegraf ia_influxdbconnector
                 if [ "$?" -eq "0" ];then
 	            echo "*****************************************************************"
                     echo "${GREEN}UWC containers built successfully.${NC}"
@@ -112,7 +112,7 @@ uwc_services_build()
                 fi                    
             fi  
         fi     
-        docker-compose -f docker-compose-build.yml build ia_configmgr_agent ia_etcd_ui 
+        docker-compose -f docker-compose-build.yml build ia_eiibase ia_common ia_configmgr_agent ia_etcd_ui ia_zmq_broker 
 	if [[ "${IS_SCADA}" -eq "1" ]]; then
 		docker-compose -f docker-compose-build.yml build ia_emb_subscriber emb_publisher	
 	fi
@@ -180,14 +180,14 @@ configure_usecase()
         echo "Please choose one of the below options based on the use case (combination of UWC services) needed." 
         echo "1) Basic UWC micro-services without KPI-tactic Application & Sparkplug-Bridge - (Modbus-master TCP & RTU, mqtt-bridge, internal mqtt broker, ETCD server, ETCD UI & other base EII & UWC services)"
         echo "2) Basic UWC micro-services as in option 1 along with KPI-tactic Application (Without Sparkplug-Bridge)"
-        echo "3) Basic UWC micro-services & KPI-tactic Application along with Sparkplug-Bridge"
-        echo "4) Basic UWC micro-services with Sparkplug-Bridge and no KPI-tactic Application" 
+        echo "3) Basic UWC micro-services & KPI-tactic Application along with Sparkplug-Bridge, Sample EmbPublisher and Sample EmbSubscriber"
+        echo "4) Basic UWC micro-services with Sparkplug-Bridge, Sample EmbPublisher and Sample EmbSubscriber and no KPI-tactic Application" 
         echo "5) Basic UWC micro-services with Time series micro-services (Telegraf & InfluxDBConnector)"
         echo "6) Running Basic UWC micro-services with time series services (Telegraf & InfluxDBCOnnector) along with KPI-tactic app"
-        echo "7) Running Basic UWC micro-services with time series services (Telegraf & InfluxDBCOnnector) along with Sparkplug service"
-        echo "8) Running the sample DB publisher with Telegraf, InfluxDBCOnnector, ZmqBroker & Etcd container."
-        echo "9) Basic UWC micro-services with sample EMB publisher and subscriber."
-        echo "10) All modules UWC modules, KPI-tactic Application, SPARKPLUG-BRIDGE, Telegraf, InfluxDBCOnnector, ZmqBroker, Etcd container,sample EMB publisher and subscriber"
+        echo "7) Running Basic UWC micro-services with time series services (Telegraf & InfluxDBCOnnector) along with Sparkplug service, Sample EmbPublisher and Sample EmbSubscriber"
+        echo "8) Running the Sample DB publisher with Telegraf, InfluxDBCOnnector, ZmqBroker & Etcd container."
+        echo "9) Basic UWC micro-services with Sample EmbPublisher and Sample EmbSubscriber."
+        echo "10) All modules UWC modules, KPI-tactic Application, SPARKPLUG-BRIDGE, Telegraf, InfluxDBCOnnector, ZmqBroker, Etcd container, Sample EmbPublisher and Sample EmbSubscriber"
         read yn
     fi
     cd ${eii_build_dir}
@@ -215,7 +215,7 @@ configure_usecase()
                 break
                 ;;
             3)
-                echo "Running Basic UWC micro-services with KPI-tactic Application & with Sparkplug-Bridge"
+                echo "Running Basic UWC micro-services with KPI-tactic Application & with Sparkplug-Bridge, Sample EmbPublisher and Sample EmbSubscriber"
                 python3 builder.py -f ../uwc/uwc_recipes/uwc-pipeline-with-sparkplug-bridge_and_kpi.yml
                 if [ "$?" != 0 ]; then
                     echo "${RED}Error running EII builder script. Check the recipe configuration file...!${NC}" 
@@ -227,7 +227,7 @@ configure_usecase()
                 break
                 ;;                
             4)
-                echo "Running Basic UWC micro-services with no KPI-tactic Application & with Sparkplug-Bridge"
+                echo "Running Basic UWC micro-services with no KPI-tactic Application & with Sparkplug-Bridge, Sample EmbPublisher and Sample EmbSubscriber"
                 python3 builder.py -f ../uwc/uwc_recipes/uwc-pipeline-with-sparkplug-bridge-no-kpi.yml
                 if [ "$?" != 0 ]; then
                     echo "${RED}Error running EII builder script. Check the recipe configuration file...!${NC}" 
@@ -260,7 +260,7 @@ configure_usecase()
                 break
                 ;;
             7)
-                echo "Running Basic UWC micro-services with time series services (Telegraf & InfluxDBCOnnector) along with Sparkplug service"
+                echo "Running Basic UWC micro-services with time series services (Telegraf & InfluxDBCOnnector) along with Sparkplug service, Sample EmbPublisher and Sample EmbSubscriber"
                 python3 builder.py -f ../uwc/uwc_recipes/uwc-pipeline-basic-sparkplug-timeseries.yml		
                 if [ "$?" != 0 ]; then
                     echo "${RED}Error running EII builder script. Check the recipe configuration file...!${NC}"
@@ -272,7 +272,7 @@ configure_usecase()
                 break
                 ;;
             8)
-                echo "Running the sample DB publisher with Telegraf, InfluxDBConnector, ZmqBroker & Etcd container  "
+                echo "Running the Sample DB publisher with Telegraf, InfluxDBConnector, ZmqBroker & Etcd container  "
                 python3 builder.py -f ../uwc/uwc_recipes/uwc-pipeline-sample-publisher.yml
                 if [ "$?" != 0 ]; then
                     echo "${RED}Error running EII builder script. Check the recipe configuration file...!${NC}"
@@ -282,7 +282,7 @@ configure_usecase()
                 break
                 ;;
             9)
-                echo "Running the basic UWC micro-services with sample EMB publisher and subscriber"
+                echo "Running the basic UWC micro-services with Sample EmbPublisher and Sample EmbSubscriber"
                 python3 builder.py -f ../uwc/uwc_recipes/uwc-pipeline-basic-with-EMB_Pub-and-EMB_Sub.yml
                 if [ "$?" != 0 ]; then
                     echo "${RED}Error running EII builder script. Check the recipe configuration file...!${NC}"
@@ -293,14 +293,15 @@ configure_usecase()
                 ;;     
 
             10)      
-                echo "Running all modules UWC modules, KPI-tactic Application, SPARKPLUG-BRIDGE, Telegraf, InfluxDBCOnnector, ZmqBroker, Etcd container, sample EMB publisher and subscriber"
+                echo "Running all modules UWC modules, KPI-tactic Application, SPARKPLUG-BRIDGE, Telegraf, InfluxDBCOnnector, ZmqBroker, Etcd container, Sample EmbPublisher and Sample EmbSubscriber"
                 python3 builder.py -f ../uwc/uwc_recipes/uwc-pipeline-with-all-modules.yml
                 if [ "$?" != 0 ]; then
                     echo "${RED}Error running EII builder script. Check the recipe configuration file...!${NC}"
                     exit 1
                 fi
                 echo "${GREEN}EII builder script successfully generated consolidated docker-compose & configuration files.${NC}"
-                break
+                IS_SCADA=1
+		break
                 ;;                          
             *)
                 echo "Proper use-case option not selected. PLease select the right option as per help menu & re-build by executing 02_provision_build_UWC.sh script: ${yn}"
@@ -430,14 +431,14 @@ parse_command_line_args()
         echo "${INFO}--recipe  Recipe file to be used by EII builder.
                             1: All basic UWC modules. (no KPI-tactic Application, no SPARKPLUG-BRIDGE)
                             2: All basic UWC modules + KPI-tactic Application (no SPARKPLUG-BRIDGE)
-                            3: All modules (with KPI-tactic Application and with SPARKPLUG-BRIDGE)
-                            4: All basic UWC modules + SPARKPLUG-BRIDGE (no KPI-tactic Application)
+                            3: All modules (with KPI-tactic Application, with SPARKPLUG-BRIDGE,Sample EmbPublisher and Sample EmbSubscriber)
+                            4: All basic UWC modules + SPARKPLUG-BRIDGE + Sample EmbPublisher + Sample EmbSubscriber (no KPI-tactic Application)
                             5: Basic UWC micro-services with Time series micro-services (Telegraf & InfluxDBConnector)
                             6: Running Basic UWC micro-services with time series services (Telegraf & InfluxDBCOnnector) along with KPI-tactic app
-                            7: Running Basic UWC micro-services with time series services (Telegraf & InfluxDBCOnnector) along with Sparkplug service
-                            8: Running the sample DB publisher with Telegraf, InfluxDBCOnnector, ZmqBroker & Etcd container
-                            9: Basic UWC micro-services with sample EMB publisher and subscriber
-                            10: All modules UWC modules, KPI-tactic Application, SPARKPLUG-BRIDGE, Telegraf, InfluxDBCOnnector, ZmqBroker, Etcd container, sample EMB publisher and subscriber"
+                            7: Running Basic UWC micro-services with time series services (Telegraf & InfluxDBCOnnector) along with Sparkplug service, Sample EmbPublisher and Sample EmbSubscriber
+                            8: Running the Sample DB publisher with Telegraf, InfluxDBCOnnector, ZmqBroker & Etcd container
+                            9: Basic UWC micro-services with Sample EmbPublisher and Sample EmbSubscriber
+                            10: All modules UWC modules, KPI-tactic Application, SPARKPLUG-BRIDGE, Telegraf, InfluxDBCOnnector, ZmqBroker, Etcd container, Sample EmbPublisher and Sample EmbSubscriber"
 
         echo "Enter the recipe (e.g. --recipe=1 or 2 or 3 or 4 or 5 or 6 or 7 or 8 or 9 or 10 ):"
         read recipe 
@@ -562,14 +563,14 @@ usage()
     echo "${INFO}--recipe  Recipe file to be referred for provisioning:
                             1: All basic UWC module. (no KPI-tactic Application, no SPARKPLUG-BRIDGE)
                             2: All basic UWC modules + KPI-tactic Application (no SPARKPLUG-BRIDGE)
-                            3: All modules (with KPI-tactic Application and with SPARKPLUG-BRIDGE)
-                            4: All basic UWC modules + SPARKPLUG-BRIDGE (no KPI-tactic Application)
+                            3: All modules (with KPI-tactic Application, with SPARKPLUG-BRIDGE, Sample EmbPublisher and Sample EmbSubscriber)
+                            4: All basic UWC modules + SPARKPLUG-BRIDGE + Sample EmbPublisher + Sample EmbSubscriber (no KPI-tactic Application)
                             5: Basic UWC micro-services with Time series micro-services (Telegraf & InfluxDBConnector)
                             6: Running Basic UWC micro-services with time series services (Telegraf & InfluxDBCOnnector) along with KPI-tactic app
-                            7: Running Basic UWC micro-services with time series services (Telegraf & InfluxDBCOnnector) along with Sparkplug service
-                            8: Running the sample DB publisher with Telegraf, InfluxDBCOnnector, ZmqBroker & Etcd container
-                            9: Basic UWC micro-services with sample EMB publisher and subscriber
-                            10: All modules UWC modules, KPI-tactic Application, SPARKPLUG-BRIDGE, Telegraf, InfluxDBCOnnector, ZmqBroker, Etcd container, sample EMB publisher and subscriber"
+                            7: Running Basic UWC micro-services with time series services (Telegraf & InfluxDBCOnnector) along with Sparkplug service, Sample EmbPublisher and Sample EmbSubscriber
+                            8: Running the Sample DB publisher with Telegraf, InfluxDBCOnnector, ZmqBroker & Etcd container
+                            9: Basic UWC micro-services with Sample EMB publisher and subscriber
+                            10: All modules UWC modules, KPI-tactic Application, SPARKPLUG-BRIDGE, Telegraf, InfluxDBCOnnector, ZmqBroker, Etcd container, Sample EmbPublisher and Sample EmbSubscriber"
     echo
     echo "${INFO}--isTLS  yes/no to enable/disable TLS for sparkplug-bridge. Only applicable for recipes 3 and 4"
     echo 
