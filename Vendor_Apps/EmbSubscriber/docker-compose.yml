@@ -39,6 +39,11 @@ services:
     container_name: ia_emb_subscriber
     hostname: ia_emb_subscriber
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "exit", "0"]
+      interval: 5m
+    security_opt:
+      - no-new-privileges    
     environment:
       AppName: "EmbSubscriber"
       DEV_MODE: ${DEV_MODE}
