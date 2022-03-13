@@ -44,16 +44,16 @@ copy_external_certs_to_provision()
 		cd ${Current_Dir}
 		rm -rf ${eii_build_dir}/Certificates/scada_ext_certs
 		mkdir -p ${eii_build_dir}/Certificates/scada_ext_certs
-		cp ${Current_Dir}/tmp_certs/ca/*.pem  ${eii_build_dir}/Certificates/scada_ext_certs/cacert.pem
+		cp ${Current_Dir}/tmp_certs/ca/*  ${eii_build_dir}/Certificates/scada_ext_certs/cacert.pem
 		check_for_errors "$?" "Incorrect certificate path is given in command line...Please provide the required command line arguments and re-run the script" \
 		            "${GREEN}"".${NC}"
-		cp ${Current_Dir}/tmp_certs/client_crt/*.pem  ${eii_build_dir}/Certificates/scada_ext_certs/mymqttcerts_client_certificate.pem
+		cp ${Current_Dir}/tmp_certs/client_crt/*  ${eii_build_dir}/Certificates/scada_ext_certs/mymqttcerts_client_certificate.pem
 		check_for_errors "$?" "Incorrect certificate path is given in command line...Please provide the required command line arguments and re-run the script" \
 		            "${GREEN}"".${NC}"
-		cp ${Current_Dir}/tmp_certs/client_key/*.pem  ${eii_build_dir}/Certificates/scada_ext_certs/mymqttcerts_client_key.pem
+		cp ${Current_Dir}/tmp_certs/client_key/*  ${eii_build_dir}/Certificates/scada_ext_certs/mymqttcerts_client_key.pem
 		check_for_errors "$?" "Incorrect certificate path is given in command line...Please provide the required command line arguments and re-run the script" \
 		            "${GREEN}Certificates are successfully copied in required directory.${NC}"
-		chown -R  eiiuser:eiiuser ${eii_build_dir}/Certificates/scada_ext_certs
+		chown -R 1999:1999 ${eii_build_dir}/Certificates/scada_ext_certs
 		echo "${GREEN}Done.${NC}"		
 		rm -rf ${Current_Dir}/tmp_certs
 		return 0
