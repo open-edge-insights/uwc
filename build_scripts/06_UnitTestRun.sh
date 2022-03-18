@@ -116,7 +116,7 @@ generate_unit_test_report()
         exit 1
     fi
     docker-compose up -d ia_configmgr_agent
-    sleep 20
+    sleep 30
     cd "${Current_Dir}"
     if [[ "$deployMode" == "prod" ]]; then
         mqtt_certs
