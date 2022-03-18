@@ -78,11 +78,12 @@ modifying_env()
 uwc_services_build()
 {
     docker stop $(docker ps -a -q)
-    cd "${eii_build_dir}"
-    if [ -e "$eii_build_dir/Certificates" ];then
-	echo "removing old "$eii_build_dir/Certificates""
-	rm -rf "$eii_build_dir/Certificates"
-    fi
+    cd "${Current_Dir}"
+    if [ -d ${Current_Dir}/tmp_certs ]; then
+	rm -rf ${Current_Dir}/tmp_certs
+	echo "Removing tmp_certs dir"
+    fi   
+    cd "${eii_build_dir}"  
     if [[ $preBuild == "true" ]]; then
         echo "Using pre-build images for building"
 	# Checking if ia_telegraf is part of the recipe use case selected.
@@ -117,7 +118,7 @@ uwc_services_build()
 		docker-compose -f docker-compose-build.yml build ia_emb_subscriber emb_publisher	
 	fi
         docker-compose up -d ia_configmgr_agent
-	sleep 10
+	sleep 30
         if [ "$?" -eq "0" ];then
             echo "*****************************************************************"
             echo "${GREEN}Installed UWC containers successfully.${NC}"
@@ -138,7 +139,7 @@ uwc_services_build()
             exit 1
         fi
         docker-compose up -d ia_configmgr_agent
-        sleep 10
+        sleep 30
     fi
     if [[ "$deployMode" == "prod" ]]; then
         cd "${Current_Dir}"
