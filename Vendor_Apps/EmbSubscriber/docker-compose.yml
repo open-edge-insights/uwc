@@ -29,13 +29,14 @@ services:
       context: $PWD/../uwc/Vendor_Apps/EmbSubscriber
       dockerfile: $PWD/../uwc/Vendor_Apps/EmbSubscriber/Dockerfile
       args:
+        UWC_VERSION: ${UWC_VERSION}
         EII_VERSION: ${EII_VERSION}
         EII_UID: ${EII_UID}
         EII_USER_NAME: ${EII_USER_NAME}
         DOCKER_REGISTRY: ${DOCKER_REGISTRY}
         UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
         CMAKE_INSTALL_PREFIX: ${EII_INSTALL_PATH}
-    image: ${DOCKER_REGISTRY}ia_emb_subscriber:${EII_VERSION}
+    image: ${DOCKER_REGISTRY}openedgeinsights/ia_emb_subscriber:${UWC_VERSION}
     container_name: ia_emb_subscriber
     hostname: ia_emb_subscriber
     restart: unless-stopped

@@ -29,22 +29,34 @@ source uwc_common_lib.sh
 
 apply_config_changes()
 {
-	cd ${Current_Dir}
-	echo "${GREEN}Stopping all the runninng containers to apply new changes.${NC}" 
-	docker-compose down
-	if [ "$?" -eq "0" ];then
-		echo "${GREEN} Successfully stopped all running containers.${NC}"
-	else
-		echo "${RED}Failed to stop running containers.${NC}"
-	fi
+        cd ${Current_Dir}
+        if [ -d ${Current_Dir}/Certificates/scada_ext_certs ]; then
+                echo "TLS certs exists"
+                cp -rf ${Current_Dir}/Certificates/scada_ext_certs ${Current_Dir}/scada_ext_certs
+        fi
+
+        echo "${GREEN}Stopping all the runninng containers to apply new changes.${NC}" 
+        docker-compose down
+        if [ "$?" -eq "0" ];then
+                echo "${GREEN} Successfully stopped all running containers.${NC}"
+        else
+                echo "${RED}Failed to stop running containers.${NC}"
+        fi
         docker-compose up -d ia_configmgr_agent
-        sleep 10	
-	docker-compose up -d
-	if [ "$?" -eq "0" ];then
-		echo "${GREEN}Successfully started all running containers with updated changes.${NC}"
-	else
-		echo "${RED}Failed to start running containers.${NC}"
-	fi
+        sleep 30
+        if [ -d ${Current_Dir}/scada_ext_certs ]; then
+                cp -rf  ${Current_Dir}/scada_ext_certs ${Current_Dir}/Certificates/scada_ext_certs
+                chown 1999:1999 -R ${Current_Dir}/Certificates/scada_ext_certs
+                rm -rf  ${Current_Dir}/scada_ext_certs
+                echo "done coping certs"
+        fi
+        docker-compose up -d
+
+        if [ "$?" -eq "0" ];then
+                echo "${GREEN}Successfully started all running containers with updated changes.${NC}"
+        else
+                echo "${RED}Failed to start running containers.${NC}"
+        fi
 }
 
 function harden()
