@@ -12,12 +12,13 @@ services:
       dockerfile: $PWD/../uwc/Vendor_Apps/EmbPublisher/Dockerfile
       args:
         EII_VERSION: ${EII_VERSION}
+        UWC_VERSION: ${UWC_VERSION}
         EII_UID: ${EII_UID}
         EII_USER_NAME: ${EII_USER_NAME}
         DOCKER_REGISTRY: ${DOCKER_REGISTRY}
         UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
         CMAKE_INSTALL_PREFIX: ${EII_INSTALL_PATH}
-    image: ${DOCKER_REGISTRY}emb_publisher:${EII_VERSION}
+    image: ${DOCKER_REGISTRY}openedgeinsights/emb_publisher:${UWC_VERSION}
     container_name: emb_publisher
     restart: unless-stopped
     hostname: emb_publisher
