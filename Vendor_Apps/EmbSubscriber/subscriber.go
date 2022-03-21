@@ -37,6 +37,10 @@ type msgbusSubscriber struct {
 	msgBusClient       []*eiimsgbus.MsgbusClient        // list of message bus client
 }
 
+func cbFunc(key string, value map[string]interface{}, user_data interface{}) {
+	glog.Infof("Callback triggered for key %s, value obtained %v with user_data %v\n", key, value, user_data)
+	os.Exit(0)
+}
 // Creates the subscriber for each topic
 func (subObj *msgbusSubscriber) startSubscribers(subTopics []string, subConfig map[string]interface{}) error {
 	msgBusClient, err := eiimsgbus.NewMsgbusClient(subConfig)
@@ -55,6 +59,7 @@ func (subObj *msgbusSubscriber) startSubscribers(subTopics []string, subConfig m
 		subObj.msgBusSubMap[sub] = topic
 	}
 	subObj.msgBusClient = append(subObj.msgBusClient, msgBusClient)
+
 	return nil
 }
 
@@ -141,5 +146,13 @@ func main() {
 			subObj.startSubscribers(topics, config)
 		}
 	}
+	watchObj, err := subObj.confMgr.GetWatchObj()
+	if err != nil {
+		glog.Infof("Failed to fetch watch object")
+	}
+
+    // Watch the key "/EmbSubscriber" for any changes, cbFunc will be called with updated value
+	var watchUserData interface{} = ""
+	watchObj.Watch("/EmbSubscriber/interfaces", cbFunc, watchUserData)		
 	subObj.receiveFromAllTopics()
 }
