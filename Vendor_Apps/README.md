@@ -155,15 +155,15 @@ Follow the below steps to publish a JSON payload using EMBPublisher :
 
 3) To check the response msg , please check the logs of EmbSubscriber i.e docker logs -f ia_emb_subscriber
 
-4) During runtime if add/change in payload is required then go to EtcdUI webpage then /EmbPublisher/config section and change "publisher_topic" field.
+4) During runtime if add/change in topic is required then go to EtcdUI webpage then /EmbPublisher/config section and change "publisher_topic" field and click on save button.
 
-5) During runtime if add/change in payload is required then go to EtcdUI webpage then /EmbPublisher/config section and change "msg_file" field with the datafile containing the required payload.
+5) During runtime if add/change in payload file is required then go to EtcdUI webpage then /EmbPublisher/config section and change "msg_file" field with the datafile containing the required payload and click on save button.
 
-6) During runtime if add/change in payload is required then open the datafile present in ./EmbPublisher/datafiles/  folder make the desired changes in file and then go to EtcdUI webpage then /EmbPublisher/config section and increment the "data_toggle" value.
+6) During runtime if add/change in payload is required then open the datafile present in ./EmbPublisher/datafiles/  folder make the desired changes in file and then go to EtcdUI webpage then /EmbPublisher/config section and increment the "data_toggle" value and click on save button.
 
-7) if user wants to switch from using "Sample pub/sub" to "normal VA" to "TemplateDef VA" then go to EtcdUI webpage, then /EmbPublisher/config section and change "msg_file" field with the datafile/Json file containing the required payload and change "publisher_topic" field to the topic on which payload is to be published.
+7) if user wants to switch from using "Sample pub/sub" to "normal VA" to "TemplateDef VA" then go to EtcdUI webpage, then /EmbPublisher/config section and change "msg_file" field with the datafile/Json file containing the required payload and change "publisher_topic" field to the topic on which payload is to be published and click on save button.
 
-8) If the polling data is to be captured then add following topics in the "Topics" section of [EmbSubscriber/config.json](./EmbSubscriber/config.json) and then rerun provisioning and building process by referring [UWC README](../README.md).
+8) If the polling data is to be captured then go to EtcdUI webpage then /EmbSubscriber/interfaces section and then add following topics in "Topics" section and click on save button.
 ```
                 "TCP/RT/update",
                 "TCP/NRT/update",

@@ -29,7 +29,8 @@ FROM ia_common:$EII_VERSION as common
 # build openssl library
 FROM ia_common:$EII_VERSION as openssl-build
 ARG OPENSSL_DIR=openssl
-
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends wget
 RUN mkdir -p ${OPENSSL_DIR} \
     && cd ${OPENSSL_DIR} \
     && wget https://www.openssl.org/source/openssl-1.1.1g.tar.gz \
