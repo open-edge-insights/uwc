@@ -22,7 +22,7 @@ services:
     container_name: emb_publisher
     restart: unless-stopped
     hostname: emb_publisher
-    user: root
+    read_only: true
     healthcheck:
       test: ["CMD-SHELL", "exit", "0"]
       interval: 5m

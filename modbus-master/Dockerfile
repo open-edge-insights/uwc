@@ -21,6 +21,7 @@
 ARG EII_VERSION
 ARG UBUNTU_IMAGE_VERSION
 ARG UWC_VERSION
+ARG CMAKE_INSTALL_PREFIX
 FROM uwc_common:$UWC_VERSION as uwc_common
 LABEL description="Modbus TCP Master Application"
 
@@ -39,7 +40,28 @@ RUN cd Release \
 # Build Modbus application
 FROM ia_common:$EII_VERSION as modbus-app
 WORKDIR /
+# Install libzmq
+RUN rm -rf deps && \
+    mkdir -p deps && \
+    cd deps && \
+    wget -q --show-progress https://github.com/zeromq/libzmq/releases/download/v4.3.4/zeromq-4.3.4.tar.gz -O zeromq.tar.gz && \
+    tar xf zeromq.tar.gz && \
+    cd zeromq-4.3.4 && \
+    ./configure --prefix=${CMAKE_INSTALL_PREFIX} && \
+    make install
 
+# Install cjson
+RUN rm -rf deps && \
+    mkdir -p deps && \
+    cd deps && \
+    wget -q --show-progress https://github.com/DaveGamble/cJSON/archive/v1.7.12.tar.gz -O cjson.tar.gz && \
+    tar xf cjson.tar.gz && \
+    cd cJSON-1.7.12 && \
+    mkdir build && cd build && \
+    cmake -DCMAKE_INSTALL_INCLUDEDIR=${CMAKE_INSTALL_PREFIX}/include -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} .. && \
+    make install
+
+RUN rm -rf /var/lib/apt/lists/*
 # Copy built library from images
 COPY --from=uwc_common /usr/yaml /bin/yaml-cpp/.
 
@@ -55,6 +77,8 @@ COPY --from=uwc_common /usr/lib/libpaho* /Modbus-App/lib/
 COPY --from=uwc_common /usr/paho-cpp/include/mqtt /usr/local/include/mqtt
 COPY --from=uwc_common ${CMAKE_INSTALL_PREFIX}/include /usr/local/include
 COPY --from=uwc_common ${CMAKE_INSTALL_PREFIX}/lib /usr/local/lib
+COPY --from=uwc_common ${CMAKE_INSTALL_PREFIX}/include ${CMAKE_INSTALL_PREFIX}/include
+COPY --from=uwc_common ${CMAKE_INSTALL_PREFIX}/lib ${CMAKE_INSTALL_PREFIX}/lib
 # compile modbus app sources
 RUN cd /Modbus-App/Release \
     &&	export LD_LIBRARY_PATH='/Modbus-App/lib:/usr/local/lib:/bin/yaml-cpp/lib' \
@@ -72,13 +96,12 @@ RUN mkdir -p /opt/intel/app \
 	&& mkdir -p /opt/intel/config \
 	&& mkdir -p /opt/intel/eii/uwc_data
 
-RUN apt update && apt install --no-install-recommends -y libcjson1 libzmq5 zlib1g && \
-    rm -rf /var/lib/apt/lists/*
-
 WORKDIR ${APP_WORK_DIR}
 
 # copy required libs and includes
 ARG CMAKE_INSTALL_PREFIX
+COPY --from=modbus-app ${CMAKE_INSTALL_PREFIX}/lib  ${APP_WORK_DIR}
+COPY --from=modbus-app ${CMAKE_INSTALL_PREFIX}/include ${APP_WORK_DIR}
 COPY --from=modbus-lib /modconn/Release/libModbusMasterStack.so ${APP_WORK_DIR}
 COPY --from=modbus-app /Modbus-App/Release/ModbusMaster ${APP_WORK_DIR}
 COPY --from=uwc_common /usr/yaml/lib/*.so.* ${APP_WORK_DIR}
@@ -95,6 +118,7 @@ RUN chown -R ${EII_UID}:${EII_UID} /opt/intel/config \
 
 #set the environment variable
 ENV LD_LIBRARY_PATH ${APP_WORK_DIR}:/usr/local/lib
-
+HEALTHCHECK CMD ["/bin/sh", "-c", "ps -C ModbusMaster >/dev/null && echo\
+          \ Running || echo Not running; exit 1"]
 # Run Modbus container
 CMD ./ModbusMaster

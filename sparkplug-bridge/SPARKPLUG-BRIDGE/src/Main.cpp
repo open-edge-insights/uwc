@@ -262,7 +262,7 @@ int main(int argc, char *argv[])
 
    		 // subscriber EMB topics 
    		if(zmq_handler::enable_EMB()==true){
-			std::vector<std::string> vecTopics;
+			std::vector<std::string> vecTopics = {};
 			int num_of_subscribers = zmq_handler::getNumPubOrSub("sub");
 			if(num_of_subscribers >= 1)
 			{

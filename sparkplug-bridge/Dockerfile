@@ -39,6 +39,27 @@ RUN apt-get update && apt-get install -y libmosquitto-dev \
 FROM ia_common:$EII_VERSION as sparkplug-bridge
 WORKDIR /
 ARG CMAKE_INSTALL_PREFIX
+# Install libzmq
+RUN rm -rf deps && \
+    mkdir -p deps && \
+    cd deps && \
+    wget -q --show-progress https://github.com/zeromq/libzmq/releases/download/v4.3.4/zeromq-4.3.4.tar.gz -O zeromq.tar.gz && \
+    tar xf zeromq.tar.gz && \
+    cd zeromq-4.3.4 && \
+    ./configure --prefix=${CMAKE_INSTALL_PREFIX} && \
+    make install
+
+# Install cjson
+RUN rm -rf deps && \
+    mkdir -p deps && \
+    cd deps && \
+    wget -q --show-progress https://github.com/DaveGamble/cJSON/archive/v1.7.12.tar.gz -O cjson.tar.gz && \
+    tar xf cjson.tar.gz && \
+    cd cJSON-1.7.12 && \
+    mkdir build && cd build && \
+    cmake -DCMAKE_INSTALL_INCLUDEDIR=${CMAKE_INSTALL_PREFIX}/include -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} .. && \
+    make install
+RUN rm -rf /var/lib/apt/lists/*
 # copy required dependencies
 COPY SPARKPLUG-BRIDGE /SPARKPLUG-BRIDGE/.
 COPY --from=uwc_common /usr/yaml/include/yaml-cpp /usr/local/include/yaml-cpp
@@ -58,7 +79,8 @@ COPY --from=uwc_common /uwc_util/include/* /SPARKPLUG-BRIDGE/include/
 COPY --from=uwc_common $CMAKE_INSTALL_PREFIX/include /usr/local/include
 COPY --from=uwc_common $CMAKE_INSTALL_PREFIX/lib /usr/local/lib
 COPY --from=uwc_common $CMAKE_INSTALL_PREFIX/lib /SPARKPLUG-BRIDGE/lib
-
+COPY --from=uwc_common ${CMAKE_INSTALL_PREFIX}/include ${CMAKE_INSTALL_PREFIX}/include
+COPY --from=uwc_common ${CMAKE_INSTALL_PREFIX}/lib ${CMAKE_INSTALL_PREFIX}/lib
 # build sources
 RUN cd /SPARKPLUG-BRIDGE/Release \
     &&	export LD_LIBRARY_PATH='/SPARKPLUG-BRIDGE/lib:/usr/local/lib' \
@@ -75,12 +97,11 @@ RUN mkdir -p /opt/intel/app \
 	&& mkdir -p /opt/intel/config \
 	&& mkdir -p /opt/intel/eii/uwc_data
 
-RUN apt update && apt install --no-install-recommends -y libcjson1 libzmq5 zlib1g && \
-    rm -rf /var/lib/apt/lists/*
-
 WORKDIR ${APP_WORK_DIR}
-
+ARG CMAKE_INSTALL_PREFIX
 # copy required dependencies
+COPY --from=sparkplug-bridge ${CMAKE_INSTALL_PREFIX}/lib  ${APP_WORK_DIR}
+COPY --from=sparkplug-bridge ${CMAKE_INSTALL_PREFIX}/include ${APP_WORK_DIR}
 COPY --from=sparkplug-bridge /SPARKPLUG-BRIDGE/Release/SPARKPLUGBRIDGE ${APP_WORK_DIR}
 COPY --from=sparkplug-bridge /SPARKPLUG-BRIDGE/lib/* ${APP_WORK_DIR}
 COPY --from=uwc_common /usr/yaml/lib/*.so.* ${APP_WORK_DIR}
@@ -103,6 +124,6 @@ RUN chown -R ${EII_UID}:${EII_UID} /opt/intel/config \
 
 #set the environment variable
 ENV LD_LIBRARY_PATH ${APP_WORK_DIR}:/usr/local/lib
-
+HEALTHCHECK CMD ["/bin/sh","-c", "ps -C SPARKPLUGBRIDGE >/dev/null && echo Running || echo Not running; exit 1"]
 # Run the container
 CMD ./SPARKPLUGBRIDGE
