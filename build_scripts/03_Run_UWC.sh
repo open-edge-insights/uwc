@@ -74,6 +74,8 @@ function harden()
 	# Increase pid limit for KPI to 500 for processing larger count of threads.
 	docker ps -q --filter "name=kpi-tactic-app" | grep -q . && docker container update --pids-limit=500 --restart=on-failure:5 --cpu-shares 512 -m 1G --memory-swap -1 kpi-tactic-app
 	docker container update --pids-limit=100 --restart=on-failure:5 --cpu-shares 512 -m 1G --memory-swap -1 ia_configmgr_agent
+    docker ps -q --filter "name=emb_publisher" | grep -q . && docker container update --pids-limit=100 --cpu-shares 512 -m 1G --memory-swap -1 emb_publisher
+    docker ps -q --filter "name=ia_emb_subscriber" | grep -q . && docker container update --pids-limit=100 --cpu-shares 512 -m 1G --memory-swap -1 ia_emb_subscriber
 }
 function main()
 {
