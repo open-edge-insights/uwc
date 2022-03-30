@@ -118,6 +118,7 @@ RUN chown -R ${EII_UID}:${EII_UID} /opt/intel/config \
 
 #set the environment variable
 ENV LD_LIBRARY_PATH ${APP_WORK_DIR}:/usr/local/lib
-
+HEALTHCHECK CMD ["/bin/sh", "-c", "ps -C ModbusMaster >/dev/null && echo\
+          \ Running || echo Not running; exit 1"]
 # Run Modbus container
 CMD ./ModbusMaster

@@ -38,6 +38,7 @@ services:
         CMAKE_INSTALL_PREFIX: ${EII_INSTALL_PATH}
     image: ${DOCKER_REGISTRY}openedgeinsights/ia_emb_subscriber:${UWC_VERSION}
     container_name: ia_emb_subscriber
+    read_only: true
     hostname: ia_emb_subscriber
     restart: unless-stopped
     healthcheck:

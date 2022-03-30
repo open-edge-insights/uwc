@@ -72,8 +72,8 @@ services:
     # userns_mode: host
     networks:
       - eii    
-    ports:
-      - 63514:63514      
+        #ports:
+        #- 63514:63514      
     volumes:
     - "${EII_INSTALL_PATH}/sockets:${SOCKET_DIR}"
     - "${EII_INSTALL_PATH}/uwc_data/common_config:${EII_INSTALL_PATH}/uwc_data/common_config:ro"
