@@ -47,12 +47,12 @@ std::atomic<bool> g_shouldStop(false);
 // topic syntax -
 // for non-RT topic for polling - <topic_name>__PolledData
 // for RT topic read RT - <topic_name>__RdReq_RT
-#define POLLING			 		"_PolledData"
-#define POLLING_RT 				"_PolledData_RT"
-#define READ_RESPONSE 			"_RdResp"
-#define READ_RESPONSE_RT		"_RdResp_RT"
-#define WRITE_RESPONSE 			"_WrResp"
-#define WRITE_RESPONSE_RT		"_WrResp_RT"
+#define POLLING			 		"NRT/update"
+#define POLLING_RT 				"RT/update"
+#define READ_RESPONSE 			"NRT/writeResponse"
+#define READ_RESPONSE_RT		"RT/readResponse"
+#define WRITE_RESPONSE 			"NRT/writeResponse"
+#define WRITE_RESPONSE_RT		"RT/writeResponse"
 
 /**
  * Process message received from EII and send for publishing on MQTT

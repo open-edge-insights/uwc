@@ -32,17 +32,8 @@
 #define READ_REQ	 	"NRT/read"
 #define READ_REQ_RT 	"RT/read"
 
-// #define READ_RES	"_RdResp"
-// #define READ_RES_RT	"_RdResp_RT"
-
 #define WRITE_REQ 		"NRT/write"
 #define WRITE_REQ_RT 	"RT/write"
-
-// #define WRITE_RES 	"_WrResp"
-// #define WRITE_RES_RT "_WrResp_RT"
-
-// #define POLLDATA	"PolledData"
-// #define POLLDATA_RT	"PolledData_RT"
 
 /**
  * Structure to contain state for a publisher thread
