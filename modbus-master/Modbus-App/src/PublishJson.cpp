@@ -62,36 +62,6 @@ PublishJsonHandler& PublishJsonHandler::instance()
 bool PublishJsonHandler::setTopicForOperation(std::string a_sTopic)
 {
 	bool bRet = true;
-	// if(regExFun(a_sTopic, READ_RES))
-	// {
-	// 	PublishJsonHandler::instance().setSReadResponseTopic(a_sTopic);
-	// 	DO_LOG_INFO("read res topic = " + a_sTopic);
-	// }
-	// else if(regExFun(a_sTopic, READ_RES_RT))
-	// {
-	// 	PublishJsonHandler::instance().setSReadResponseTopicRT(a_sTopic);
-	// 	DO_LOG_INFO("read res RT topic = " + a_sTopic);
-	// }
-	// else if(regExFun(a_sTopic, WRITE_RES))
-	// {
-	// 	PublishJsonHandler::instance().setSWriteResponseTopic(a_sTopic);
-	// 	DO_LOG_INFO("write res topic = " + a_sTopic);
-	// }
-	// else if(regExFun(a_sTopic, WRITE_RES_RT))
-	// {
-	// 	PublishJsonHandler::instance().setSWriteResponseTopicRT(a_sTopic);
-	// 	DO_LOG_INFO("write res RT topic = " + a_sTopic);
-	// }
-	// else if(regExFun(a_sTopic, POLLDATA))
-	// {
-	// 	PublishJsonHandler::instance().setPolledDataTopic(a_sTopic);
-	// 	DO_LOG_INFO("poll topic = " + a_sTopic);
-	// }
-	// else if(regExFun(a_sTopic, POLLDATA_RT))
-	// {
-	// 	PublishJsonHandler::instance().setPolledDataTopicRT(a_sTopic);
-	// 	DO_LOG_INFO("poll topic RT = " + a_sTopic);
-	// }
 	if(regExFun(a_sTopic, READ_REQ) or
 		regExFun(a_sTopic, READ_REQ_RT) or
 		regExFun(a_sTopic, WRITE_REQ) or
