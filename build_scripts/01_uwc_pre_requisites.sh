@@ -187,12 +187,17 @@ network_setup()
 # 
 #------------------------------------------------------------------
 modify_env(){
+	cd ${working_dir}
 	file="${working_dir}/../eii_configs/envs.csv"
 	eCollection=( $(cut -d ',' -f2 $file ) )
-	sed -i 's/'ETCDROOT_PASSWORD=\'\''/'${eCollection[0]}'/g' ${working_dir}/../../build/.env
-	sed -i 's/'INFLUXDB_USERNAME=\'\''/'${eCollection[1]}'/g' ${working_dir}/../../build/.env
-	sed -i 's/'INFLUXDB_PASSWORD=\'\''/'${eCollection[2]}'/g' ${working_dir}/../../build/.env
-
+	result=`grep -Fi ${eCollection[0]} ../../build/.env`
+	if [ -z "${result}" ]; then
+		echo "modifing ENVs"
+		sed -i 's/'ETCDROOT_PASSWORD='/'${eCollection[0]}'/g' ${working_dir}/../../build/.env
+		sed -i 's/'INFLUXDB_USERNAME='/'${eCollection[1]}'/g' ${working_dir}/../../build/.env
+		sed -i 's/'INFLUXDB_PASSWORD='/'${eCollection[2]}'/g' ${working_dir}/../../build/.env
+		echo "Done"
+	fi
 	
 }
 

@@ -32,5 +32,5 @@ COPY mosquitto_dev.conf /etc/mosquitto/mosquitto_dev.conf
 
 COPY mqtt_broker_start.sh /
 RUN chmod +x mqtt_broker_start.sh
-
+HEALTHCHECK CMD ["/bin/sh","-c", "ps -C mosquitto_sub >/dev/null && echo Running || echo Not running; exit 1"]
 CMD ["./mqtt_broker_start.sh"]

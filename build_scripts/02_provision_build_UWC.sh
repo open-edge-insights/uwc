@@ -40,6 +40,7 @@ brokerAddr=""
 brokerPort=""
 qos=""
 ret=""
+emb_sample_modules=0
 #------------------------------------------------------------------
 # modifying_env
 #
@@ -58,7 +59,7 @@ modifying_env()
 	    cat ../.env >> ../../build/.env
        
 	fi
-    result=`grep -F 'uwc/'  ../../.gitignore`
+        result=`grep -F 'uwc/'  ../../.gitignore`
 	if [ -z "${result}" ]; then
 	    sed -i '$a uwc/' ../../.gitignore
 	fi	
@@ -78,6 +79,7 @@ modifying_env()
 uwc_services_build()
 {
     docker stop $(docker ps -a -q)
+    docker rm $(docker ps -a -q)
     cd "${Current_Dir}"
     if [ -d ${Current_Dir}/tmp_certs ]; then
 	rm -rf ${Current_Dir}/tmp_certs
@@ -91,8 +93,8 @@ uwc_services_build()
         if [ ! -z "$is_ia_telegraf_present" ]; then
 	# Checking if emb_publisher is part of the recipe use case selected
             is_emb_publisher_present=`grep "emb_publisher" "docker-compose-build.yml"`
-            if [ ! -z "$is_emb_publisher_present" ]; then
-                docker-compose -f docker-compose-build.yml build ia_eiibase ia_common ia_telegraf emb_publisher ia_influxdbconnector
+            if [[ ! -z "$is_emb_publisher_present" ]]  && [[ "${emb_sample_modules}" -eq "1" ]]; then
+                docker-compose -f docker-compose-build.yml build ia_eiibase ia_common ia_telegraf emb_publisher 
                 if [ "$?" -eq "0" ];then
 	            echo "*****************************************************************"
                     echo "${GREEN}UWC containers built successfully.${NC}"
@@ -102,7 +104,7 @@ uwc_services_build()
                     exit 1
                 fi
             else 
-                docker-compose -f docker-compose-build.yml build ia_eiibase ia_common ia_telegraf ia_influxdbconnector
+                docker-compose -f docker-compose-build.yml build ia_eiibase ia_common ia_telegraf 
                 if [ "$?" -eq "0" ];then
 	            echo "*****************************************************************"
                     echo "${GREEN}UWC containers built successfully.${NC}"
@@ -113,10 +115,6 @@ uwc_services_build()
                 fi                    
             fi  
         fi     
-        docker-compose -f docker-compose-build.yml build ia_eiibase ia_common ia_configmgr_agent ia_etcd_ui ia_zmq_broker 
-	if [[ "${IS_SCADA}" -eq "1" ]]; then
-		docker-compose -f docker-compose-build.yml build ia_emb_subscriber emb_publisher	
-	fi
         docker-compose up -d ia_configmgr_agent
 	sleep 30
         if [ "$?" -eq "0" ];then
@@ -280,6 +278,7 @@ configure_usecase()
                     exit 1
                 fi
                 echo "${GREEN}EII builder script successfully generated consolidated docker-compose & configuration files.${NC}"
+                emb_sample_modules=1
                 break
                 ;;
             9)
@@ -302,7 +301,7 @@ configure_usecase()
                 fi
                 echo "${GREEN}EII builder script successfully generated consolidated docker-compose & configuration files.${NC}"
                 IS_SCADA=1
-		break
+                break
                 ;;                          
             *)
                 echo "Proper use-case option not selected. PLease select the right option as per help menu & re-build by executing 02_provision_build_UWC.sh script: ${yn}"

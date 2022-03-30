@@ -417,7 +417,7 @@ bool CIntMqttHandler::publish_msg_to_emb(std::string embMsg,std::string mqttTopi
 	// To check if topic is of VA or Real Device
 	std::string VA_check = mqttTopic.substr(0,size);
 	std::string embTopic;	
-	msg_envelope_elem_body_t* obj;
+	msg_envelope_elem_body_t* obj = NULL;
 	msg_envelope_t *msg = NULL;
 	cJSON *root = NULL;
 	// In case of Vendor App
