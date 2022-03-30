@@ -63,7 +63,7 @@ func main() {
 		return
 	}
 	msg_file := "/datafiles/" + appConfig["msg_file"].(string)
-	msg, err := eiimsgbus.ReadJsonConfig(msg_file)
+	msg, err := eiimsgbus.ReadJSONConfig(msg_file) 
 	if err != nil {
 		fmt.Printf("-- Failed to parse config: %v\n", err)
 		return
