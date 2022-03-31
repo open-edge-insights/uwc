@@ -1007,7 +1007,6 @@ void CPeriodicReponseProcessor::handleResponse(stMbusAppCallbackParams_t *pstMbu
 			stStackResNode.u8Reason = 0;
 			stStackResNode.bIsValPresent = false;
 		}
-
 		pushToQueue(stStackResNode, operationCallbackType);
 	}
 	catch(const std::exception& e)

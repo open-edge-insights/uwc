@@ -226,7 +226,7 @@ unsigned long CCommon::get_micros(struct timespec ts)
  */
 void CCommon::set_timestamp()
 {
-	struct timespec tsSPMsgReceived;
+	struct timespec tsSPMsgReceived={0};;
 	timespec_get(&tsSPMsgReceived, TIME_UTC);	
 	TS_ExtMqttTOSp = std::to_string(CCommon::get_micros(tsSPMsgReceived)); 
 }

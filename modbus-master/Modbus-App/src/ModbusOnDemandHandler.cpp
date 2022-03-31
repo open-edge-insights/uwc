@@ -680,7 +680,6 @@ eMbusAppErrorCode onDemandHandler::jsonParserForOnDemandRequest(MbusAPI_t& a_stM
 	{
 		/// Comparing sourcetopic for read/write request.
 		strSourceTopic = a_stMbusApiPram.m_stOnDemandReqData.m_strTopic;
-
 		/// to check all the values are present in request JSON.
 		if(!a_stMbusApiPram.m_stOnDemandReqData.m_strMetric.empty()
 				&& !a_stMbusApiPram.m_stOnDemandReqData.m_strWellhead.empty()
@@ -729,7 +728,6 @@ eMbusAppErrorCode onDemandHandler::jsonParserForOnDemandRequest(MbusAPI_t& a_stM
 			DO_LOG_ERROR("Topic is not found in request json.");
 			eFunRetType = APP_ERROR_INVALID_INPUT_JSON;
 		}
-
 		const std::map<std::string, network_info::CUniqueDataPoint>& mpp = network_info::getUniquePointList();
 		struct network_info::stModbusAddrInfo addrInfo;
 		try
@@ -747,6 +745,7 @@ eMbusAppErrorCode onDemandHandler::jsonParserForOnDemandRequest(MbusAPI_t& a_stM
 		// request is valid
 		if(APP_SUCCESS == eFunRetType)
 		{
+			
 			obj = mpp.at(stTopic).getDataPoint();
 #ifdef MODBUS_STACK_TCPIP_ENABLED
 			a_stMbusApiPram.m_u8DevId = addrInfo.m_stTCP.m_uiUnitID;

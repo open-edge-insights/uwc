@@ -221,30 +221,6 @@ TEST_F(PeriodicRead_ut, timer_Thread)
 }
 
 /**
- * Test case to check the behaviour of readPeriodicRTCallBack() with non NULL valid argument
- * @param :[in] None
- * @param :[out] None
- * @return None
- */
-TEST_F(PeriodicRead_ut, readPeriodic_callback_true)
-{
-	uint16_t uTxID = 20;
-	EXPECT_EQ(APP_SUCCESS, readPeriodicRTCallBack(pstMbusAppCallbackParams, uTxID));
-}
-
-/**
- * Test case to check the behaviour of readPeriodicRTCallBack() with NULL argument
- * @param :[in] None
- * @param :[out] None
- * @return None
- */
-TEST_F(PeriodicRead_ut, readPeriodic_callback_true_NULL)
-{
-	uint16_t uTxID = 20;
-	EXPECT_EQ(APP_ERROR_EMPTY_DATA_RECVD_FROM_STACK, readPeriodicRTCallBack(NULL, uTxID));
-}
-
-/**
  * Test case to check the behaviour of getPolledPointList() with invalid uiRef
  * @param :[in] None
  * @param :[out] None
@@ -252,7 +228,7 @@ TEST_F(PeriodicRead_ut, readPeriodic_callback_true_NULL)
  */
 TEST_F(PeriodicRead_ut, getPolledPointList_InvalidRef)
 {
-	uint32_t uiRef;
+	uint32_t uiRef=0;
 	try
 	{
 		CTimeMapper::instance().getPolledPointList(uiRef, true);

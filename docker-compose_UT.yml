@@ -33,9 +33,67 @@ services:
         EII_VERSION: ${EII_VERSION}
         HOST_TIME_ZONE: ${HOST_TIME_ZONE}
         GO_VERSION: ${GO_VERSION}
+        PYTHON_VERSION: ${PYTHON_VERSION}
     image: ${DOCKER_REGISTRY}ia_eiibase:${EII_VERSION}
     ipc: "none"
 
+  ia_configmgr_agent:
+    build:
+      context: $PWD/../ConfigMgrAgent
+      dockerfile: $PWD/../ConfigMgrAgent/Dockerfile
+      args:
+        EII_VERSION: ${EII_VERSION}
+        EII_USER_NAME: ${EII_USER_NAME}
+        EII_UID: ${EII_UID}
+        ETCD_VERSION: ${ETCD_VERSION}
+        UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
+        PYTHON_VERSION: ${PYTHON_VERSION}
+    read_only: false
+    image: ${DOCKER_REGISTRY}openedgeinsights/ia_configmgr_agent:${EII_VERSION}
+    security_opt:
+      - no-new-privileges
+    healthcheck:
+      test: ["CMD-SHELL", "exit", "0"]
+      interval: 5m
+    restart: unless-stopped
+    container_name: ia_configmgr_agent
+    environment:
+      SERVICES: "EtcdUI,ZmqBroker,uwc-common,MQTT,MQTT_Bridge,TCP,RTU,SPARKPLUG-BRIDGE,KPIAPP"
+      AppName: "ConfigMgrAgent"
+      HOST_IP: $HOST_IP
+      HOST_TIME_ZONE: $HOST_TIME_ZONE
+      EII_INSTALL_PATH: $EII_INSTALL_PATH
+      SOCKET_DIR: $SOCKET_DIR
+      TC_DISPATCHER_PATH: $TC_DISPATCHER_PATH
+      DEV_MODE: $DEV_MODE
+      ETCDCTL_API: 3
+      ETCD_HOST: $ETCD_HOST
+      ETCD_DATA_DIR: $ETCD_DATA_DIR
+      ETCD_CLIENT_PORT: $ETCD_CLIENT_PORT
+      ETCD_PEER_PORT: $ETCD_PEER_PORT
+      ETCD_NAME: $ETCD_NAME
+      ETCDROOT_PASSWORD: $ETCDROOT_PASSWORD
+      ETCD_PREFIX: $ETCD_PREFIX
+      no_proxy: $eii_no_proxy,0.0.0.0:$ETCD_CLIENT_PORT,0.0.0.0:$ETCD_PEER_PORT
+      NO_PROXY: $eii_no_proxy,0.0.0.0:$ETCD_CLIENT_PORT,0.0.0.0:$ETCD_PEER_PORT
+    networks:
+      - eii
+    ports:
+      - $ETCD_CLIENT_PORT:$ETCD_CLIENT_PORT
+      - $ETCD_PEER_PORT:$ETCD_PEER_PORT
+    ipc: "none"
+    volumes:
+      - ./Certificates:/EII/Certificates:rw
+      - ./eii_config.json:/EII/etcd/config/eii_config.json
+      - $EII_INSTALL_PATH/data/:$ETCD_DATA_DIR/etcd_capture
+      - $EII_INSTALL_PATH:$EII_INSTALL_PATH
+      - $EII_INSTALL_PATH/models/:/app/models/
+      - $EII_INSTALL_PATH/sockets:$SOCKET_DIR
+      - $EII_INSTALL_PATH/data:/data
+      - $EII_INSTALL_PATH/tools_output:/tools_output
+      - $EII_INSTALL_PATH/saved_images:/saved_images
+      - $EII_INSTALL_PATH/rde:/rde
+      - $TC_DISPATCHER_PATH:$TC_DISPATCHER_PATH
   ## Define ia_common service
   ia_common:
     depends_on:
@@ -47,6 +105,7 @@ services:
         EII_VERSION: ${EII_VERSION}
           # set CMAKE_BUILD_TYPE value to "Debug" to generate debug symbols
         CMAKE_BUILD_TYPE: "Release"
+        CMAKE_INSTALL_PREFIX: ${EII_INSTALL_PATH}        
         RUN_TESTS: "OFF"
         DOCKER_REGISTRY: ${DOCKER_REGISTRY}
     read_only: true
@@ -72,7 +131,7 @@ services:
 
   ia_etcd_ui:
     depends_on:
-    - ia_common
+      - ia_common
     build:
       context: $PWD/../EtcdUI
       dockerfile: $PWD/../EtcdUI/Dockerfile
@@ -97,7 +156,6 @@ services:
       AppName: "EtcdUI"
       DEV_MODE: ${DEV_MODE}
       NGINX_PORT: 7071
-      CertType: "pem"
       no_proxy: ${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
       ETCD_CLIENT_PORT: ${ETCD_CLIENT_PORT}
@@ -107,20 +165,16 @@ services:
       - eii
     volumes:
       - "vol_etcd_keeper:/opt/nginx"
+      - ./Certificates/EtcdUI:/run/secrets/EtcdUI:ro
+      - ./Certificates/rootca/cacert.pem:/run/secrets/rootca/cacert.pem:ro
     ipc: "none"
     ports:
       - 7071:7071
       - 7070:7070
-    secrets:
-    - ca_etcd
-    - etcd_EtcdUI_cert
-    - etcd_EtcdUI_key
-    - etcd_etcduser_cert
-    - etcd_etcduser_key
 
   ia_zmq_broker:
     depends_on:
-    - ia_common
+      - ia_common
     build:
       context: $PWD/../ZmqBroker
       dockerfile: $PWD/../ZmqBroker/Dockerfile
@@ -144,7 +198,6 @@ services:
       interval: 5m    
     environment:
       AppName: "ZmqBroker"
-      CertType: "zmq"
       DEV_MODE: ${DEV_MODE}
       no_proxy: ${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
@@ -154,13 +207,11 @@ services:
       - 60514:60514
       - 60515:60515
     networks:
-    - eii
+      - eii
     volumes:
-    - "vol_eii_socket:${SOCKET_DIR}"
-    secrets:
-    - ca_etcd
-    - etcd_ZmqBroker_cert
-    - etcd_ZmqBroker_key
+      - "vol_eii_socket:${SOCKET_DIR}"
+      - ./Certificates/ZmqBroker:/run/secrets/ZmqBroker:ro
+      - ./Certificates/rootca/cacert.pem:/run/secrets/rootca/cacert.pem:ro
 
   mqtt_test_container:
     depends_on:
@@ -187,31 +238,29 @@ services:
     environment:
       AppName: "MQTT"
       DEV_MODE: ${DEV_MODE}
-      no_proxy: ${eii_no_proxy},${ETCD_HOST}
-      CertType: "zmq"
+      no_proxy: ${eii_no_proxy}
     user: ${EII_UID}
     # userns_mode: host
-    secrets:
-    - ca_broker
-    - broker_cert
-    - broker_key
+    volumes:
+      - ./Certificates/mymqttcerts:/run/secrets/mymqttcerts      
+      - ./Certificates/rootca:/run/secrets/rootca        
     security_opt:
     - no-new-privileges
-    networks:
-      - eii
     ulimits:
       nproc: 65535
       nofile:
         soft: 20000
         hard: 40000
     healthcheck:
-      test: ["CMD-SHELL", "timeout --foreground 5 mosquitto_sub --cafile /run/secrets/ca_broker\
-          \ -h 127.0.0.1 -p 11883 --cert /run/secrets/broker_cert --key /run/secrets/broker_key\
-          \ -t '$$SYS/#' -C 1 | grep -v Error || exit 1"]
+      test: ["CMD-SHELL", "/bin/sh","-c", "ps -C mosquitto_sub >/dev/null && echo Running || echo Not running; exit 1"]    
       interval: 60s
       timeout: 30s
       retries: 3
       start_period: 0s
+    networks:
+      - eii
+    ports:
+      - 11883:11883
 
   mqtt-bridge-test:
     depends_on:
@@ -228,7 +277,8 @@ services:
     image: ${DOCKER_REGISTRY}mqtt-bridge-test:${UWC_VERSION}
     container_name: mqtt-bridge-test
     hostname: mqtt-bridge-test
-    # restart: unless-stopped
+    #read_only: true
+    #restart: unless-stopped
     ulimits:
       rtprio:
         soft: "99" # these are the maximum values of priorites to be used inside the container application
@@ -242,44 +292,37 @@ services:
       ETCD_PREFIX: ${ETCD_PREFIX}
       Log4cppPropsFile: "/opt/intel/config/log4cpp.properties"
       ZMQ_RECV_HWM: "1000"
-      MQTT_URL_FOR_EXPORT: "${MQTT_PROTOCOL}://127.0.0.1:11883"
+      MQTT_URL_FOR_EXPORT: "${MQTT_PROTOCOL}://mqtt_container:11883"
       ReadRequest: MQTT_Export_RdReq
       WriteRequest: MQTT_Export_WrReq
-      ReadRequest_RT: MQTT_Export_RdReq_RT
-      WriteRequest_RT: MQTT_Export_WrReq_RT
-      CertType: "zmq"
+      ReadRequest_RT: RT_MQTT_Export_RdReq_RT
+      WriteRequest_RT: RT_MQTT_Export_WrReq_RT
       PROFILING_MODE: ${PROFILING_MODE}
       # general topics
       mqtt_SubReadTopic: "/+/+/+/read"
       mqtt_SubWriteTopic: "/+/+/+/write"
-    networks:
-      - eii
-    ports:
-      - 63514:63514        
     logging:
       driver: "json-file"
       options:
         max-file: "3"
         max-size: "10m"
-    # user: ${EII_UID}
+    user: ${EII_UID}
     # userns_mode: host
+    networks:
+      - eii    
+  
     volumes:
-    - "vol_uwc_socket:${SOCKET_DIR}:z"
     - "$PWD/unit_test_reports/mqtt-bridge:/reports/mqtt-bridge"
+    - "${EII_INSTALL_PATH}/sockets:${SOCKET_DIR}"
     - "${EII_INSTALL_PATH}/uwc_data/common_config:${EII_INSTALL_PATH}/uwc_data/common_config:ro"
     - "${EII_INSTALL_PATH}/container_logs/mqtt-bridge:/opt/intel/app/logs"
-    secrets:
-    - ca_etcd
-    - etcd_MQTT_Bridge_cert
-    - etcd_MQTT_Bridge_key
-    - ca_broker
-    - client_cert
-    - client_key
+    - ./Certificates/MQTT_Bridge:/run/secrets/MQTT_Bridge
+    - ./Certificates/rootca:/run/secrets/rootca
+    - ./Certificates/mymqttcerts:/run/secrets/mymqttcerts
     security_opt:
-    - no-new-privileges
+      - no-new-privileges
     healthcheck:
-      test: ["CMD-SHELL", "/bin/sh", "-c", "ps -C MQTT_Bridge >/dev/null && echo Running\
-          \ || echo Not running; exit 1"]
+      test: ["CMD-SHELL", "/bin/sh","-c", "ps -C MQTT_Bridge >/dev/null && echo Running || echo Not running; exit 1"]
       interval: 60s
       timeout: 30s
       retries: 3
@@ -317,12 +360,9 @@ services:
       Log4cppPropsFile: "/opt/intel/config/log4cpp.properties"
       MY_APP_ID: 1
       CUTOFF_INTERVAL_PERCENTAGE: 90
-      CertType: "zmq"
       PROFILING_MODE: ${PROFILING_MODE}
       NETWORK_TYPE: TCP
       DEVICES_GROUP_LIST_FILE_NAME: "Devices_group_list.yml"
-    networks:
-      - eii
     logging:
       driver: "json-file"
       options:
@@ -330,16 +370,17 @@ services:
         max-size: "10m"
     volumes:
     - "${EII_INSTALL_PATH}/uwc_data:/opt/intel/eii/uwc_data:ro"
-    - "vol_uwc_socket:${SOCKET_DIR}:z"
+    - "${EII_INSTALL_PATH}/sockets:${SOCKET_DIR}:z"
     - "${EII_INSTALL_PATH}/uwc_data/common_config:${EII_INSTALL_PATH}/uwc_data/common_config:ro"
     - "${EII_INSTALL_PATH}/container_logs/modbus-tcp-master:/opt/intel/app/logs"
+    - ./Certificates/TCP:/run/secrets/TCP
+    - ./Certificates/rootca:/run/secrets/rootca
     - "$PWD/unit_test_reports/modbus-tcp-master:/reports/modbus-tcp-master"
-    # user: ${EII_UID}
+    user: ${EII_UID}
     # userns_mode: host
-    secrets:
-    - ca_etcd
-    - etcd_TCP_cert
-    - etcd_TCP_key
+    privileged: true
+    networks:
+      - eii  
     security_opt:
     - no-new-privileges
     healthcheck:
@@ -383,7 +424,6 @@ services:
       MY_APP_ID: 2
       CUTOFF_INTERVAL_PERCENTAGE: 90
       SERIAL_PORT_RETRY_INTERVAL: 1
-      CertType: "zmq"
       PROFILING_MODE: ${PROFILING_MODE}
       NETWORK_TYPE: RTU
       DEVICES_GROUP_LIST_FILE_NAME: "Devices_group_list.yml"
@@ -396,19 +436,17 @@ services:
         max-size: "10m"
     volumes:
     - "${EII_INSTALL_PATH}/uwc_data:/opt/intel/eii/uwc_data:ro"
-    - "vol_uwc_socket:${SOCKET_DIR}:z"
+    - "${EII_INSTALL_PATH}/sockets:${SOCKET_DIR}:z"
     - "${EII_INSTALL_PATH}/uwc_data/common_config:${EII_INSTALL_PATH}/uwc_data/common_config:ro"
     - "${EII_INSTALL_PATH}/container_logs/modbus-rtu-master:/opt/intel/app/logs"
-    - "$PWD/unit_test_reports/modbus-rtu-master:/reports/modbus-rtu-master"
-    # user: ${EII_UID}
+    - ./Certificates/RTU:/run/secrets/RTU
+    - ./Certificates/rootca:/run/secrets/rootca  
+    - "$PWD/unit_test_reports/modbus-rtu-master:/reports/modbus-rtu-master"        
+    user: ${EII_UID}
     # userns_mode: host
     devices:
-    - /dev:/dev
+      - /dev:/dev
     privileged: true
-    secrets:
-    - ca_etcd
-    - etcd_RTU_cert
-    - etcd_RTU_key
     security_opt:
     - no-new-privileges
     healthcheck:
@@ -449,34 +487,27 @@ services:
       ETCD_PREFIX: ${ETCD_PREFIX}
       Log4cppPropsFile: "/opt/intel/config/log4cpp.properties"
       DEVICES_GROUP_LIST_FILE_NAME: "Devices_group_list.yml"
-      INTERNAL_MQTT_URL: "${MQTT_PROTOCOL}://127.0.0.1:11883"
+      INTERNAL_MQTT_URL: "${MQTT_PROTOCOL}://mqtt_container:11883"
       NETWORK_TYPE: "ALL"
       TOPIC_SEPARATOR: '-'
-      CertType: "zmq"
       BUILD_NUMBER: ${BUILD_NUMBER}
       PROFILING_MODE: ${PROFILING_MODE}
-    networks:
-      - eii
     logging:
         driver: "json-file"
         options:
             max-file: "3"
             max-size: "10m"
+    user: ${EII_UID}
     volumes:
-      - "$PWD/unit_test_reports/sparkplug-bridge:/reports/sparkplug-bridge"
-      - "${EII_INSTALL_PATH}/uwc_data:/opt/intel/eii/uwc_data:ro"
-      - "${EII_INSTALL_PATH}/uwc_data/common_config:${EII_INSTALL_PATH}/uwc_data/common_config:ro"
-      - "${EII_INSTALL_PATH}/container_logs/sparkplug-bridge:/opt/intel/app/logs"
-    secrets:
-      - ca_etcd
-      - etcd_SPARKPLUG-BRIDGE_cert
-      - etcd_SPARKPLUG-BRIDGE_key
-      - ca_broker
-      - client_cert
-      - client_key
-      - scadahost_ca_cert
-      - scadahost_client_cert
-      - scadahost_client_key
+     - "${EII_INSTALL_PATH}/uwc_data:/opt/intel/eii/uwc_data:ro"
+     - "${EII_INSTALL_PATH}/uwc_data/common_config:${EII_INSTALL_PATH}/uwc_data/common_config:ro"
+     - "${EII_INSTALL_PATH}/container_logs/sparkplug-bridge:/opt/intel/app/logs"
+     - ./Certificates/SPARKPLUG-BRIDGE:/run/secrets/SPARKPLUG-BRIDGE
+     - ./Certificates/rootca:/run/secrets/rootca      
+     - ./Certificates/mymqttcerts:/run/secrets/mymqttcerts
+     - ./Certificates/scada_ext_certs:/run/secrets/scada_ext_certs
+     - "${EII_INSTALL_PATH}/sockets:${SOCKET_DIR}"
+     - "$PWD/unit_test_reports/sparkplug-bridge:/reports/sparkplug-bridge"
     security_opt:
       - no-new-privileges
     healthcheck:
@@ -485,8 +516,10 @@ services:
       timeout: 30s
       retries: 3
       start_period: 0s
+    networks:
+      - eii      
 
-  kpi-tactic:
+  kpi-tactic-test:
     depends_on:
       - ia_eiibase
       - uwc_test_common
@@ -532,18 +565,14 @@ services:
         max-size: "10m"
     # user: ${EII_UID}
     volumes:
-    - "vol_uwc_socket:${SOCKET_DIR}:z"
+    - "${EII_INSTALL_PATH}/sockets:${SOCKET_DIR}:z"
     - "${EII_INSTALL_PATH}/uwc_data:/opt/intel/eii/uwc_data:ro"
     - "${EII_INSTALL_PATH}/uwc_data/common_config:${EII_INSTALL_PATH}/uwc_data/common_config:ro"
     - "${EII_INSTALL_PATH}/container_logs/kpi-tactic:/opt/intel/app/logs"
+    - ./Certificates/KPIAPP:/run/secrets/KPIAPP
+    - ./Certificates/rootca:/run/secrets/rootca
+    - ./Certificates/mymqttcerts:/run/secrets/mymqttcerts  
     - "$PWD/unit_test_reports/kpi-tactic:/reports/kpi-tactics"
-    secrets:
-      - ca_etcd
-      - etcd_KPIAPP_cert
-      - etcd_KPIAPP_key
-      - ca_broker
-      - client_cert
-      - client_key
     security_opt:
       - no-new-privileges
     healthcheck:
@@ -583,7 +612,8 @@ services:
       ETCD_PREFIX: ${ETCD_PREFIX}
       no_proxy: ${eii_no_proxy},${ETCD_HOST}
       CertType: "zmq"
-    # user: ${EII_UID}  
+    #user: ${EII_UID}  
+    #privileged: true
     networks:
       - eii
     volumes:
@@ -591,10 +621,6 @@ services:
       - "vol_uwc_socket:${SOCKET_DIR}:z"
       - "${EII_INSTALL_PATH}/uwc_data/common_config:${EII_INSTALL_PATH}/uwc_data/common_config:ro"
       - "$PWD/unit_test_reports/uwc-util:/reports/uwc-util"
-    secrets:
-      - ca_etcd
-      - etcd_UWCUTIL_cert
-      - etcd_UWCUTIL_key
 
 networks:
   eii:
@@ -622,62 +648,3 @@ volumes:
       o: bind
       device: ${EII_INSTALL_PATH}/sockets
 
-secrets:
-  ca_etcd:
-    file: provision/Certificates/ca/ca_certificate.pem
-  etcd_etcduser_cert:
-    file: provision/Certificates/root/root_client_certificate.pem
-  etcd_etcduser_key:
-    file: provision/Certificates/root/root_client_key.pem
-  etcd_EtcdUI_cert:
-    file: provision/Certificates/EtcdUI/EtcdUI_client_certificate.pem
-  etcd_EtcdUI_key:
-    file: provision/Certificates/EtcdUI/EtcdUI_client_key.pem
-  etcd_ZmqBroker_cert:
-    file: provision/Certificates/ZmqBroker/ZmqBroker_client_certificate.pem
-  etcd_ZmqBroker_key:
-    file: provision/Certificates/ZmqBroker/ZmqBroker_client_key.pem
-  ca_broker:
-    file: provision/Certificates/ca/ca_certificate.pem
-  broker_cert:
-    file: provision/Certificates/mymqttcerts/mymqttcerts_server_certificate.pem
-  broker_key:
-    file: provision/Certificates/mymqttcerts/mymqttcerts_server_key.pem
-  etcd_MQTT_Bridge_cert:
-    file: provision/Certificates/MQTT_Bridge/MQTT_Bridge_client_certificate.pem
-  etcd_MQTT_Bridge_key:
-    file: provision/Certificates/MQTT_Bridge/MQTT_Bridge_client_key.pem
-  client_cert:
-    file: provision/Certificates/mymqttcerts/mymqttcerts_client_certificate.pem
-  client_key:
-    file: provision/Certificates/mymqttcerts/mymqttcerts_client_key.pem
-  etcd_root_cert:
-    file: provision/Certificates/root/root_client_certificate.pem
-  etcd_root_key:
-    file: provision/Certificates/root/root_client_key.pem
-  etcd_TCP_cert:
-    file: provision/Certificates/TCP/TCP_client_certificate.pem
-  etcd_TCP_key:
-    file: provision/Certificates/TCP/TCP_client_key.pem
-  etcd_RTU_cert:
-    file: provision/Certificates/RTU/RTU_client_certificate.pem
-  etcd_RTU_key:
-    file: provision/Certificates/RTU/RTU_client_key.pem
-  etcd_SPARKPLUG-BRIDGE_cert:
-    file: provision/Certificates/SPARKPLUG-BRIDGE/SPARKPLUG-BRIDGE_client_certificate.pem
-  etcd_SPARKPLUG-BRIDGE_key:
-    file: provision/Certificates/SPARKPLUG-BRIDGE/SPARKPLUG-BRIDGE_client_key.pem
-  etcd_KPIAPP_cert:
-    file: provision/Certificates/KPIAPP/KPIAPP_client_certificate.pem
-  etcd_KPIAPP_key:
-    file: provision/Certificates/KPIAPP/KPIAPP_client_key.pem
-  etcd_UWCUTIL_cert:
-    file: provision/Certificates/UWCUTIL/UWCUTIL_client_certificate.pem
-  etcd_UWCUTIL_key:
-    file: provision/Certificates/UWCUTIL/UWCUTIL_client_key.pem    
-  scadahost_ca_cert:
-    file: provision/Certificates/ca/ca_certificate.pem
-  scadahost_client_cert:
-    file: provision/Certificates/mymqttcerts/mymqttcerts_client_certificate.pem
-  scadahost_client_key:
-    file: provision/Certificates/mymqttcerts/mymqttcerts_client_key.pem

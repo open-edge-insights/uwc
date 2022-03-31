@@ -32,6 +32,8 @@ WORKDIR /
 COPY modconn /modconn/.
 RUN sed -i 's/-DMODBUS_STACK_TCPIP_ENABLED//g' /modconn/Release/Src/subdir.mk 
 WORKDIR modconn
+COPY --from=uwc_test_common ${CMAKE_INSTALL_PREFIX}/include /usr/local/include
+COPY --from=uwc_test_common ${CMAKE_INSTALL_PREFIX}/lib /usr/local/lib
 RUN cd Release \
     && make clean all -s
 

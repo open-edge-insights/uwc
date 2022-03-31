@@ -102,8 +102,8 @@ void zmq_handler::set_RT_NRT(std::string RT_NRT_check)
 		a_vsrt_nrt_values.push_back(RT_NRT_check.substr(last));
 		size = a_vsrt_nrt_values.size();
 		key = "/" + a_vsrt_nrt_values[0] + "/" + a_vsrt_nrt_values[1] + "/" +a_vsrt_nrt_values[2];
-		value = a_vsrt_nrt_values[3];
 		if(size==4){
+			value = a_vsrt_nrt_values[3];
 			RT_NRT.insert({key,value});
 		}
 	}
@@ -116,8 +116,11 @@ void zmq_handler::set_RT_NRT(std::string RT_NRT_check)
  */
 std::string zmq_handler::get_RT_NRT(std::string topic)
 {
+   std::string RT_NRT_value ="";
    auto RT_NRT_pointer = RT_NRT.find(topic);
-   std::string RT_NRT_value = RT_NRT_pointer->second;
+   if(RT_NRT_pointer!=RT_NRT.end()){
+   		RT_NRT_value = RT_NRT_pointer->second;
+    }
    return RT_NRT_value;   
 }
 /**
@@ -491,7 +494,6 @@ bool zmq_handler::publishJson(std::string &a_sUsec, msg_envelope_t* msg, const s
 		DO_LOG_ERROR(": Failed to publish message - Input message is NULL");
 		return false;
 	}
-	
 	DO_LOG_DEBUG("msg to publish :: Topic :: " + a_sTopic);
 	zmq_handler::stZmqContext& msgbus_ctx = zmq_handler::getCTX(a_sTopic);
 	void* pub_ctx = zmq_handler::getPubCTX(a_sTopic).m_pContext;

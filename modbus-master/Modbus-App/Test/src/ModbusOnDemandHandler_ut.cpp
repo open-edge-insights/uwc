@@ -50,7 +50,7 @@ void ModbusOnDemandHandler_ut::TearDown()
  */
 TEST_F(ModbusOnDemandHandler_ut, jsonParserForOnDemandRequest_InvServiceReq)
 {
-
+	fprintf(stderr, "\n Green 1 \n");
 	stMbusApiPram.m_stOnDemandReqData.m_isByteSwap				= false;
 	stMbusApiPram.m_stOnDemandReqData.m_isRT					= true;
 	stMbusApiPram.m_stOnDemandReqData.m_isWordSwap				= false;
@@ -60,20 +60,22 @@ TEST_F(ModbusOnDemandHandler_ut, jsonParserForOnDemandRequest_InvServiceReq)
 	stMbusApiPram.m_stOnDemandReqData.m_strEiiTime				= "2020-03-31 12:34:56";
 	stMbusApiPram.m_stOnDemandReqData.m_strMetric				= "Flow";
 	stMbusApiPram.m_stOnDemandReqData.m_strMqttTime				= "2020-03-13 12:34:56";
-	stMbusApiPram.m_stOnDemandReqData.m_strTopic				= "/flowmeter/PL0/Flow/read";
+	stMbusApiPram.m_stOnDemandReqData.m_strTopic				= "RT/read/flowmeter/PL0/Flow";
 	stMbusApiPram.m_stOnDemandReqData.m_strVersion				= "2.1";
 	stMbusApiPram.m_stOnDemandReqData.m_strWellhead				= "PL0";
 	stMbusApiPram.m_stOnDemandReqData.m_sUsec					= "0";
 	stMbusApiPram.m_stOnDemandReqData.m_sTimestamp				= "0:0:0";
-
+	fprintf(stderr, "\n Green 2 \n");
 	bool isWrite = false;
 
 	try
 	{
+		fprintf(stderr, "\n Green 3 \n");
 		eFunRetType = onDemandHandler::Instance().jsonParserForOnDemandRequest(stMbusApiPram,
 				m_u8FunCode,
 				stMbusApiPram.m_u16TxId,
 				isWrite);
+		fprintf(stderr, "\n Green 4 \n");
 		EXPECT_EQ(APP_ERROR_UNKNOWN_SERVICE_REQUEST, eFunRetType);
 	}
 	catch( std::exception &e)
@@ -194,7 +196,7 @@ TEST_F(ModbusOnDemandHandler_ut, createWriteListner_test)
 
 	std::string topic = std::getenv("WRITE_RESPONSE_TOPIC");*/
 
-	std::string sTopic = "MQTT-Export/PL0_flowmeter1_write";
+	std::string sTopic = "RT/write";
 	//std::string sTopic = "MQTT-Export/Modbus-TCP-Master_ReadRequest";
 	std::string topictype = "sub";
 	try
@@ -220,7 +222,7 @@ TEST_F(ModbusOnDemandHandler_ut, subscribeDeviceListener_CallbaclNULL)
 
 	globalConfig::COperation a_refOps;
 	void *vpCallback = NULL;
-	string SbTopic = "MQTT_Export/MQTT_Export_RdReq";
+	string SbTopic = "RT/read";
 
 
 	try
@@ -321,6 +323,7 @@ TEST_F(ModbusOnDemandHandler_ut, hex2bin_InvalidInputString)
 	}
 }
 
+
 /**
  * checks the behaviour of the validateInputJson() with a valid jason string
  * @param :[in] None
@@ -370,81 +373,82 @@ TEST_F(ModbusOnDemandHandler_ut, validateInputJson_InValidJason)
 	}
 
 }
+// // Start of potential 
+// /**
+//  * checks the behaviour of the createErrorResponse() with read response
+//  * @param :[in] None
+//  * @param :[out] None
+//  * @return None
+//  */
+// TEST_F(ModbusOnDemandHandler_ut, createErrorResponseRead)
+// {
 
-/**
- * checks the behaviour of the createErrorResponse() with read response
- * @param :[in] None
- * @param :[out] None
- * @return None
- */
-TEST_F(ModbusOnDemandHandler_ut, createErrorResponseRead)
-{
+// 	stMbusApiPram.m_lPriority = 1;
+// 	stMbusApiPram.m_u16ByteCount = 2;
+// 	stMbusApiPram.m_u16Quantity = 4;
+// 	stMbusApiPram.m_u16StartAddr = 500;
+// 	stMbusApiPram.m_u16TxId = 23;
+// 	stMbusApiPram.m_u8DevId = 5;
 
-	stMbusApiPram.m_lPriority = 1;
-	stMbusApiPram.m_u16ByteCount = 2;
-	stMbusApiPram.m_u16Quantity = 4;
-	stMbusApiPram.m_u16StartAddr = 500;
-	stMbusApiPram.m_u16TxId = 23;
-	stMbusApiPram.m_u8DevId = 5;
+// 	bool isWrite = true;
+// 	stOnDemandRequest reqData;
+// 	reqData.m_isByteSwap = true;
+// 	reqData.m_isRT = true;
+// 	reqData.m_isWordSwap = false;
+// 	reqData.m_obtReqRcvdTS.tv_nsec = 21132323;
+// 	reqData.m_obtReqRcvdTS.tv_sec = 1;
+// 	reqData.m_strAppSeq = "455";
+// 	reqData.m_strMetric = "Test";
+// 	reqData.m_strTopic = "kzdjfhdszh";
+// 	reqData.m_strVersion = "2.1";
+// 	reqData.m_strWellhead = "test";
+// 	MbusAPI_t stMbusApiPram = {};
 
-	bool isWrite = true;
-	stOnDemandRequest reqData;
-	reqData.m_isByteSwap = true;
-	reqData.m_isRT = true;
-	reqData.m_isWordSwap = false;
-	reqData.m_obtReqRcvdTS.tv_nsec = 21132323;
-	reqData.m_obtReqRcvdTS.tv_sec = 1;
-	reqData.m_strAppSeq = "455";
-	reqData.m_strMetric = "Test";
-	reqData.m_strTopic = "kzdjfhdszh";
-	reqData.m_strVersion = "2.1";
-	reqData.m_strWellhead = "test";
-	MbusAPI_t stMbusApiPram = {};
+// 	try
+// 	{
 
-	try
-	{
+// 		common_Handler::insertReqData(stMbusApiPram.m_u16TxId, stMbusApiPram);
+// 		onDemandHandler::Instance().createErrorResponse(eFunRetType, u8FunCode, stMbusApiPram.m_u16TxId, true, isWrite);
+// 	}
+// 	catch(std::exception &e)
+// 	{
+// 		EXPECT_EQ("Request not found in map", (string)e.what());
+// 	}
 
-		common_Handler::insertReqData(stMbusApiPram.m_u16TxId, stMbusApiPram);
-		onDemandHandler::Instance().createErrorResponse(eFunRetType, u8FunCode, stMbusApiPram.m_u16TxId, true, isWrite);
-	}
-	catch(std::exception &e)
-	{
-		EXPECT_EQ("Request not found in map", (string)e.what());
-	}
+// }
 
-}
+// /**
+//  * checks the behaviour of the createErrorResponse() with write response
+//  * @param :[in] None
+//  * @param :[out] None
+//  * @return None
+//  */
+// TEST_F(ModbusOnDemandHandler_ut, createErrorResponseWrite)
+// {
+	
+// 	bool isWrite = false;
+// 	stOnDemandRequest reqData;
+// 	reqData.m_isByteSwap = true;
+// 	reqData.m_isWordSwap = false;
+// 	reqData.m_obtReqRcvdTS.tv_nsec = 21132323;
+// 	reqData.m_obtReqRcvdTS.tv_sec = 1;
+// 	reqData.m_strAppSeq = "455";
+// 	reqData.m_strMetric = "Test";
+// 	reqData.m_strTopic = "kzdjfhdszh";
+// 	reqData.m_strVersion = "2.1";
+// 	reqData.m_strWellhead = "test";
 
-/**
- * checks the behaviour of the createErrorResponse() with write response
- * @param :[in] None
- * @param :[out] None
- * @return None
- */
-TEST_F(ModbusOnDemandHandler_ut, createErrorResponseWrite)
-{
+// 	try
+// 	{
+// 		onDemandHandler::Instance().createErrorResponse(eFunRetType, m_u8FunCode, stMbusApiPram.m_u16TxId, true , isWrite);
+// 	}
+// 	catch(std::exception &e)
+// 	{
+// 		EXPECT_EQ("Request not found in map", (string)e.what());
+// 	}
 
-	bool isWrite = false;
-	stOnDemandRequest reqData;
-	reqData.m_isByteSwap = true;
-	reqData.m_isWordSwap = false;
-	reqData.m_obtReqRcvdTS.tv_nsec = 21132323;
-	reqData.m_obtReqRcvdTS.tv_sec = 1;
-	reqData.m_strAppSeq = "455";
-	reqData.m_strMetric = "Test";
-	reqData.m_strTopic = "kzdjfhdszh";
-	reqData.m_strVersion = "2.1";
-	reqData.m_strWellhead = "test";
-
-	try
-	{
-		onDemandHandler::Instance().createErrorResponse(eFunRetType, m_u8FunCode, stMbusApiPram.m_u16TxId, true , isWrite);
-	}
-	catch(std::exception &e)
-	{
-		EXPECT_EQ("Request not found in map", (string)e.what());
-	}
-
-}
+// }
+////---------------end of potential 
 
 /**
  * checks the behaviour of the createErrorResponse() with non RT response
