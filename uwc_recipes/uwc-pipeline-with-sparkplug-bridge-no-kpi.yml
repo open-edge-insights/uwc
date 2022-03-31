@@ -8,5 +8,5 @@ AppContexts:
 - uwc/modbus-master/modbus_TCP
 - uwc/modbus-master/modbus_RTU
 - uwc/sparkplug-bridge
-- uwc/Vendor_Apps/EmbPublisher
-- uwc/Vendor_Apps/EmbSubscriber
+- uwc/Vendor_Apps/SamplePublisher
+- uwc/Vendor_Apps/SampleSubscriber

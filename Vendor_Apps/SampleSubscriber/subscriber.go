@@ -80,10 +80,10 @@ func processMsg(sub *eiimsgbus.Subscriber) {
 		case msg := <-sub.MessageChannel:
 			glog.Infof("-- Received Message from topic %v : %v \n",msg.Name, msg.Data)
 			msgCount[msg.Name] += 1
-			glog.Infof("number of message recieved %v for topic %v", msgCount[msg.Name], msg.Name)
+			glog.Infof("number of message recieved %v for topic %v \n\n", msgCount[msg.Name], msg.Name)
 		case err := <-sub.ErrorChannel:
 		        if( err.Error() != "Receive interrupted"){
-					glog.Errorf("-- Error receiving message: %v\n", err)
+					glog.Errorf("-- Error receiving message: %v\n\n", err)
 
 			}
 		}
@@ -151,8 +151,8 @@ func main() {
 		glog.Infof("Failed to fetch watch object")
 	}
 
-    // Watch the key "/EmbSubscriber" for any changes, cbFunc will be called with updated value
+    // Watch the key "/SampleSubscriber" for any changes, cbFunc will be called with updated value
 	var watchUserData interface{} = ""
-	watchObj.Watch("/EmbSubscriber/interfaces", cbFunc, watchUserData)		
+	watchObj.Watch("/SampleSubscriber/interfaces", cbFunc, watchUserData)		
 	subObj.receiveFromAllTopics()
 }

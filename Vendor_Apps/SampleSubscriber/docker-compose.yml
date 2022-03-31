@@ -22,12 +22,12 @@ version: '3.6'
 
 services:
 
-  ia_emb_subscriber:
+  ia_sample_subscriber:
     depends_on:
       - ia_common
     build:
-      context: $PWD/../uwc/Vendor_Apps/EmbSubscriber
-      dockerfile: $PWD/../uwc/Vendor_Apps/EmbSubscriber/Dockerfile
+      context: $PWD/../uwc/Vendor_Apps/SampleSubscriber
+      dockerfile: $PWD/../uwc/Vendor_Apps/SampleSubscriber/Dockerfile
       args:
         UWC_VERSION: ${UWC_VERSION}
         EII_VERSION: ${EII_VERSION}
@@ -36,10 +36,10 @@ services:
         DOCKER_REGISTRY: ${DOCKER_REGISTRY}
         UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
         CMAKE_INSTALL_PREFIX: ${EII_INSTALL_PATH}
-    image: ${DOCKER_REGISTRY}openedgeinsights/ia_emb_subscriber:${UWC_VERSION}
-    container_name: ia_emb_subscriber
+    image: ${DOCKER_REGISTRY}openedgeinsights/ia_sample_subscriber:${UWC_VERSION}
+    container_name: ia_sample_subscriber
     read_only: true
-    hostname: ia_emb_subscriber
+    hostname: ia_sample_subscriber
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "exit", "0"]
@@ -47,7 +47,7 @@ services:
     security_opt:
       - no-new-privileges    
     environment:
-      AppName: "EmbSubscriber"
+      AppName: "SampleSubscriber"
       DEV_MODE: ${DEV_MODE}
       no_proxy: ${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
@@ -57,6 +57,6 @@ services:
       - eii
     volumes:
       - "${EII_INSTALL_PATH}/sockets:${SOCKET_DIR}"
-      - ./Certificates/EmbSubscriber:/run/secrets/EmbSubscriber
+      - ./Certificates/SampleSubscriber:/run/secrets/SampleSubscriber
       - ./Certificates/rootca:/run/secrets/rootca
 
