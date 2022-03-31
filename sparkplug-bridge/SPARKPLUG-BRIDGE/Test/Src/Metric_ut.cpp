@@ -653,7 +653,7 @@ TEST_F(Metric_ut, compareMetrics)
 	mapMetrics1.emplace(a_sName, pCMetric1);
 	CUDT oUDT1(a_sName, dtype, false, a_version);
 	oUDT1.initTestData(mapMetrics1, mapMetrics1, a_sUDTDefName, a_version, a_bIsDefinition);
-
+	try{
 	dtype = METRIC_DATA_TYPE_STRING;
 	objVal1= "abc";
 	std::string a_version2 = "1.0";
@@ -671,7 +671,10 @@ TEST_F(Metric_ut, compareMetrics)
 	pUDT->initTestData(mapMetrics2, mapMetrics2, a_sUDTDefName, a_version2, a_bIsDefinition_1);
 	uint8_t res = oUDT1.compareMetrics(pUDT);
 	EXPECT_EQ(0, res);
-
+	}catch(std::exception &ex)
+	{
+		DO_LOG_ERROR(std::string("Error:") + ex.what());
+	}
 }
 
 
@@ -706,6 +709,7 @@ TEST_F(Metric_ut, validate)
 	a_sName = "Properties/Version";
 	const uint64_t a_timestamp1 = 1486144502122;
 	a_sUDTDefName ="UDT";
+	try{
 	std::shared_ptr<CIfMetric> pCMetric2 = std::make_shared<CMetric>(a_sName, obj, a_timestamp1);
 	metricMapIf_t mapMetrics2;
 	mapMetrics2.emplace(a_sName, pCMetric2);
@@ -715,6 +719,10 @@ TEST_F(Metric_ut, validate)
 	oUDT1.initTestRef(pUDT);
 	bool res = oUDT1.validate();
 	EXPECT_EQ(true, res);
+	}catch(std::exception &ex)
+	{
+		DO_LOG_ERROR(std::string("Error:") + ex.what());
+	}
 }
 
 

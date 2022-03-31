@@ -153,7 +153,7 @@ Follow the below steps to publish a JSON payload using SamplePublisher :
 
      b) Username is 'root' and default password is located at ETCD_ROOT_PASSWORD key under environment section in build/provision/dep/docker-compose-provision.override.prod.yml.
 
-3) To check the response msg , please check the logs of SampleSubscriber i.e docker logs -f ia_emb_subscriber
+3) To check the response msg , please check the logs of SampleSubscriber i.e docker logs -f ia_sample_subscriber
 
 4) During runtime if add/change in topic is required then go to EtcdUI webpage then /SamplePublisher/config section and change "publisher_topic" field and click on save button.
 

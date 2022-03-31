@@ -44,16 +44,15 @@ void OnDemandRead_AppCallback(stMbusAppCallbackParams_t *pstMbusAppCallbackParam
 	DO_LOG_DEBUG("Start");
 	if(pstMbusAppCallbackParams == NULL)
 	{
+
 		DO_LOG_DEBUG("Response received from stack is null for on-demand read");
 		return;
 	}
-
 	/// handle response to process response
 	CPeriodicReponseProcessor::Instance().handleResponse(pstMbusAppCallbackParams,
 															MBUS_CALLBACK_ONDEMAND_READ,
 															PublishJsonHandler::instance().getSReadResponseTopic(),
 															false);
-
 	DO_LOG_DEBUG("End");
 }
 

@@ -28,6 +28,8 @@ FROM ia_common:$EII_VERSION as modbus-lib
 WORKDIR /
 
 COPY modconn /modconn/.
+COPY --from=uwc_test_common ${CMAKE_INSTALL_PREFIX}/include /usr/local/include
+COPY --from=uwc_test_common ${CMAKE_INSTALL_PREFIX}/lib /usr/local/lib
 WORKDIR modconn
 RUN cd Release \
     && make clean all -s

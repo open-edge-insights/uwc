@@ -102,11 +102,11 @@ TEST_F(EIIPlBusHandler_ut, stopEIIListener)
  * @param :[out] None
  * @return None
  */
-TEST_F(EIIPlBusHandler_ut, PublishWriteMsg_false)
-{
-	bool RetVal = CEIIPlBusHandler_obj.publishWriteMsg(strMsg);
-	EXPECT_EQ(0, RetVal);
-}
+// TEST_F(EIIPlBusHandler_ut, PublishWriteMsg_false)
+// {
+// 	bool RetVal = CEIIPlBusHandler_obj.publishWriteMsg(strMsg);
+// 	EXPECT_EQ(0, RetVal);
+// }
 
 /**
  * Test case to check if publishWriteMsg() function fails to publish message to EII and returns false
@@ -123,7 +123,7 @@ TEST_F(EIIPlBusHandler_ut, EIIMsg_ctx_Map_Empty)
 	try
 	{
 		std::string sMsg{""};
-	    bool RetVal = publishEMBMsg(strMsg, eiiTopic);
+	    bool RetVal = CEIIPlBusHandler_obj.publishEMBMsg(strMsg, eiiTopic);
 		EXPECT_EQ(false, RetVal);
 
 	}
@@ -133,4 +133,3 @@ TEST_F(EIIPlBusHandler_ut, EIIMsg_ctx_Map_Empty)
 	}
 
 }
-

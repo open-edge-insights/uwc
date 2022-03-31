@@ -65,12 +65,12 @@ void TargetCaller_postMsgstoMQTT()
 TEST_F(Main_ut, processMsgToSendOnEII_ValidTopic)
 {
 	mqtt::const_message_ptr recvdMsg = mqtt::make_message(
-			"{\"topic\": \"MQTT_Export_RdReq\"}",
+			"{\"topic\": \"/flowmeter/PL0/D1/read\"}",
 			"{\"wellhead\": \"PL0\",\"command\": \"D1\",\"value\": \"0x00\",\"timestamp\": \"2019-09-20 12:34:56\",\"usec\": \"1571887474111145\",\"version\": \"2.0\",\"app_seq\": \"1234\",\"realtime\":\"1\"}");
 
 	CMessageObject Temp(recvdMsg);
-	std::string Topic = "MQTT_Export_RdReq";
-	processMsgToSendOnEII(Temp, Topic);
+	const bool isRealtime = false;
+	processMsgToSendOnEII(Temp, isRealtime);
 
 }
 
@@ -82,7 +82,7 @@ TEST_F(Main_ut, processMsgToSendOnEII_ValidTopic)
  */
 TEST_F(Main_ut, processMsg_NULLMsg)
 {
-	string topic = "MQTT_Export_RdReq";
+	string topic = "/flowmeter/PL0/D1/read";
 	CMQTTPublishHandler mqttPublisher(EnvironmentInfo::getInstance().getDataFromEnvMap("MQTT_URL_FOR_EXPORT").c_str(), topic.c_str(), 0);
 	bool RetVal = processMsg(NULL, mqttPublisher);
 	EXPECT_EQ(false, RetVal);

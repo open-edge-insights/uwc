@@ -64,12 +64,14 @@ protected:
 
 	bool _publishMsgDDEATH(const stRefForSparkPlugAction& a_stRefAction)
 	{
-		CSCADAHandler::instance().publishMsgDDEATH(a_stRefAction);
+		bool result = CSCADAHandler::instance().publishMsgDDEATH(a_stRefAction);
+		return result;
 	}
 
 	bool _publishMsgDDEATH(const std::string a_sDevName)
 	{
-		CSCADAHandler::instance().publishMsgDDEATH(a_sDevName);
+		bool result = CSCADAHandler::instance().publishMsgDDEATH(a_sDevName);
+		return result;
 	}
 
 	bool _publishMsgDDATA(const stRefForSparkPlugAction& a_stRefAction)
