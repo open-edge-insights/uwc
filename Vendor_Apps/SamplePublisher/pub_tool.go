@@ -95,9 +95,9 @@ func main() {
 		fmt.Println("Failed to fetch watch object")
 	}
 
-    // Watch the key "/EmbPublisher" for any changes, cbFunc will be called with updated value
+    // Watch the key "/SamplePublisher" for any changes, cbFunc will be called with updated value
 	var watchUserData interface{} = ""
-	watchObj.Watch("/EmbPublisher/config", cbFunc, watchUserData)
+	watchObj.Watch("/SamplePublisher/config", cbFunc, watchUserData)
 
 	wg.Wait()
 }
