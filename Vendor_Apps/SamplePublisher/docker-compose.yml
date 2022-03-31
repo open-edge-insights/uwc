@@ -2,14 +2,14 @@ version: '3.6'
 
 services:
 
-  emb_publisher:
+  sample_publisher:
     depends_on:
       - ia_eiibase
       - ia_common
       - ia_zmq_broker
     build:
-      context: $PWD/../uwc/Vendor_Apps/EmbPublisher
-      dockerfile: $PWD/../uwc/Vendor_Apps/EmbPublisher/Dockerfile
+      context: $PWD/../uwc/Vendor_Apps/SamplePublisher
+      dockerfile: $PWD/../uwc/Vendor_Apps/SamplePublisher/Dockerfile
       args:
         EII_VERSION: ${EII_VERSION}
         UWC_VERSION: ${UWC_VERSION}
@@ -18,10 +18,10 @@ services:
         DOCKER_REGISTRY: ${DOCKER_REGISTRY}
         UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
         CMAKE_INSTALL_PREFIX: ${EII_INSTALL_PATH}
-    image: ${DOCKER_REGISTRY}openedgeinsights/emb_publisher:${UWC_VERSION}
-    container_name: emb_publisher
+    image: ${DOCKER_REGISTRY}openedgeinsights/sample_publisher:${UWC_VERSION}
+    container_name: sample_publisher
     restart: unless-stopped
-    hostname: emb_publisher
+    hostname: sample_publisher
     read_only: true
     healthcheck:
       test: ["CMD-SHELL", "exit", "0"]
@@ -29,7 +29,7 @@ services:
     security_opt:
       - no-new-privileges      
     environment:
-      AppName: "EmbPublisher"
+      AppName: "SamplePublisher"
       DEV_MODE: ${DEV_MODE}
       no_proxy: ${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
@@ -39,6 +39,6 @@ services:
       - eii
     volumes:
       - "${EII_INSTALL_PATH}/sockets:${SOCKET_DIR}"
-      - ./Certificates/EmbPublisher:/run/secrets/EmbPublisher
+      - ./Certificates/SamplePublisher:/run/secrets/SamplePublisher
       - ./Certificates/rootca:/run/secrets/rootca
-      - ../uwc/Vendor_Apps/EmbPublisher/datafiles/:/datafiles/
+      - ../uwc/Vendor_Apps/SamplePublisher/datafiles/:/datafiles/

@@ -10,7 +10,7 @@
     {
       "name": "RTU_Time",
       "dataType": "Int32",
-       "value": 30
+       "value": 80
     }
   ],
   "parameters": [

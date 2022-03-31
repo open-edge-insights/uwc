@@ -1,4 +1,4 @@
-module embsubscriber
+module samplepublisher
 
 go 1.15
 
