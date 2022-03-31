@@ -282,7 +282,7 @@ int main(int argc, char *argv[])
            			 }
        			 }	
        			bool tempRet = zmq_handler::returnAllTopics("sub", vecTopics);
-			for(std::string eachTopic : vecTopics) {			
+			for(auto eachTopic : vecTopics) {			
 
 				zmq_handler::stZmqContext& context = zmq_handler::getCTX(eachTopic);
 				zmq_handler::stZmqSubContext& subContext = zmq_handler::getSubCTX(eachTopic);

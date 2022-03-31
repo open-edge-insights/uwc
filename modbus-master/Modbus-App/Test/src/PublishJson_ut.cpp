@@ -78,7 +78,7 @@ TEST_F(PublishJson_ut, setTopicForOperation_emptyTopic)
 TEST_F(PublishJson_ut, setTopicForOperation_ValNonRTTopic)
 {
 	bool result;
-	std::string topic = "TCP1_RdResp";
+	std::string topic = "NRT/read";
 	result = PublishJsonHandler::instance().setTopicForOperation(topic);
 	EXPECT_EQ(true, result);
 }
@@ -92,7 +92,7 @@ TEST_F(PublishJson_ut, setTopicForOperation_ValNonRTTopic)
 TEST_F(PublishJson_ut, setTopicForOperation_ValRTTopic)
 {
 	bool result;
-	std::string topic = "TCP1_RdResp_RT";
+	std::string topic = "RT/read";
 	result = PublishJsonHandler::instance().setTopicForOperation(topic);
 	EXPECT_EQ(true, result);
 }
@@ -106,7 +106,7 @@ TEST_F(PublishJson_ut, setTopicForOperation_ValRTTopic)
 TEST_F(PublishJson_ut, setTopicForOperation_WrRes)
 {
 	bool result;
-	std::string topic = "TCP1_WrResp";
+	std::string topic = "NRT/write";
 	result = PublishJsonHandler::instance().setTopicForOperation(topic);
 	EXPECT_EQ(true, result);
 }
@@ -120,7 +120,7 @@ TEST_F(PublishJson_ut, setTopicForOperation_WrRes)
 TEST_F(PublishJson_ut, setTopicForOperation_WRITE_RES_RT)
 {
 	bool result;
-	std::string topic = "TCP1_WrResp_RT";
+	std::string topic = "RT/write";
 	result = PublishJsonHandler::instance().setTopicForOperation(topic);
 	EXPECT_EQ(true, result);
 }
@@ -131,24 +131,24 @@ TEST_F(PublishJson_ut, setTopicForOperation_WRITE_RES_RT)
  * @param :[out] None
  * @return None
  */
-TEST_F(PublishJson_ut, setTopicForOperation_PolledData)
-{
-	bool result;
-	std::string topic = "TCP1_PolledData";
-	result = PublishJsonHandler::instance().setTopicForOperation(topic);
-	EXPECT_EQ(true, result);
-}
+// TEST_F(PublishJson_ut, setTopicForOperation_PolledData)
+// {
+// 	bool result;
+// 	std::string topic = "TCP1_PolledData";
+// 	result = PublishJsonHandler::instance().setTopicForOperation(topic);
+// 	EXPECT_EQ(true, result);
+// }
 
-/**
- * Test case to check the behaviour of setTopicForOperation() with polled data rt topic
- * @param :[in] None
- * @param :[out] None
- * @return None
- */
-TEST_F(PublishJson_ut, setTopicForOperation_PolledData_RT)
-{
-	bool result;
-	std::string topic = "TCP1_PolledData_RT";
-	result = PublishJsonHandler::instance().setTopicForOperation(topic);
-	EXPECT_EQ(true, result);
-}
+// /**
+//  * Test case to check the behaviour of setTopicForOperation() with polled data rt topic
+//  * @param :[in] None
+//  * @param :[out] None
+//  * @return None
+//  */
+// TEST_F(PublishJson_ut, setTopicForOperation_PolledData_RT)
+// {
+// 	bool result;
+// 	std::string topic = "TCP1_PolledData_RT";
+// 	result = PublishJsonHandler::instance().setTopicForOperation(topic);
+// 	EXPECT_EQ(true, result);
+// }

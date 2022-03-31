@@ -26,7 +26,7 @@ MAGENTA=$(tput setaf 5)
 NC=$(tput sgr0)
 
 eii_build_dir="$Current_Dir/../../build"
-
+deployMode="prod"
 # trap ctrl-c and call ctrl_c()
 trap ctrl_c INT
 
@@ -71,6 +71,7 @@ set_dev_mode()
    if [ "$1" == "true" ]; then
 	   echo "${INFO}Setting dev mode to true ${NC}"    
 	   sed -i 's/DEV_MODE=false/DEV_MODE=true/g' $eii_build_dir/.env
+	   deployMode="dev"
 	   if [ "$?" -ne "0" ]; then
 			echo "${RED}Failed to set dev mode."
 			echo "${GREEN}Kinldy set DEV_MODE to false manualy in .env file and then re--run this script"
@@ -81,6 +82,7 @@ set_dev_mode()
 	else
 		echo "${INFO}Setting dev mode to false ${NC}"    
 		sed -i 's/DEV_MODE=true/DEV_MODE=false/g' $eii_build_dir/.env
+		deployMode="prod"
 		if [ "$?" -ne "0" ]; then
 			echo "${RED}Failed to set dev mode."
 			echo "${GREEN}Kinldy set DEV_MODE to false manualy in .env file and then re--run this script"
@@ -106,7 +108,7 @@ set_dev_mode()
 generate_unit_test_report()
 {
     cd "${eii_build_dir}"
-    docker-compose -f docker-compose.yml build 
+ 	docker-compose -f docker-compose.yml build     
     if [ "$?" -eq "0" ];then
 	echo "*****************************************************************"
         echo "${GREEN}Unit test containers built successfully.${NC}"
@@ -131,6 +133,14 @@ generate_unit_test_report()
         echo "*****************************************************************"
         exit 1
     fi    
+	docker container update --pids-limit=100 --restart=on-failure:5 --cpu-shares 512 -m 1G --memory-swap -1 mqtt-bridge-test
+	docker container update --pids-limit=100 --restart=on-failure:5 --cpu-shares 512 -m 1G --memory-swap -1 modbus-tcp-master-test
+	docker container update --pids-limit=100 --restart=on-failure:5 --cpu-shares 512 -m 1G --memory-swap -1 mqtt_test_container
+	docker container update --pids-limit=100 --restart=on-failure:5 --cpu-shares 512 -m 1G --memory-swap -1 modbus-rtu-master-test
+	docker ps -q --filter "name=sparkplug-bridge" | grep -q . && docker container update --pids-limit=100 --restart=on-failure:5 --cpu-shares 512 -m 1G --memory-swap -1 sparkplug-bridge-test
+	# Increase pid limit for KPI to 500 for processing larger count of threads.
+	docker ps -q --filter "name=kpi-tactic-app" | grep -q . && docker container update --pids-limit=500 --restart=on-failure:5 --cpu-shares 512 -m 1G --memory-swap -1 kpi-tactic-test
+	
     return 0
 }
 
@@ -144,7 +154,7 @@ create_test_dir()
 	mkdir -p unit_test_reports/sparkplug-bridge
 	mkdir -p unit_test_reports/kpi-tactic
 	mkdir -p unit_test_reports/uwc-util
-	chown -R $SUDO_USER:$SUDO_USER unit_test_reports
+	chown -R 1999:1999 unit_test_reports
 	chmod -R 777 unit_test_reports
 	cd "${eii_build_dir}"
 }
@@ -152,7 +162,7 @@ create_test_dir()
 function cleanup()
 {
 	cd $Current_Dir
-	chown -R $SUDO_USER:$SUDO_USER ${eii_build_dir}/unit_test_reports
+	chown -R 1999:1999 ${eii_build_dir}/unit_test_reports
 	#docker stop $(docker ps -a -q)
 	sed -i 's/MQTT_PROTOCOL=tcp/MQTT_PROTOCOL=ssl/g' $eii_build_dir/.env
 }
@@ -170,13 +180,13 @@ mqtt_certs()
 
     openssl ca -days 3650 -cert ../../build/Certificates/rootca/cacert.pem -keyfile ../../build/Certificates/rootca/cakey.pem -in ./temp/client/req.pem -out ./temp/mymqttcerts_client_certificate.pem -outdir ../../build/Certificates/rootca/certs -notext -batch -extensions client_extensions -config ../../uwc/Others/mqtt_certs/mqtt_cert_openssl_config
 
-    mkdir ../../build/Certificates/Certificates/mymqttcerts
-    cp -rf ./temp/mymqttcerts_server_certificate.pem ../../build/Certificates/Certificates/mymqttcerts/mymqttcerts_server_certificate.pem
-    cp -rf ./temp/mymqttcerts_client_certificate.pem ../../build/Certificates/Certificates/mymqttcerts/mymqttcerts_client_certificate.pem
-    cp -rf ./temp/server/key.pem  ../../build/Certificates/Certificates/mymqttcerts/mymqttcerts_server_key.pem
-    cp -rf ./temp/client/key.pem ../../build/Certificates/Certificates/mymqttcerts/mymqttcerts_client_key.pem
+    mkdir ../../build/Certificates/mymqttcerts
+    cp -rf ./temp/mymqttcerts_server_certificate.pem ../../build/Certificates/mymqttcerts/mymqttcerts_server_certificate.pem
+    cp -rf ./temp/mymqttcerts_client_certificate.pem ../../build/Certificates/mymqttcerts/mymqttcerts_client_certificate.pem
+    cp -rf ./temp/server/key.pem  ../../build/Certificates/mymqttcerts/mymqttcerts_server_key.pem
+    cp -rf ./temp/client/key.pem ../../build/Certificates/mymqttcerts/mymqttcerts_client_key.pem
    
-    sudo chown -R 1999:1999 ../../build/Certificates/Certificates/mymqttcerts/ 
+    sudo chown -R 1999:1999 ../../build/Certificates/mymqttcerts/ 
     rm -rf ./temp
     return 0
 }
@@ -193,16 +203,10 @@ mqtt_certs()
 #------------------------------------------------------------------
 eii_provision()
 {
-	docker stop $(docker ps -a -q)
-    if [ -d "${eii_build_dir}/provision/" ];then
-        cp -f ${eii_build_dir}/../uwc/docker-compose_UT.yml ${eii_build_dir}/docker-compose.yml
-        cp -f ${eii_build_dir}/../uwc/eii_config_UT.json ${eii_build_dir}/provision/config/eii_config.json
-        cd "${eii_build_dir}/provision/"
-    else
-        echo "${RED}ERROR: ${eii_build_dir}/provision/ is not present.${NC}"
-        exit 1 # terminate and indicate error
-    fi
-
+	docker stop $(docker ps -a -q) -f
+	docker rm $(docker ps -a -q) -f
+    cp -f ${eii_build_dir}/../uwc/docker-compose_UT.yml ${eii_build_dir}/docker-compose.yml
+    cp -f ${eii_build_dir}/../uwc/eii_config_UT.json ${eii_build_dir}/eii_config.json
 }
 
 #------------------------------------------------------------------
@@ -217,8 +221,12 @@ eii_provision()
 #------------------------------------------------------------------
 create_sparkplug-bridge_config_file_ut()
 {
-rm -rf /opt/intel/eii/uwc_data/sparkplug-bridge/sparkplug-bridge_config.yml
-cat > /opt/intel/eii/uwc_data/sparkplug-bridge/sparkplug-bridge_config.yml << ENDOFFILE
+sp_path="/opt/intel/eii/uwc_data/sparkplug-bridge"
+rm -rf ${sp_path}/sparkplug-bridge_config.yml
+if [ ! -d "${sp_path}" ];then
+	mkdir ${sp_path}
+fi
+cat > ${sp_path}/sparkplug-bridge_config.yml << ENDOFFILE
 ---
 # sparkplug-bridge config parameter file
 
@@ -237,10 +245,10 @@ check_internet_connection
 modifying_env
 docker_verify
 docker_compose_verify
-CREAte_test_dir
+create_test_dir
 set_dev_mode "false"
-eii_provision
 create_sparkplug-bridge_config_file_ut
+eii_provision
 generate_unit_test_report
 
 echo "Generating code coverage report..."

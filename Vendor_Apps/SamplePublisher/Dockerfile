@@ -19,7 +19,7 @@
 # SOFTWARE.
 
 
-# Dockerfile for emb_publisher
+# Dockerfile for sample_publisher
 ARG EII_VERSION
 ARG DOCKER_REGISTRY
 ARG UBUNTU_IMAGE_VERSION

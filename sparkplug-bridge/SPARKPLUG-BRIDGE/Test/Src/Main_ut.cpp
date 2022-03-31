@@ -761,9 +761,16 @@ TEST_F(Main_ut, processExternalMqttMsgs_SparkPlugMessage)
 	get_next_payload(&ddata_payload);
 
 	size_t buffer_length = 128;
-	uint8_t *binary_buffer = (uint8_t *)malloc(buffer_length * sizeof(uint8_t));
+	uint8_t *binary_buffer; 
+	try{
+	binary_buffer = (uint8_t *)malloc(buffer_length * sizeof(uint8_t));
+	// check for binary_buffer
+	// if( binary_buffer == NULL )
+	// {
+	   
+	//    // terminate statement/Fail this case-Aditi	
+	// }
 	size_t message_length = encode_payload(binary_buffer, buffer_length, &ddata_payload);
-
 	mqtt::const_message_ptr msg = mqtt::make_message("spBv1.0/Sparkplug B Devices/DCMD/C Edge Node 1/A-B",
 			(char*)binary_buffer,
 			0,
@@ -780,6 +787,10 @@ TEST_F(Main_ut, processExternalMqttMsgs_SparkPlugMessage)
 
 	// Setting the value of "g_shouldStop back" to default value
 	g_shouldStop = false;
+	}catch(std::exception &ex)
+	{
+		DO_LOG_ERROR(std::string("Error:") + ex.what());
+	}
 }
 
 

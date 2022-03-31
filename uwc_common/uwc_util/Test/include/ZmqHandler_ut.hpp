@@ -28,7 +28,12 @@
 #include <map>
 #include <thread>
 #include "gtest/gtest.h"
-
+#include <eii/utils/thread_safe_queue.h>
+#include <eii/utils/config.h>
+#include <eii/utils/json_config.h>
+#include <eii/msgbus/msgbus.h>
+//eii configmgr
+#include "eii/config_manager/config_mgr.hpp"
 #include "ConfigManager.hpp"
 #include "NetworkInfo.hpp"
 #include "ZmqHandler.hpp"

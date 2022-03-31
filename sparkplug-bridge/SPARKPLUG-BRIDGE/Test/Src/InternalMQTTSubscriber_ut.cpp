@@ -128,6 +128,56 @@ TEST_F(InternalMQTTSubscriber_ut, prepareCJSONMsg)
 	EXPECT_EQ(true, result);
 }
 
+/*
+ * Test Case to check if publish_msg_to_emb is working for vendor app
+ *
+ */
+TEST_F(InternalMQTTSubscriber_ut, publish_msg_to_emb_va)
+{
+	zmq_handler::prepareCommonContext("pub");
+	std::string Msg = "[{\"name\":\"Properties/Version\",\"dataType\":\"String\",\"value\":\"100\",\"timestamp\":1649389685419}]";
+	std::string Topic = "CMD/UWC_1/COM1";
+	bool result = CIntMqttHandler::instance().publish_msg_to_emb(Msg, Topic);
+	EXPECT_EQ(true, result);
+}
+
+/*
+ * Test Case to check if publish_msg_to_emb is working for real device
+ *
+ */
+TEST_F(InternalMQTTSubscriber_ut, publish_msg_to_emb_rd_default)
+{
+	zmq_handler::set_RT_NRT("default-0");
+	std::string Msg = "{\"wellhead\":\"PL0\",\"command\":\"D2\",\"dataType\":\"Int16\",\"scaledValue\":20,\"timestamp\":\"2022-04-08 03:49:04\",\"usec\": \"1649389744700\",\"version\":\"2.0\",\"app_seq\":\"SCADA_RTU_1\"}";
+	std::string Topic = "/flowmeter/PL0/D2/write";
+	bool result = CIntMqttHandler::instance().publish_msg_to_emb(Msg, Topic);
+	EXPECT_EQ(true, result);
+}
+
+/*
+ * Test Case to check if publish_msg_to_emb is working for real device NRT
+ *
+ */
+TEST_F(InternalMQTTSubscriber_ut, publish_msg_to_emb_rd_nrt)
+{
+	zmq_handler::set_RT_NRT("flowmeter-PL0-D2-0");
+	std::string Msg = "{\"wellhead\":\"PL0\",\"command\":\"D2\",\"dataType\":\"Int16\",\"scaledValue\":20,\"timestamp\":\"2022-04-08 03:49:04\",\"usec\": \"1649389744700\",\"version\":\"2.0\",\"app_seq\":\"SCADA_RTU_1\"}";
+	std::string Topic = "/flowmeter/PL0/D2/write";
+	bool result = CIntMqttHandler::instance().publish_msg_to_emb(Msg, Topic);
+	EXPECT_EQ(true, result);
+}
+/*
+ * Test Case to check if publish_msg_to_emb is working for real device RT
+ *
+ */
+TEST_F(InternalMQTTSubscriber_ut, publish_msg_to_emb_rd_rt)
+{
+	zmq_handler::set_RT_NRT("flowmeter-PL0-D2-1");
+	std::string Msg = "{\"wellhead\":\"PL0\",\"command\":\"D2\",\"dataType\":\"Int16\",\"scaledValue\":20,\"timestamp\":\"2022-04-08 03:49:04\",\"usec\": \"1649389744700\",\"version\":\"2.0\",\"app_seq\":\"SCADA_RTU_1\"}";
+	std::string Topic = "/flowmeter/PL0/D2/write";
+	bool result = CIntMqttHandler::instance().publish_msg_to_emb(Msg, Topic);
+	EXPECT_EQ(true, result);
+}
 
 TEST_F(InternalMQTTSubscriber_ut, subscribeTopics)
 {

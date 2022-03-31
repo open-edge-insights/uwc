@@ -41,7 +41,7 @@ void Common_ut::TearDown()
  */
 TEST_F(Common_ut, getMacro_test)
 {
-	struct timespec tsMsgReceived;
+	struct timespec tsMsgReceived= {0};
 	bool result = true;
 	std::string RetVal = std::to_string(commonUtilKPI::get_micros(tsMsgReceived));
 	EXPECT_EQ(true, result);

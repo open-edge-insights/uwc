@@ -19,7 +19,7 @@
 # SOFTWARE.
 
 
-# Dockerfile for emb_subscriber
+# Dockerfile for sample_subscriber
 ARG EII_VERSION
 ARG DOCKER_REGISTRY
 ARG UBUNTU_IMAGE_VERSION

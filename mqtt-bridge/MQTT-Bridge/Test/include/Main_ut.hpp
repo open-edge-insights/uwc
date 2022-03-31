@@ -56,7 +56,7 @@ extern void signalHandler(int signal);
 extern bool addSrTopic(std::string &json, std::string& topic);
 extern void postMsgsToEII(QMgr::CQueueMgr& qMgr);
 extern bool processMsg(msg_envelope_t *msg, CMQTTPublishHandler &mqttPublisher);
-extern void processMsgToSendOnEII(CMessageObject &recvdMsg, const std::string a_sEiiTopic);
+extern void processMsgToSendOnEII(CMessageObject &recvdMsg, const bool isRealtime);
 extern void getOperation(std::string topic, globalConfig::COperation& operation);
 
 extern std::vector<std::thread> g_vThreads;;

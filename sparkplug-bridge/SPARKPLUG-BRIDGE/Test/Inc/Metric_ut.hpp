@@ -36,7 +36,7 @@ protected:
 	virtual void TearDown();
 
 
-	bool _assignToCJSON()
+	void _assignToCJSON()
 	{
 		uint32_t dtype = METRIC_DATA_TYPE_STRING;
 		std::string objVal= "xyz";
@@ -71,10 +71,11 @@ protected:
 
 		bool result =  oUDT.assignToCJSON(cjRoot, isRealDevice);
 		EXPECT_EQ(true, result);
+		
 	}
 
 
-	bool _setValObjTestDataType(org_eclipse_tahu_protobuf_Payload_Metric& a_metric)
+	void _setValObjTestDataType(org_eclipse_tahu_protobuf_Payload_Metric& a_metric)
 	{
 		CValObj obj;
 		uint32_t dtype = METRIC_DATA_TYPE_STRING;
