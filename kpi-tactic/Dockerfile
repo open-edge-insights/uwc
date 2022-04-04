@@ -28,6 +28,12 @@ LABEL description="KPI Tactic Application"
 FROM ia_common:$EII_VERSION as kpitactic
 WORKDIR /
 
+##ospdt st
+RUN apt-get update && apt-get install -y git
+RUN git clone https://github.com/daald/dpkg-licenses.git
+RUN cd dpkg-licenses && ./dpkg-licenses > /before-kpi-1.txt
+##ospdt end
+
 # copy required dependencies
 COPY KPIApp /KPIApp/. 
 COPY --from=uwc_common /usr/yaml/include/yaml-cpp /usr/local/include/yaml-cpp
@@ -50,6 +56,13 @@ RUN cd /KPIApp/Release \
     &&	export LD_LIBRARY_PATH='/KPIApp/lib:/usr/local/lib' \
     &&	make clean all -s
 
+RUN apt-get install -y vim
+
+##ospdt st
+RUN cd dpkg-licenses && ./dpkg-licenses > /after-kpi-1.txt
+RUN grep -xvFf /before-kpi-1.txt /after-kpi-1.txt > /apt_licenses_kpi-1.txt
+##ospdt end
+
 # Build KPI App container service
 FROM ubuntu:$UBUNTU_IMAGE_VERSION as runtime
 WORKDIR /
@@ -60,6 +73,13 @@ RUN mkdir -p /opt/intel/app \
 	&& mkdir -p /opt/intel/config \
 	&& mkdir -p /opt/intel/eii/uwc_data
 WORKDIR ${APP_WORK_DIR}
+
+##ospdt st
+RUN apt-get update && apt-get install -y git
+RUN git clone https://github.com/daald/dpkg-licenses.git
+RUN cd dpkg-licenses && ./dpkg-licenses > ${APP_WORK_DIR}/before-kpi-2.txt
+##ospdt end
+
 
 RUN apt update && apt install --no-install-recommends -y libcjson1 libzmq5 zlib1g && \
     rm -rf /var/lib/apt/lists/*
@@ -79,6 +99,12 @@ COPY --from=uwc_common $CMAKE_INSTALL_PREFIX/lib/*  ${APP_WORK_DIR}
 RUN chown -R ${EII_UID}:${EII_UID} /opt/intel/config \
    && chown -R ${EII_UID}:${EII_UID} ${APP_WORK_DIR} \
    && chmod -R 770 ${APP_WORK_DIR}
+
+##ospdt st
+RUN cd dpkg-licenses && ./dpkg-licenses > ${APP_WORK_DIR}/after-kpi-2.txt
+RUN grep -xvFf ${APP_WORK_DIR}/before-kpi-2.txt ${APP_WORK_DIR}/after-kpi-2.txt > ${APP_WORK_DIR}/apt_licenses_kpi-2.txt
+##ospdt end
+
 
 #set the environment variable
 ENV LD_LIBRARY_PATH ${APP_WORK_DIR}:/usr/local/lib

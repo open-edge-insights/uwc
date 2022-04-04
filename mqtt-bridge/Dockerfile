@@ -28,6 +28,12 @@ LABEL description="MQTT Bridge Application"
 FROM ia_common:$EII_VERSION as mqtt-bridge
 WORKDIR /
 
+##ospdt st
+RUN apt-get update && apt-get install -y git
+RUN git clone https://github.com/daald/dpkg-licenses.git
+RUN cd dpkg-licenses && ./dpkg-licenses > /before_mqtt-bridge-1.txt
+##ospdt end
+
 # copy required dependencies
 COPY MQTT-Bridge /MQTT-Bridge/. 
 COPY --from=uwc_common /usr/yaml/include/yaml-cpp /usr/local/include/yaml-cpp
@@ -46,14 +52,29 @@ ARG CMAKE_INSTALL_PREFIX
 COPY --from=uwc_common $CMAKE_INSTALL_PREFIX/include /usr/local/include
 COPY --from=uwc_common $CMAKE_INSTALL_PREFIX/lib /usr/local/lib
 
+RUN apt-get install -y vim
 # build sources
 RUN cd /MQTT-Bridge/Release \
     &&	export LD_LIBRARY_PATH='/MQTT-Bridge/lib:/usr/local/lib' \
     &&  export INCLUDE_DIR='/bin' \
     &&	make clean all -s
+
+##ospdt st
+RUN cd dpkg-licenses && ./dpkg-licenses > /after_mqtt-bridge-1.txt
+RUN grep -xvFf /before_mqtt-bridge-1.txt /after_mqtt-bridge-1.txt > /apt_licenses_mqtt-bridge_1.txt
+##ospdt end
+
 # Build mqtt bridge container service
 FROM ubuntu:$UBUNTU_IMAGE_VERSION as runtime
 WORKDIR /
+
+##ospdt st
+RUN apt-get update && apt-get install -y git
+RUN git clone https://github.com/daald/dpkg-licenses.git
+RUN cd dpkg-licenses && ./dpkg-licenses > /before_mqtt-bridge-2.txt
+##ospdt end
+
+
 # creating base directories
 ENV APP_WORK_DIR /opt/intel/app/
 RUN mkdir -p /opt/intel/app \
@@ -64,7 +85,21 @@ RUN mkdir -p /opt/intel/app \
 RUN apt update && apt install --no-install-recommends -y libcjson1 libzmq5 zlib1g && \
     rm -rf /var/lib/apt/lists/*
 
+##ospdt st
+RUN cd dpkg-licenses && ./dpkg-licenses > /after_mqtt-bridge-2.txt
+RUN grep -xvFf /before_mqtt-bridge-2.txt /after_mqtt-bridge-2.txt > /apt_licenses_mqtt-bridge_2.txt
+##ospdt end
+
 WORKDIR ${APP_WORK_DIR}
+
+##ospdt st
+RUN apt-get update && apt-get install -y git
+RUN git clone https://github.com/daald/dpkg-licenses.git
+RUN cd dpkg-licenses && ./dpkg-licenses > ${APP_WORK_DIR}/before_mqtt-bridge-3.txt
+##ospdt end
+
+RUN apt-get install -y vim
+
 # copy required dependencies
 COPY --from=mqtt-bridge /MQTT-Bridge/Release/MQTT_Bridge ${APP_WORK_DIR}
 COPY --from=uwc_common /usr/yaml/lib/*.so.* ${APP_WORK_DIR}
@@ -81,6 +116,11 @@ COPY --from=uwc_common $CMAKE_INSTALL_PREFIX/lib ${APP_WORK_DIR}
 RUN chown -R ${EII_UID}:${EII_UID} /opt/intel/config \
    && chown -R ${EII_UID}:${EII_UID} ${APP_WORK_DIR} \
    && chmod -R 770 ${APP_WORK_DIR}
+
+##ospdt st
+RUN cd dpkg-licenses && ./dpkg-licenses > ${APP_WORK_DIR}/after_mqtt-bridge-3.txt
+RUN grep -xvFf ${APP_WORK_DIR}/before_mqtt-bridge-3.txt ${APP_WORK_DIR}/after_mqtt-bridge-3.txt > ${APP_WORK_DIR}/apt_licenses_mqtt-bridge_3.txt
+##ospdt end
 
 #set the environment variable
 ENV LD_LIBRARY_PATH ${APP_WORK_DIR}:/usr/local/lib

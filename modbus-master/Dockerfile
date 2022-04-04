@@ -28,17 +28,36 @@ LABEL description="Modbus TCP Master Application"
 FROM ia_common:$EII_VERSION as modbus-lib
 WORKDIR /
 
+##ospdt st
+RUN apt-get update && apt-get install -y git
+RUN git clone https://github.com/daald/dpkg-licenses.git
+RUN cd dpkg-licenses && ./dpkg-licenses > /before-modbus-tcp-1.txt
+##ospdt end
+
 # compile modbus stack
 COPY modconn /modconn/.
 COPY --from=uwc_common ${CMAKE_INSTALL_PREFIX}/include /usr/local/include
 COPY --from=uwc_common ${CMAKE_INSTALL_PREFIX}/lib /usr/local/lib
+RUN apt-get install -y vim
+##ospdt st
+RUN cd dpkg-licenses && ./dpkg-licenses > /after_modbus-tcp-1.txt
+RUN grep -xvFf /before-modbus-tcp-1.txt /after_modbus-tcp-1.txt > /apt_licenses_modbus-tcp_1.txt
+##ospdt end
+
 WORKDIR modconn
+
 RUN cd Release \
     && make clean all -s
 
 # Build Modbus application
 FROM ia_common:$EII_VERSION as modbus-app
 WORKDIR /
+
+##ospdt st
+RUN apt-get update && apt-get install -y git
+RUN git clone https://github.com/daald/dpkg-licenses.git
+RUN cd dpkg-licenses && ./dpkg-licenses > /before-modbus-tcp-2.txt
+##ospdt end
 
 # Copy built library from images
 COPY --from=uwc_common /usr/yaml /bin/yaml-cpp/.
@@ -60,10 +79,22 @@ RUN cd /Modbus-App/Release \
     &&	export LD_LIBRARY_PATH='/Modbus-App/lib:/usr/local/lib:/bin/yaml-cpp/lib' \
     &&  export INCLUDE_DIR='/bin' \
     &&	make clean all -s
+RUN apt-get install -y vim
+##ospdt st
+RUN cd dpkg-licenses && ./dpkg-licenses > /after_modbus-tcp-2.txt
+RUN grep -xvFf /before-modbus-tcp-2.txt /after_modbus-tcp-2.txt > /apt_licenses_modbus-tcp_2.txt
+##ospdt end
 
 # Build Modbus container service
 FROM ubuntu:$UBUNTU_IMAGE_VERSION as runtime
 WORKDIR /
+
+##ospdt st
+RUN apt-get update && apt-get install -y git
+RUN git clone https://github.com/daald/dpkg-licenses.git
+RUN cd dpkg-licenses && ./dpkg-licenses > /before-modbus-tcp-3.txt
+##ospdt end
+
 
 # creating base directories
 ENV APP_WORK_DIR /opt/intel/app/
@@ -75,7 +106,19 @@ RUN mkdir -p /opt/intel/app \
 RUN apt update && apt install --no-install-recommends -y libcjson1 libzmq5 zlib1g && \
     rm -rf /var/lib/apt/lists/*
 
+##ospdt st
+RUN cd dpkg-licenses && ./dpkg-licenses > /after_modbus-tcp-3.txt
+RUN grep -xvFf /before-modbus-tcp-3.txt /after_modbus-tcp-3.txt > /apt_licenses_modbus-tcp_3.txt
+##ospdt end
+
 WORKDIR ${APP_WORK_DIR}
+
+##ospdt st
+RUN apt-get update && apt-get install -y git
+RUN git clone https://github.com/daald/dpkg-licenses.git
+RUN cd dpkg-licenses && ./dpkg-licenses > ${APP_WORK_DIR}/before-modbus-tcp-4.txt
+##ospdt end
+
 
 # copy required libs and includes
 ARG CMAKE_INSTALL_PREFIX
@@ -92,6 +135,12 @@ COPY --from=uwc_common $CMAKE_INSTALL_PREFIX/lib/* ${APP_WORK_DIR}
 RUN chown -R ${EII_UID}:${EII_UID} /opt/intel/config \
    && chown -R ${EII_UID}:${EII_UID} ${APP_WORK_DIR} \
    && chmod -R 770 ${APP_WORK_DIR}
+   
+RUN apt-get install -y vim
+##ospdt st
+RUN cd dpkg-licenses && ./dpkg-licenses > ${APP_WORK_DIR}/after_modbus-tcp-4.txt
+RUN grep -xvFf ${APP_WORK_DIR}/before-modbus-tcp-4.txt ${APP_WORK_DIR}/after_modbus-tcp-4.txt > ${APP_WORK_DIR}/apt_licenses_modbus-tcp_4.txt
+##ospdt end
 
 #set the environment variable
 ENV LD_LIBRARY_PATH ${APP_WORK_DIR}:/usr/local/lib

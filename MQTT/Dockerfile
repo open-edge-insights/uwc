@@ -25,10 +25,22 @@ ARG EII_UID
 ARG EII_USER_NAME
 WORKDIR /
 
+##ospdt st
+RUN apt-get update && apt-get install -y git
+RUN git clone https://github.com/daald/dpkg-licenses.git
+RUN cd dpkg-licenses && ./dpkg-licenses > /before.txt
+##ospdt end
+
 RUN apt-get update && apt-get install -y mosquitto mosquitto-clients
 RUN mkdir -p /mosquitto/config /mosquitto/data /mosquitto/log
 COPY mosquitto_prod.conf /etc/mosquitto/mosquitto_prod.conf
 COPY mosquitto_dev.conf /etc/mosquitto/mosquitto_dev.conf
+
+##ospdt st
+RUN cd dpkg-licenses && ./dpkg-licenses > /after.txt
+RUN grep -xvFf /before.txt /after.txt > /apt_licenses_mqtt_cont.txt
+##ospdt end
+
 
 COPY mqtt_broker_start.sh /
 RUN chmod +x mqtt_broker_start.sh

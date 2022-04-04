@@ -28,19 +28,39 @@ LABEL description="Modbus RTU Master Application"
 FROM ia_common:$EII_VERSION as modbus-lib
 WORKDIR /
 
+
+##ospdt st
+RUN apt-get update && apt-get install -y git
+RUN git clone https://github.com/daald/dpkg-licenses.git
+RUN cd dpkg-licenses && ./dpkg-licenses > /before-modbus-rtu-1.txt
+##ospdt end
+
 COPY modconn /modconn/.
 RUN sed -i 's/-DMODBUS_STACK_TCPIP_ENABLED//g' /modconn/Release/Src/subdir.mk 
 COPY --from=uwc_common ${CMAKE_INSTALL_PREFIX}/include /usr/local/include
 COPY --from=uwc_common ${CMAKE_INSTALL_PREFIX}/lib /usr/local/lib
+RUN apt-get install -y vim
+##ospdt st
+RUN cd dpkg-licenses && ./dpkg-licenses > /after_modbus-rtu-1.txt
+RUN grep -xvFf /before-modbus-rtu-1.txt /after_modbus-rtu-1.txt > /apt_licenses_modbus-rtu_1.txt
+##ospdt end
 
 # compile modbus stack 
 WORKDIR modconn
+
 RUN cd Release \
     && make clean all -s
 
 # Build Modbus application
 FROM ia_common:$EII_VERSION as modbus-app
 WORKDIR /
+
+##ospdt st
+RUN apt-get update && apt-get install -y git
+RUN git clone https://github.com/daald/dpkg-licenses.git
+RUN cd dpkg-licenses && ./dpkg-licenses > /before-modbus-rtu-2.txt
+##ospdt end
+
 
 # Copy built library from images
 COPY --from=uwc_common /usr/yaml /bin/yaml-cpp/.
@@ -68,9 +88,22 @@ RUN cd /Modbus-App/Release \
     &&  export INCLUDE_DIR='/bin' \
     &&	make clean all -s
 
+RUN apt-get install -y vim
+##ospdt st
+RUN cd dpkg-licenses && ./dpkg-licenses > /after_modbus-rtu-2.txt
+RUN grep -xvFf /before-modbus-rtu-2.txt /after_modbus-rtu-2.txt > /apt_licenses_modbus-rtu_2.txt
+##ospdt end
+
 # Build Modbus container service
 FROM ubuntu:$UBUNTU_IMAGE_VERSION as runtime
 WORKDIR /
+
+##ospdt st
+RUN apt-get update && apt-get install -y git
+RUN git clone https://github.com/daald/dpkg-licenses.git
+RUN cd dpkg-licenses && ./dpkg-licenses > /before-modbus-rtu-3.txt
+##ospdt end
+
 
 ENV APP_WORK_DIR /opt/intel/app/
 RUN mkdir -p /opt/intel/app \
@@ -80,7 +113,20 @@ RUN mkdir -p /opt/intel/app \
 RUN apt update && apt install --no-install-recommends -y libcjson1 libzmq5 zlib1g && \
     rm -rf /var/lib/apt/lists/*
 
+##ospdt st
+RUN cd dpkg-licenses && ./dpkg-licenses > /after_modbus-rtu-3.txt
+RUN grep -xvFf /before-modbus-rtu-3.txt /after_modbus-rtu-3.txt > /apt_licenses_modbus-rtu_3.txt
+##ospdt end
+
 WORKDIR ${APP_WORK_DIR}
+
+##ospdt st
+RUN apt-get update && apt-get install -y git
+RUN git clone https://github.com/daald/dpkg-licenses.git
+RUN cd dpkg-licenses && ./dpkg-licenses > ${APP_WORK_DIR}/before-modbus-rtu-4.txt
+##ospdt end
+
+RUN apt-get install -y vim
 ARG CMAKE_INSTALL_PREFIX
 # copy required libs and includes
 COPY --from=modbus-lib /modconn/Release/libModbusMasterStack.so ${APP_WORK_DIR}
@@ -99,6 +145,9 @@ RUN chown -R ${EII_UID}:${EII_UID} /opt/intel/config \
 
 #set the environment variable
 ENV LD_LIBRARY_PATH ${APP_WORK_DIR}:/usr/local/lib
-
+##ospdt st
+RUN cd dpkg-licenses && ./dpkg-licenses > ${APP_WORK_DIR}/after_modbus-rtu-4.txt
+RUN grep -xvFf ${APP_WORK_DIR}/before-modbus-rtu-4.txt ${APP_WORK_DIR}/after_modbus-rtu-4.txt > ${APP_WORK_DIR}/apt_licenses_modbus-rtu_4.txt
+##ospdt end
 # Run Modbus container
 CMD ./ModbusMaster

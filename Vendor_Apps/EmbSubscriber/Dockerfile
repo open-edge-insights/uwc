@@ -29,6 +29,13 @@ FROM ia_eiibase:${EII_VERSION} as builder
 LABEL description="Emb Subscriber image"
 
 WORKDIR ${GOPATH}/src/IEdgeInsights
+
+##ospdt st
+RUN apt-get update && apt-get install -y git
+RUN git clone https://github.com/daald/dpkg-licenses.git
+RUN cd dpkg-licenses && ./dpkg-licenses > ${GOPATH}/src/IEdgeInsights/before-embsub-1.txt
+##ospdt end
+RUN apt-get install -y vim
 ARG CMAKE_INSTALL_PREFIX
 ENV CMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
 COPY --from=common ${CMAKE_INSTALL_PREFIX}/include ${CMAKE_INSTALL_PREFIX}/include
@@ -53,7 +60,20 @@ ARG ARTIFACTS
 RUN mkdir $ARTIFACTS && \
     GO111MODULE=on go build -o $ARTIFACTS/subscriber ./*.go
 
+##ospdt st
+RUN cd dpkg-licenses && ./dpkg-licenses > ${GOPATH}/src/IEdgeInsights/after-embsub-1.txt
+RUN grep -xvFf ${GOPATH}/src/IEdgeInsights/before-embsub-1.txt ${GOPATH}/src/IEdgeInsights/after-embsub-1.txt > ${GOPATH}/src/IEdgeInsights/apt_licenses_embsub-1.txt
+##ospdt end
+
+
 FROM ubuntu:$UBUNTU_IMAGE_VERSION as runtime
+
+##ospdt st
+RUN apt-get update && apt-get install -y git
+RUN git clone https://github.com/daald/dpkg-licenses.git
+RUN cd dpkg-licenses && ./dpkg-licenses > /before-embsub-2.txt
+##ospdt end
+
 
 ARG ARTIFACTS
 ARG EII_UID
@@ -62,13 +82,28 @@ RUN groupadd $EII_USER_NAME -g $EII_UID && \
     useradd -r -u $EII_UID -g $EII_USER_NAME $EII_USER_NAME
 RUN apt update && apt install --no-install-recommends -y libcjson1 libzmq5 zlib1g && \
     rm -rf /var/lib/apt/lists/*
+##ospdt st
+RUN cd dpkg-licenses && ./dpkg-licenses > /after-embsub-2.txt
+RUN grep -xvFf /before-embsub-2.txt /after-embsub-2.txt > /apt_licenses_embsub-2.txt
+##ospdt end
 
 WORKDIR /app
+# ##ospdt st
+# RUN apt-get update && apt-get install -y git
+# RUN git clone https://github.com/daald/dpkg-licenses.git
+# RUN cd dpkg-licenses && ./dpkg-licenses > /app/before-embsub-3.txt
+# ##ospdt end
 
 ARG CMAKE_INSTALL_PREFIX
 ENV CMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
 COPY --from=builder ${CMAKE_INSTALL_PREFIX}/lib .local/lib
 COPY --from=builder $ARTIFACTS .
+
+# ##ospdt st
+# RUN cd dpkg-licenses && ./dpkg-licenses > /app/after-embsub-3.txt
+# RUN grep -xvFf /app/before.txt /app/after-embsub-3.txt > /app/apt_licenses_embsub-3.txt
+# ##ospdt end
+
 
 ENV LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/app/.local/lib
 HEALTHCHECK NONE

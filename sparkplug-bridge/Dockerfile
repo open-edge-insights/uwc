@@ -25,6 +25,12 @@ FROM uwc_common:$UWC_VERSION as uwc_common
 FROM ia_eiibase:$EII_VERSION as eiibase
 LABEL description="SPARKPLUG BRIDGE container"
 
+##ospdt st
+RUN apt-get update && apt-get install -y git
+RUN git clone https://github.com/daald/dpkg-licenses.git
+RUN cd dpkg-licenses && ./dpkg-licenses > /before-sp-1.txt
+##ospdt end
+
 # Build tahu library
 FROM eiibase as build-tahu
 RUN apt-get update && apt-get install -y libmosquitto-dev \
@@ -35,9 +41,22 @@ RUN apt-get update && apt-get install -y libmosquitto-dev \
     && sed -i 's/#define SPARKPLUG_DEBUG 1/\/\/#define SPARKPLUG_DEBUG 0/g' include/tahu.h \
     &&	make -s 
 
+##ospdt st
+RUN cd dpkg-licenses && ./dpkg-licenses > /after_sp-1.txt
+RUN grep -xvFf /before-sp-1.txt /after_sp-1.txt > /apt_licenses_sp_1.txt
+##ospdt end
+
 # Build SPARKPLUG-BRIDGE application
 FROM ia_common:$EII_VERSION as sparkplug-bridge
 WORKDIR /
+
+##ospdt st
+RUN apt-get update && apt-get install -y git
+RUN git clone https://github.com/daald/dpkg-licenses.git
+RUN cd dpkg-licenses && ./dpkg-licenses > /before-sp-2.txt
+##ospdt end
+
+
 ARG CMAKE_INSTALL_PREFIX
 # copy required dependencies
 COPY SPARKPLUG-BRIDGE /SPARKPLUG-BRIDGE/.
@@ -64,10 +83,23 @@ RUN cd /SPARKPLUG-BRIDGE/Release \
     &&	export LD_LIBRARY_PATH='/SPARKPLUG-BRIDGE/lib:/usr/local/lib' \
     &&  export INCLUDE_DIR='/bin' \
     &&	make clean all -s
+RUN apt-get install -y vim
+##ospdt st
+RUN cd dpkg-licenses && ./dpkg-licenses > /after_sp-2.txt
+RUN grep -xvFf /before-sp-2.txt /after_sp-2.txt > /apt_licenses_sp_2.txt
+##ospdt end
+
 
 # Build sparkplug-bridge container service
 FROM ubuntu:$UBUNTU_IMAGE_VERSION as runtime
 WORKDIR /
+
+##ospdt st
+RUN apt-get update && apt-get install -y git
+RUN git clone https://github.com/daald/dpkg-licenses.git
+RUN cd dpkg-licenses && ./dpkg-licenses > /before-sp-3.txt
+##ospdt end
+
 # creating base directories
 ENV APP_WORK_DIR /opt/intel/app/
 RUN mkdir -p /opt/intel/app \
@@ -78,7 +110,19 @@ RUN mkdir -p /opt/intel/app \
 RUN apt update && apt install --no-install-recommends -y libcjson1 libzmq5 zlib1g && \
     rm -rf /var/lib/apt/lists/*
 
+##ospdt st
+RUN cd dpkg-licenses && ./dpkg-licenses > /after_sp-3.txt
+RUN grep -xvFf /before-sp-3.txt /after_sp-3.txt > /apt_licenses_sp_3.txt
+##ospdt end
+
 WORKDIR ${APP_WORK_DIR}
+
+##ospdt st
+RUN apt-get update && apt-get install -y git
+RUN git clone https://github.com/daald/dpkg-licenses.git
+RUN cd dpkg-licenses && ./dpkg-licenses > ${APP_WORK_DIR}/before-sp-4.txt
+##ospdt end
+
 
 # copy required dependencies
 COPY --from=sparkplug-bridge /SPARKPLUG-BRIDGE/Release/SPARKPLUGBRIDGE ${APP_WORK_DIR}
@@ -101,8 +145,14 @@ RUN chown -R ${EII_UID}:${EII_UID} /opt/intel/config \
    && chown -R ${EII_UID}:${EII_UID} ${APP_WORK_DIR} \
    && chmod -R 770 ${APP_WORK_DIR}
 
+
 #set the environment variable
 ENV LD_LIBRARY_PATH ${APP_WORK_DIR}:/usr/local/lib
+RUN apt-get install -y vim
+##ospdt st
+RUN cd dpkg-licenses && ./dpkg-licenses > ${APP_WORK_DIR}/after_sp-4.txt
+RUN grep -xvFf ${APP_WORK_DIR}/before-sp-4.txt ${APP_WORK_DIR}/after_sp-4.txt > ${APP_WORK_DIR}/apt_licenses_sp_4.txt
+##ospdt end
 
 # Run the container
 CMD ./SPARKPLUGBRIDGE

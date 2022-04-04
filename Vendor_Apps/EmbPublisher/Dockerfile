@@ -29,6 +29,13 @@ FROM ia_eiibase:${EII_VERSION} as builder
 LABEL description="Emb Publisher image"
 
 WORKDIR ${GOPATH}/src/IEdgeInsights
+
+##ospdt st
+RUN apt-get update && apt-get install -y git
+RUN git clone https://github.com/daald/dpkg-licenses.git
+RUN cd dpkg-licenses && ./dpkg-licenses > ${GOPATH}/src/IEdgeInsights/before-embpub-1.txt
+##ospdt end
+RUN apt-get install -y vim
 ARG CMAKE_INSTALL_PREFIX
 ENV CMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
 COPY --from=common ${CMAKE_INSTALL_PREFIX}/include ${CMAKE_INSTALL_PREFIX}/include
@@ -53,8 +60,17 @@ ARG ARTIFACTS
 RUN mkdir $ARTIFACTS && \
     GO111MODULE=on go build -o $ARTIFACTS/pub_tool ./*.go
 RUN mv datafiles $ARTIFACTS/
+##ospdt st
+RUN cd dpkg-licenses && ./dpkg-licenses > ${GOPATH}/src/IEdgeInsights/after-embpub-1.txt
+RUN grep -xvFf ${GOPATH}/src/IEdgeInsights/before-embpub-1.txt ${GOPATH}/src/IEdgeInsights/after-embpub-1.txt > ${GOPATH}/src/IEdgeInsights/apt_licenses_embpub-1.txt
+##ospdt end
 
 FROM ubuntu:$UBUNTU_IMAGE_VERSION as runtime
+##ospdt st
+RUN apt-get update && apt-get install -y git
+RUN git clone https://github.com/daald/dpkg-licenses.git
+RUN cd dpkg-licenses && ./dpkg-licenses > /before-embpub-2.txt
+##ospdt end
 
 ARG ARTIFACTS
 ARG EII_UID
@@ -63,8 +79,17 @@ RUN groupadd $EII_USER_NAME -g $EII_UID && \
     useradd -r -u $EII_UID -g $EII_USER_NAME $EII_USER_NAME
 RUN apt update && apt install --no-install-recommends -y libcjson1 libzmq5 zlib1g && \
     rm -rf /var/lib/apt/lists/*
+##ospdt st
+RUN cd dpkg-licenses && ./dpkg-licenses > /after-embpub-2.txt
+RUN grep -xvFf /before-embpub-2.txt /after-embpub-2.txt > /apt_licenses_embpub-2.txt
+##ospdt end
 
 WORKDIR /app
+# ##ospdt st
+# RUN apt-get update && apt-get install -y git
+# RUN git clone https://github.com/daald/dpkg-licenses.git
+# RUN cd dpkg-licenses && ./dpkg-licenses > /app/before-embpub-3.txt
+# ##ospdt end
 
 ARG CMAKE_INSTALL_PREFIX
 ENV CMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
@@ -73,5 +98,11 @@ COPY --from=builder $ARTIFACTS .
 
 ENV LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/app/.local/lib
 USER $EII_USER_NAME
+
+# ##ospdt st
+# RUN cd dpkg-licenses && ./dpkg-licenses > /app/after-embpub-3.txt
+# RUN grep -xvFf /app/before-embpub-3.txt /app/after-embpub-3.txt > /app/apt_licenses_embpub-3.txt
+# ##ospdt end
+
 HEALTHCHECK NONE
 ENTRYPOINT ["./pub_tool"]
