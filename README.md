@@ -26,8 +26,8 @@
 1. [Directory details](#directory-details)
 2. [Install generic pre-requisites](#install-generic-pre-requisites)
 3. [Install UWC specific pre-requisites](#install-UWC-specific-pre-requisites)
-4. [Provision EII and UWC services](#Provision-EII-and-UWC-services)
-5. [Build and Run all EII and UWC services](#build-and-run-all-eii-and-uwc-services)
+4. [Provision and Build of EII and UWC services](#provision-and-build-of-eii-and-uwc-services)
+5. [Run all EII and UWC services](#run-all-eii-and-uwc-services)
 6. [Multi stage build](#multi-stage-build)
 7. [Verify container status](#verify-container-status)
 8. [Apply configuration changes](#apply-configuration-changes)
@@ -57,10 +57,13 @@ The directory comprises of following:
 * kpi-tactic:
   This directory contains the kpi-tactic container sources and docker file for building the container 
   For detail, please refer to `README-kpi-tactic.md` file of kpi-tactic folder
+* Vendor_Apps:
+  This directory contains the sample-publisher and sample-subscriber container sources and docker file for building the container 
+  For detail, please refer to `README-VA.md` file of Vendor_Apps folder  
 * Others:
   This directory contains configurations for ETCD required during provisioning
 * uwc_common:
-  This directory contains common dockefiles for UWC
+  This directory contains common dockerfiles for UWC
 * eii_configs:
   This directory contains the config files specific to UWC which would replace the default EII config files that come as part of cloning the ingredient EII git repos.
 * uwc_recipes:
@@ -95,31 +98,24 @@ All the below UWC specific scripts need to be run from the directory `IEdgeInsig
     $ sudo -E ./01_uwc_pre_requisites.sh
   ```
 
-## Provision EII and UWC services
-Runs the builder script enabling to choose the UWC recipe needed for the use case. Next it prompts the user to select `develeopment mode` or `production mode` & prepares the set up to run in the selected mode. Finally it does the provisioning of EII & UWC services based on the recipe & mode selected. 
+## Provision and Build of EII and UWC services
+Runs the builder script enabling to choose the UWC recipe needed for the use case. Next it prompts the user to select `develeopment mode` or `production mode` & prepares the set up to run in the selected mode.Next it prompts the user to select `pre-build images` or `build images locally` Finally it does the provisioning of EII & UWC services based on the recipe & mode selected and Builds all the micro-services of the recipe. 
+
 ```sh
     $ cd <working-dir>/IEdgeInsights/uwc/build_scripts
-    $ sudo -E ./02_provision_UWC.sh
+    $ sudo -E ./02_provision_build_UWC.sh
 ```
 Note: Above example will execute the script in interactive mode. 
 The script will run in non-interactive mode when the command line arguments are provided. The help option describes all command line arguments.
 ```sh
     $ cd <working-dir>/IEdgeInsights/uwc/build_scripts
-    $ sudo ./02_provision_UWC.sh --help
+    $ sudo ./02_provision_build_UWC.sh --help
 ```
-
-```
-Note: If user wants to run sparkplug in TLS mode then please make sure "rootca" dir is present at ../build/provision/, If not present then please run following in PROD mode or run entire 02 script for any non sparkplug recipe in PROD mode.
-
-$ cd ../build/provision
-$ sudo ./provision.sh ../docker-compose.yml --generate_certs  
-```
-
-## Build and Run all EII and UWC services
-Builds all the micro-services of the recipe & runs them as containers in background (daemon process).
+## Run all EII and UWC services
+Runs them as containers in background (daemon process).
 ```sh
   $ cd <working-dir>/IEdgeInsights/uwc/build_scripts
-  $ sudo -E ./03_Build_Run_UWC.sh 
+  $ sudo -E ./03_Run_UWC.sh 
 ```
 ## Multi stage build
 
@@ -127,7 +123,7 @@ There are two ways in which the containers can be build either by using the open
 
 Note: For usage details, Please run the following command :
 ```sh
-$ sudo ./02_provision_UWC.sh --help
+$ sudo ./02_provision_build_UWC.sh --help
 ```
 
 ## Verify container status
@@ -228,9 +224,9 @@ docker logs modbus-tcp-container > docker.log 2>&1
 ## Troubleshooting
 ```
 1. Follow Method 2 from here https://www.thegeekdiary.com/how-to-configure-docker-to-use-proxy/ to set proxy for docker.
-2. In prod mode, the "Certificates" directory in "<working-dir>/IEdgeInsights/build/provision" needs 'sudo su" to be accessed. i.e. to open Certificates folder do the following:
+2. In prod mode, the "Certificates" directory in "<working-dir>/IEdgeInsights/build" needs 'sudo su" to be accessed. i.e. to open Certificates folder do the following:
 ```sh
-  $ cd <working-dir>/IEdgeInsights/build/provision
+  $ cd <working-dir>/IEdgeInsights/build
   $ sudo su
   $ cd Certificates
   # After accessing Certificates, enter "exit" command & terminal would return back to normal mode.

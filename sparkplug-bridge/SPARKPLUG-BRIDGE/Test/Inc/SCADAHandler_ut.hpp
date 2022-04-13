@@ -76,7 +76,8 @@ protected:
 
 	bool _publishMsgDDATA(const stRefForSparkPlugAction& a_stRefAction)
 	{
-		CSCADAHandler::instance().publishMsgDDATA(a_stRefAction);
+		bool result = CSCADAHandler::instance().publishMsgDDATA(a_stRefAction);
+		return result;
 	}
 
 	void _subscribeTopics()

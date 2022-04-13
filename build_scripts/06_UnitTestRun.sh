@@ -137,9 +137,10 @@ generate_unit_test_report()
 	docker container update --pids-limit=100 --restart=on-failure:5 --cpu-shares 512 -m 1G --memory-swap -1 modbus-tcp-master-test
 	docker container update --pids-limit=100 --restart=on-failure:5 --cpu-shares 512 -m 1G --memory-swap -1 mqtt_test_container
 	docker container update --pids-limit=100 --restart=on-failure:5 --cpu-shares 512 -m 1G --memory-swap -1 modbus-rtu-master-test
-	docker ps -q --filter "name=sparkplug-bridge" | grep -q . && docker container update --pids-limit=100 --restart=on-failure:5 --cpu-shares 512 -m 1G --memory-swap -1 sparkplug-bridge-test
+	docker container update --pids-limit=100 --restart=on-failure:5 --cpu-shares 512 -m 1G --memory-swap -1 uwc-util-test
+	docker ps -q --filter "name=sparkplug-bridge-test" | grep -q . && docker container update --pids-limit=100 --restart=on-failure:5 --cpu-shares 512 -m 1G --memory-swap -1 sparkplug-bridge-test
 	# Increase pid limit for KPI to 500 for processing larger count of threads.
-	docker ps -q --filter "name=kpi-tactic-app" | grep -q . && docker container update --pids-limit=500 --restart=on-failure:5 --cpu-shares 512 -m 1G --memory-swap -1 kpi-tactic-test
+	docker ps -q --filter "name=kpi-tactic-test" | grep -q . && docker container update --pids-limit=500 --restart=on-failure:5 --cpu-shares 512 -m 1G --memory-swap -1 kpi-tactic-test
 	
     return 0
 }

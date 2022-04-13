@@ -667,9 +667,17 @@ TEST_F(Metric_ut, compareMetrics)
 	std::shared_ptr<CIfMetric> pCMetric2 = std::make_shared<CMetric>(a_sName, obj, a_timestamp1);
 	metricMapIf_t mapMetrics2;
 	mapMetrics2.emplace(a_sName, pCMetric2);
+	uint8_t res = 1;
 	std::shared_ptr<CIfMetric> pUDT= std::make_shared<CUDT>(a_sName, dtype, false, a_version);
-	pUDT->initTestData(mapMetrics2, mapMetrics2, a_sUDTDefName, a_version2, a_bIsDefinition_1);
-	uint8_t res = oUDT1.compareMetrics(pUDT);
+	if( pUDT == nullptr )
+	{
+		fprintf(stderr,"Buffer memory is not allocated");
+		res = 1;
+		//return;
+	}else{	
+		pUDT->initTestData(mapMetrics2, mapMetrics2, a_sUDTDefName, a_version2, a_bIsDefinition_1);
+		res = oUDT1.compareMetrics(pUDT);
+	}
 	EXPECT_EQ(0, res);
 	}catch(std::exception &ex)
 	{
@@ -714,10 +722,18 @@ TEST_F(Metric_ut, validate)
 	metricMapIf_t mapMetrics2;
 	mapMetrics2.emplace(a_sName, pCMetric2);
 	std::shared_ptr<CUDT> pUDT= std::make_shared<CUDT>(a_sName, dtype, false, a_version);
-	pUDT->initTestData(mapMetrics2, mapMetrics2, a_sUDTDefName, a_version2, a_bIsDefinition_1);
-	oUDT1.initTestData(mapMetrics1, mapMetrics1, a_sUDTDefName, a_version, a_bIsDefinition);
-	oUDT1.initTestRef(pUDT);
-	bool res = oUDT1.validate();
+	bool res = false;	
+	if( pUDT == nullptr )
+	{
+	    fprintf(stderr,"Buffer memory is not allocated");
+	    res = false;
+	   // return;
+	}else{	
+		pUDT->initTestData(mapMetrics2, mapMetrics2, a_sUDTDefName, a_version2, a_bIsDefinition_1);
+		oUDT1.initTestData(mapMetrics1, mapMetrics1, a_sUDTDefName, a_version, a_bIsDefinition);
+		oUDT1.initTestRef(pUDT);
+		res = oUDT1.validate();
+	}
 	EXPECT_EQ(true, res);
 	}catch(std::exception &ex)
 	{

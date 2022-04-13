@@ -240,7 +240,6 @@ services:
       DEV_MODE: ${DEV_MODE}
       no_proxy: ${eii_no_proxy}
     user: ${EII_UID}
-    # userns_mode: host
     volumes:
       - ./Certificates/mymqttcerts:/run/secrets/mymqttcerts      
       - ./Certificates/rootca:/run/secrets/rootca        
@@ -274,11 +273,12 @@ services:
         UWC_VERSION: ${UWC_VERSION}
         EII_UID: ${EII_UID}
         EII_USER_NAME: ${EII_USER_NAME}
+        CMAKE_INSTALL_PREFIX: ${EII_INSTALL_PATH}
     image: ${DOCKER_REGISTRY}mqtt-bridge-test:${UWC_VERSION}
     container_name: mqtt-bridge-test
     hostname: mqtt-bridge-test
     #read_only: true
-    #restart: unless-stopped
+    #privileged: true    
     ulimits:
       rtprio:
         soft: "99" # these are the maximum values of priorites to be used inside the container application
@@ -382,7 +382,7 @@ services:
     networks:
       - eii  
     security_opt:
-    - no-new-privileges
+      - no-new-privileges
     healthcheck:
       test: ["CMD-SHELL", "/bin/sh", "-c", "ps -C ModbusMaster >/dev/null && echo\
           \ Running || echo Not running; exit 1"]
@@ -406,7 +406,7 @@ services:
     image: ${DOCKER_REGISTRY}modbus-rtu-master-test:${UWC_VERSION}
     container_name: modbus-rtu-master-test
     hostname: modbus-rtu-master-test
-    # read_only: true
+    #read_only: true
     # restart: unless-stopped
     ulimits:
       rtprio:
@@ -448,7 +448,7 @@ services:
       - /dev:/dev
     privileged: true
     security_opt:
-    - no-new-privileges
+      - no-new-privileges
     healthcheck:
       test: ["CMD-SHELL", "/bin/sh", "-c", "ps -C ModbusMaster >/dev/null && echo\
           \ Running || echo Not running; exit 1"]
@@ -474,6 +474,7 @@ services:
     container_name: sparkplug-bridge-test
     hostname: sparkplug-bridge-test
     restart: unless-stopped
+    #read_only: true    
     ulimits:
      rtprio:
        soft: "99" # these are the maximum values of priorites to be used inside the container application
@@ -535,7 +536,7 @@ services:
     image: ${DOCKER_REGISTRY}kpi-tactic-test:${UWC_VERSION}
     container_name: kpi-tactic-test
     hostname: kpi-tactic-test
-    # read_only: true
+    #read_only: true
     # restart: unless-stopped
     ulimits:
       rtprio:
@@ -563,7 +564,7 @@ services:
       options:
         max-file: "3"
         max-size: "10m"
-    # user: ${EII_UID}
+    user: ${EII_UID}
     volumes:
     - "${EII_INSTALL_PATH}/sockets:${SOCKET_DIR}:z"
     - "${EII_INSTALL_PATH}/uwc_data:/opt/intel/eii/uwc_data:ro"
@@ -599,7 +600,9 @@ services:
     image: ${DOCKER_REGISTRY}uwc-util-test:${UWC_VERSION}
     container_name: uwc-util-test
     hostname: uwc-util-test
-    # read_only: true
+    security_opt:
+      - no-new-privileges    
+    #read_only: true
     ulimits:
      rtprio:
        soft: "99" # these are the maximum values of priorites to be used inside the container application
@@ -612,8 +615,11 @@ services:
       ETCD_PREFIX: ${ETCD_PREFIX}
       no_proxy: ${eii_no_proxy},${ETCD_HOST}
       CertType: "zmq"
-    #user: ${EII_UID}  
+    user: ${EII_UID}  
     #privileged: true
+    healthcheck:
+      test: ["CMD-SHELL", "exit", "0"]
+      interval: 5m   
     networks:
       - eii
     volumes:
