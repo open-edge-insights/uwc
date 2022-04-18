@@ -673,7 +673,6 @@ TEST_F(Metric_ut, compareMetrics)
 	{
 		fprintf(stderr,"Buffer memory is not allocated");
 		res = 1;
-		//return;
 	}else{	
 		pUDT->initTestData(mapMetrics2, mapMetrics2, a_sUDTDefName, a_version2, a_bIsDefinition_1);
 		res = oUDT1.compareMetrics(pUDT);
@@ -727,7 +726,6 @@ TEST_F(Metric_ut, validate)
 	{
 	    fprintf(stderr,"Buffer memory is not allocated");
 	    res = false;
-	   // return;
 	}else{	
 		pUDT->initTestData(mapMetrics2, mapMetrics2, a_sUDTDefName, a_version2, a_bIsDefinition_1);
 		oUDT1.initTestData(mapMetrics1, mapMetrics1, a_sUDTDefName, a_version, a_bIsDefinition);
