@@ -57,13 +57,14 @@ modifying_env()
 	result=`grep -Fi 'env for UWC' ../../build/.env`
 	if [ -z "${result}" ]; then
 	    cat ../.env >> ../../build/.env
-       
+		    
 	fi
     result=`grep -F 'uwc/'  ../../.gitignore`
 	if [ -z "${result}" ]; then
 	    sed -i '$a uwc/' ../../.gitignore
-	fi	
-  
+	fi
+	cd ${eii_build_dir}	
+    source ./.env
 }
 
 set_dev_mode()
