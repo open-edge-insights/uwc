@@ -58,6 +58,7 @@ Section to describe all directory contents and it's uses.
 	12. `sonar-project.properties` - This file is required for Softdel CICD process for sonar qube analysis
 2. `Dockerfile` - Dockerfile to build sparkplug-bridge container.
 3. `Dockerfile_UT` - Dockerfile to build unit test container for sparkplug-bridge sources testing.
+4. `config.json` - Ingredient config.json for sparkplug-bridge micro service.
 
 # Pre-requisites Installation
 For compiling sparkplug-bridge container sources on machine without container, following pre-requisites needs to installed on machine,
