@@ -88,33 +88,20 @@ uwc_services_build()
     cd "${eii_build_dir}"  
     if [[ $preBuild == "true" ]]; then
         echo "Using pre-build images for building"
-	# Checking if ia_telegraf is part of the recipe use case selected.
-        is_ia_telegraf_present=`grep "ia_telegraf" "docker-compose-build.yml"`
-        if [ ! -z "$is_ia_telegraf_present" ]; then
-	# Checking if emb_publisher is part of the recipe use case selected
-            is_emb_publisher_present=`grep "emb_publisher" "docker-compose-build.yml"`
-            if [[ ! -z "$is_emb_publisher_present" ]]  && [[ "${emb_sample_modules}" -eq "1" ]]; then
-                docker-compose -f docker-compose-build.yml build ia_eiibase ia_common ia_telegraf emb_publisher 
-                if [ "$?" -eq "0" ];then
+    	# Checking if emb_publisher is part of the recipe use case selected
+        is_emb_publisher_present=`grep "emb_publisher" "docker-compose-build.yml"`
+        if [[ ! -z "$is_emb_publisher_present" ]]  && [[ "${emb_sample_modules}" -eq "1" ]]; then
+            docker-compose -f docker-compose-build.yml build ia_eiibase ia_common emb_publisher  
+            if [ "$?" -eq "0" ];then
 	            echo "*****************************************************************"
-                    echo "${GREEN}UWC containers built successfully.${NC}"
-                else
-                    echo "${RED}Failed to built  UWC containers.${NC}"
+                echo "${GREEN}UWC containers built successfully.${NC}"
+            else
+                echo "${RED}Failed to built  UWC containers.${NC}"
 	            echo "*****************************************************************"
-                    exit 1
-                fi
-            else 
-                docker-compose -f docker-compose-build.yml build ia_eiibase ia_common ia_telegraf 
-                if [ "$?" -eq "0" ];then
-	            echo "*****************************************************************"
-                    echo "${GREEN}UWC containers built successfully.${NC}"
-                else
-                    echo "${RED}Failed to built  UWC containers.${NC}"
-	            echo "*****************************************************************"
-                    exit 1
-                fi                    
-            fi  
-        fi     
+                exit 1
+            fi
+        fi
+   
         docker-compose up -d ia_configmgr_agent
 	sleep 30
         if [ "$?" -eq "0" ];then
