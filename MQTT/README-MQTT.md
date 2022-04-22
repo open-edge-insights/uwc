@@ -22,14 +22,15 @@
 
 This directory contains files to install the MQTT container.
 
-# Contents:
+# Contents
 
 1. [Directory and file details](#All-internal-directory-file-details)
 
 2. [Steps to set mosquitto version](#Steps-to-set-mosquitto-version-dev-or-prod)
 
 
-# Directory and file details
+## Directory and file details
+
 The follwing are the details of the directory contents and its uses:
 
 1. `Dockerfile` - Dockerfile to install mosquitto brocker inside MQTT container.
