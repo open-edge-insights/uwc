@@ -53,19 +53,6 @@ TEST_F(CConfigManager_ut, getInstance)
 	EXPECT_EQ(typeid(CfgManager), typeid(CfgManager::Instance()));
 }
 
-// /**Tests for CfgManager::Instance() client creation **/
-// TEST_F(CConfigManager_ut, IsClientCreated_CriticalDataInitialised)
-// {
-// 	stUWCComnDataVal_t UWCDataToLib;
-// 	UWCDataToLib.m_devMode = true;
-// 	UWCDataToLib.m_sAppName = "uwc-util";
-// 	UWCDataToLib.m_isCommonDataInitialised = true;
-
-// 	CcommonEnvManager::Instance().ShareToLibUwcCmnData(UWCDataToLib);
-
-// 	EXPECT_TRUE(CfgManager::Instance().IsClientCreated());
-// }
-
 
 /**Test for globalConfig::display_sched_attr()**/
 TEST_F(CConfigManager_ut, display_sched_attr_test)
