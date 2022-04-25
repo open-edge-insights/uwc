@@ -20,26 +20,27 @@
 # SOFTWARE.
 ```
 
-MQTT-Bridge containers sources details and build and Run instructions
+This document provides details for MQTT-Bridge containers sources details and build and run instructions.
 
-# Contents:
+# Contents
 
-1. [Directory and file details](#All-internal-directory-file-details)
+1. [Directory and file details](#directory-and-file-details)
 
-2. [Pre-requisites](#Pre-requisites-Installation)
+2. [Prerequisites Installation](#prerequisites-installation)
 
-3. [Steps to compile MQTT-Bridge](#Steps-to-compile-MQTT-Bridge)
+3. [Steps to Compile MQTT-Bridge](#steps-to-compile-mqtt-bridge)
 
-4. [Steps to run MQTT-Bridge executable on machine](#Steps-to-run-MQTT-Bridge-executable-on-machine)
+4. [Steps to run MQTT-Bridge executable on machine](#steps-to-run-mqtt-bridge-executable-on-machine)
 
-5. [Steps to deploy sources inside container](#Steps-to-deploy-sources-inside-container)
+5. [Steps to deploy sources inside container](#steps-to-deploy-sources-inside-container)
 
-6. [Steps to run unit test cases](#Steps-to-run-unit-testcases)
+6. [Steps to run unit test cases](#steps-to-run-unit-test-cases)
 
-7. [Steps to enable/disable instrumentation logs](#Steps-to-enable/disable-instrumentation-logs)
+7. [Steps to enable or disable instrumentation logs](#steps-to-enable-or-disable-instrumentation-logs)
 
-# Directory and file details
-Section to describe all directory contents and it's uses.
+# Directory and File Details
+
+This section describes the directory contents and their uses.
 
 1. MQTT-Bridge - This directory contains sources for MQTT-Bridge implementation 
 	1. `.settings` - Eclipse project configuration files
@@ -59,7 +60,7 @@ Section to describe all directory contents and it's uses.
 4. docker-compose.yml -- Ingredient docker-compose.yml for mqtt-bridge micro service.
 5. config.json - Ingredient config.json for mqtt-bridge micro service.
 
-# Pre-requisites Installation
+# Prerequisites Installation
 
 For compiling MQTT-Bridge sources on machine without container, following pre-requisites needs to installed on machine,
 1. Install make and cmake
@@ -73,34 +74,35 @@ For compiling MQTT-Bridge sources on machine without container, following pre-re
 9. Install ssl (https://www.openssl.org/source/openssl-1.1.1g.tar.gz) libraries on host under /usr/local/ directory.
 10. Install uwc_common library refering to `README_UWC_Common.md` of `uwc_common` and copy `uwc_common/uwc_util/lib/libuwc-common.so` and 'uwc_common/uwc_util/include' (.hpp) in `Sourcecode\mqtt-bridge\MQTT-Bridge\lib` and `Sourcecode\mqtt-bridge\MQTT-Bridge\include` directory respectively.
 
-# Steps to compile MQTT-Bridge
+# Steps to Compile MQTT-Bridge
 
 1. Go to `Sourcecode\mqtt-bridge\MQTT-Bridge\Release` directory and open a terminal.
 2. Execute `$make clean all` command.
 3. After successful execution of step 2, application executable (with name `MQTT_Bridge`) must be generated in current directory (i.e. Release).
 
-Notes : Above instructions are specified to build the sources in "Release" mode. To build sources in "Debug" mode, please execute the same steps in "Debug" folder inside `Sourcecode\mqtt-bridge\` folder.
+**Notes:** Above instructions are specified to build the sources in "Release" mode. To build sources in "Debug" mode, please execute the same steps in "Debug" folder inside `Sourcecode\mqtt-bridge\` folder.
 
-# Steps to run MQTT-Bridge executable on machine
+# Steps to Run MQTT-Bridge Executable on Machine
 1. Deploy ia_etcd container with dev mode using following steps. 
-	1. Run `01_uwc_pre_requisites.sh` script as explained in the main uwc/README.md.
-	2. Run the provisioning command script to deploy ia_etcd container as explainedin main uwc/README.md.
+	a. Run `01_uwc_pre_requisites.sh` script as explained in the main uwc/README.md.
+	b. Run the provisioning command script to deploy ia_etcd container as explainedin main uwc/README.md.
 2. Go to `Sourcecode\mqtt-bridge\MQTT-Bridge\Release` directory and open bash terminal.
 3. Set EII specific environment variables using below command.
 	`source <Complete Path of .env file present inside IEdgeInsights/build directory>`
-	For example `source /home/intel/uwc-releases/IEdgeInsights/build/.env`
-4. Export all environment variables required for mqtt-bridge-test container. Refer environment section from mqtt-bridge-test service present inside docker-compose.yml of mqtt-bridge service file (E.g. `export AppName="MQTT-Bridge"` for exporting AppName variable likewise all other variables needed to be exported in the same terminal). 
+	For example, `source /home/intel/uwc-releases/IEdgeInsights/build/.env`
+4. Export all environment variables required for mqtt-bridge-test container. Refer to the environment section from mqtt-bridge-test service present inside docker-compose.yml of mqtt-bridge service file (E.g. `export AppName="MQTT-Bridge"` for exporting AppName variable likewise all other variables needed to be exported in the same terminal). 
 5. After successful compilation, run the application binary with following command,
 	`./MQTT_Bridge`
 
-# Steps to deploy sources inside container
-Kindly Refer UWC user guide for container deployments
+# Steps to Deploy Sources Inside Container
 
-# Steps to run unit test cases
+Refer to the Universal Wellpad Controller user guide for container deployments.
+
+# Steps to Run Unit Test Cases
 1. Pre-requisites Installation for unit test execution
     1. Install latest version of "gcovr" tool for coverage report generation by using command "pip install gcovr".
     2. Install gtest (wget https://github.com/google/googletest/archive/release-1.8.0.tar.gz) libraries on host under /usr/local/ directory.
-    3. All other Pre-requisites to be installed mentioned in section # Pre-requisites Installation
+    3. All other prerequisites to be installed mentioned in section # Prerequisites Installation
 2. Follow same steps mentioned in section # Steps to compile MQTT-Bridge, step 1 to step 3, but in "Build.test" directory of `Sourcecode\mqtt-bridge\MQTT-Bridge` instead of "release" directory.
 3. Run unit test cases
     1. Go to `Sourcecode\mqtt-bridge\MQTT-Bridge\Build.test` directory and open bash terminal.
@@ -115,13 +117,13 @@ Kindly Refer UWC user guide for container deployments
     3. After successful execution of step 2, unit test coverage report file `MQTT-Bridge_Report.html` must be generated.
 
 
-Notes : Above steps are to run KPIApp unit test locally. In order to run unit test in container, please follow the steps mentioned in section `## Steps to run unit test cases` of file `README.md` in Sourcecode directory. 
+**Notes:** Above steps are to run KPIApp unit test locally. In order to run unit test in container, please follow the steps mentioned in section `## Steps to run unit test cases` of file `README.md` in Sourcecode directory. 
 
-#Steps to enable/disable instrumentation logs
-1. By default the instrumentation logs are enabled for debug mode & disabled for release mode. 
-2. Go to `Sourcecode\mqtt-bridge\MQTT-Bridge\Release\src` directory and open subdir.mk file.
-3. To enable the instrumentation logs, go to g++ command at line number 39 & add the option "-DINSTRUMENTATION_LOG".
-4. To disable the instrumentation logs,go to g++ command at line number 39 check & remove the option "-DINSTRUMENTATION_LOG" if found.
+## Steps to Enable or Disable Instrumentation Logs
 
+By default, the instrumentation logs are enabled for debug mode & disabled for release mode. 
 
+1. Go to `Sourcecode\mqtt-bridge\MQTT-Bridge\Release\src` directory and open the subdir.mk file. Do one of the following"
+	* To enable the instrumentation logs, go to g++ command at line number 39 & add the option "-DINSTRUMENTATION_LOG".
+	* To disable the instrumentation logs, go to g++ command at line number 39 check & remove the option "-DINSTRUMENTATION_LOG" if found.
 
