@@ -20,9 +20,9 @@
 * SOFTWARE.
 ```
 
-This directory contains files to install MQTT container.
+This directory contains files to install the MQTT container.
 
-# Contents:
+# Contents
 
 1. [Directory and file details](#All-internal-directory-file-details)
 
@@ -30,7 +30,8 @@ This directory contains files to install MQTT container.
 
 
 # Directory and file details
-This section describes all directory contents and its uses.
+
+The following are the details of the directory contents and its uses:
 
 1. `Dockerfile` - Dockerfile to install mosquitto brocker inside MQTT container.
 2. `mosquitto_dev.conf` - Mosquitto configuration file for eii IPC_DEV mode.
