@@ -144,3 +144,5 @@ Refer to the Universal Wellpad Controller User Guide for information related to 
 ## Troubleshooting
 
 If KPI-App is seen crashing, container restarting or AnalysisKPI logs not getting generated after building the Universal Wellpad Controller containers then to troubleshoot step run the 05_applyConfigChanges.sh, which would bring the containers down & up.
+
+All GPL/LGPL/AGPL & Eclipse distribution license binary distributed components source code will be distributed via separate docker image ia_edgeinsights_uwc_src hosted in https://hub.docker.com/u/openedgeinsights. And the corresponding Docker file is present in "uwc/licenses_dir" folder.
