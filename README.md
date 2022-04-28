@@ -251,4 +251,6 @@ Refer to the following for troubleshooting:
 * If the KPI-Tactic application is seen crashing, container restarting, or the AnalysisKPI.log files is not getting generated after building the Universal Wellpad Controller containers then run the 05_applyConfigChanges.sh. This will bring the containers down and up.
 * The steps to find and patch RT kernel for the Ubuntu 20.04 is in the [User Guide](https://open-edge-insights.github.io/uwc-docs/Pages/page_14.html).
 
+The user guide of UWC can be accessed at https://open-edge-insights.github.io/uwc-docs/
+
 All GPL/LGPL/AGPL & Eclipse distribution license binary distributed components source code will be distributed via separate docker image ia_edgeinsights_uwc_src hosted in https://hub.docker.com/u/openedgeinsights. And the corresponding Docker file is present in "uwc/licenses/Dockerfile-sources/" folder.
