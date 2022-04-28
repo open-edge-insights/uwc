@@ -175,4 +175,4 @@ Follow the below steps to publish a JSON payload using SamplePublisher :
 
 
 
-
+All GPL/LGPL/AGPL & Eclipse distribution license binary distributed components source code will be distributed via separate docker image ia_edgeinsights_uwc_src hosted in https://hub.docker.com/u/openedgeinsights. And the corresponding Docker file is present in "uwc/licenses_dir" folder.

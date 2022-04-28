@@ -36,3 +36,6 @@ The following are the details of the directory contents and its uses:
 1. `Dockerfile` - Dockerfile to install mosquitto brocker inside MQTT container.
 2. `mosquitto_dev.conf` - Mosquitto configuration file for eii IPC_DEV mode.
 3. `mosquitto_prod.conf` - Mosquitto configuration file for eii IPC_PROD mode.
+
+All GPL/LGPL/AGPL & Eclipse distribution license binary distributed components source code will be distributed via separate docker image ia_edgeinsights_uwc_src hosted in https://hub.docker.com/u/openedgeinsights. And the corresponding Docker file is present in "uwc/licenses_dir" folder.
+
