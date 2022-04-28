@@ -111,4 +111,4 @@ Refer to the [UWC user guide](https://open-edge-insights.github.io/uwc-docs/) fo
 5. Run unit test cases inside container
 	1. Follow the steps mentioned in section `## Steps to run unit test cases` of file `README.md` in the Sourcecode directory.
 
-All GPL/LGPL/AGPL & Eclipse distribution license binary distributed components source code will be distributed via separate docker image ia_edgeinsights_uwc_src hosted in https://hub.docker.com/u/openedgeinsights. And the corresponding Docker file is present in "uwc/licenses_dir" folder.
+All GPL/LGPL/AGPL & Eclipse distribution license binary distributed components source code will be distributed via separate docker image ia_edgeinsights_uwc_src hosted in https://hub.docker.com/u/openedgeinsights. And the corresponding Docker file is present in "uwc/licenses/Dockerfile-sources/" folder.

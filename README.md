@@ -28,7 +28,7 @@
 3. [Install Prerequisites for Universal Wellpad Controller](#install-prerequisites-for-universal-wellpad-controller)
 4. [Provision and Build of the Edge Insights for Industrial and Universal Wellpad Controller services](#provision-and-build-of-the-edge-insights-for-industrial-and-universal-wellpad-controller-services)
 5. [Run Edge Insights for Industrial and Universal Wellpad Controller services](#run-edge-insights-for-industrial-and-universal-wellpad-controller-services)
-6. [Multistage build](#multi-stage-build)
+6. [Docker registry and local build ](#docker-registry-and-local-build)
 7. [Verify container status](#verify-container-status)
 8. [Apply configuration changes](#apply-configuration-changes)
 9. [Uninstallation script](#uninstallation-script)
@@ -42,7 +42,7 @@
 
 The uwc directory consists of the following:
 
-* modbus-master: This directory contains the modbus TCP1 and RTU1 containers sources and docker file for building the container. It also has the ingredient docker-compose.yml and config.json for modbus TCP & RTU services. For details, refer to the `README-modbus-master.md` file of modbus-master folder.
+* modbus-master: This directory contains the modbus TCP and RTU containers sources and docker file for building the container. It also has the ingredient docker-compose.yml and config.json for modbus TCP & RTU services. For details, refer to the `README-modbus-master.md` file of modbus-master folder.
 * mqtt-bridge: This directory contains the mqtt-bridge container sources and docker file for building the container. It also has the ingredient docker-compose.yml and config.json for mqtt-bridge service. For details, refer to the `README-mqtt-bridge.md` file of mqtt-bridge folder.
 * MQTT: This directory contains the mqtt container sources and docker file for building the container. It also has the ingredient docker-compose.yml and config.json for MQTT internal broker service. For details, refer to the `README-MQTT.md` file in the MQTT folder.
 * sparkplug-bridge: This directory contains the sparkplug-bridge sources and docker file for building the container. It also has the ingredient docker-compose.yml and config.json for SPARKPLUG-BRIDGE service. For details, refer to the `README_sparkplug_bridge.md` file in the sparkplug-bridge folder.
@@ -113,7 +113,7 @@ The script runs the Edge Insights for Industrial (EII) and Universal Wellpad Con
   sudo -E ./03_Run_UWC.sh 
 ```
 
-## Multistage Build
+## Docker registry and local build
 
 There are two ways in which the containers can be built either by using the opensource pre-build images as present in [openedgeinsights](https://hub.docker.com/u/openedgeinsights) or by building images locally. 
 
@@ -153,7 +153,7 @@ Using the uninstallation script, you can uninstall and remove the Universal Well
 
 ## Data Persistence Feature
  
-The Data Persistence feature in Universal Wellpad Controller enables the user to save the response JSON received from the end device (or simulator) regarding the data points in database (InfluxDB). The response received in JSON format is converted to metrics inside the Telegraf* microservice before passing the data to InfluxDB for storage. The data can be stored in the database by adding a field called "dataPersist" in the data points YML configuration files (flowmeter_datapoints.yml or iou_datapoints.yml). The possible values for this include "true" or "false" (Boolean values). Data is stored in the database if the dataPersist field value is true and not stored if the value is false. Also, if the field "dataPersist" is skipped, then the datapoint is not stored.
+The Data Persistence feature in Universal Wellpad Controller enables the user to save the content of the response JSON received from the end device (or simulator) regarding the data points in database (InfluxDB). The response received in JSON format is converted to metrics inside the Telegraf* microservice before passing the data to InfluxDB for storage. The data can be stored in the database by adding a field called "dataPersist" in the data points YML configuration files (flowmeter_datapoints.yml or iou_datapoints.yml). The possible values for this include "true" or "false" (Boolean values). Data is stored in the database if the dataPersist field value is true and not stored if the value is false. Also, if the field "dataPersist" is skipped, then the datapoint is not stored.
 
  **Notes:**
  * Any string value in the JSON response payload which is published to Telegraf* should have all the string fields listed in the Telegraf configuration file for enabling the metrics convertion feature of Telegraf* to take effect. 
@@ -251,4 +251,4 @@ Refer to the following for troubleshooting:
 * If the KPI-Tactic application is seen crashing, container restarting, or the AnalysisKPI.log files is not getting generated after building the Universal Wellpad Controller containers then run the 05_applyConfigChanges.sh. This will bring the containers down and up.
 * The steps to find and patch RT kernel for the Ubuntu 20.04 is in the [User Guide](https://open-edge-insights.github.io/uwc-docs/Pages/page_14.html).
 
-All GPL/LGPL/AGPL & Eclipse distribution license binary distributed components source code will be distributed via separate docker image ia_edgeinsights_uwc_src hosted in https://hub.docker.com/u/openedgeinsights. And the corresponding Docker file is present in "uwc/licenses_dir" folder.
+All GPL/LGPL/AGPL & Eclipse distribution license binary distributed components source code will be distributed via separate docker image ia_edgeinsights_uwc_src hosted in https://hub.docker.com/u/openedgeinsights. And the corresponding Docker file is present in "uwc/licenses/Dockerfile-sources/" folder.

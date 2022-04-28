@@ -117,5 +117,5 @@ Refer to the [Universal Wellpad Controller User Guide](https://open-edge-insight
 
 **Notes:** When unit test is executed locally (not inside container), two test cases fail and coverage is 10% less. This is because cert files paths which are mentioned in constructor of class CSCADAHandler in SCADAHandler.cpp are untraceable.
 
-All GPL/LGPL/AGPL & Eclipse distribution license binary distributed components source code will be distributed via separate docker image ia_edgeinsights_uwc_src hosted in https://hub.docker.com/u/openedgeinsights. And the corresponding Docker file is present in "uwc/licenses_dir" folder.
+All GPL/LGPL/AGPL & Eclipse distribution license binary distributed components source code will be distributed via separate docker image ia_edgeinsights_uwc_src hosted in https://hub.docker.com/u/openedgeinsights. And the corresponding Docker file is present in "uwc/licenses/Dockerfile-sources/" folder.
 
