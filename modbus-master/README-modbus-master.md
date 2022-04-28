@@ -168,5 +168,5 @@ By default, the instrumentation logs are enabled for debug mode and disabled for
 3. To enable the instrumentation logs, go to g++ command at line number 41 and add the option "-DINSTRUMENTATION_LOG".
 4. To disable the instrumentation logs, go to g++ command at line number 41 check and remove the option "-DINSTRUMENTATION_LOG" (if found).
 
-All GPL/LGPL/AGPL & Eclipse distribution license binary distributed components source code will be distributed via separate docker image ia_edgeinsights_uwc_src hosted in https://hub.docker.com/u/openedgeinsights. And the corresponding Docker file is present in "uwc/licenses_dir" folder.
+All GPL/LGPL/AGPL & Eclipse distribution license binary distributed components source code will be distributed via separate docker image ia_edgeinsights_uwc_src hosted in https://hub.docker.com/u/openedgeinsights. And the corresponding Docker file is present in "uwc/licenses/Dockerfile-sources/" folder.
 
